@@ -30,7 +30,7 @@ public final class StaminaRuntimeService {
     }
 
     private static void tickPlayer(ServerPlayer player, StaminaRuntimeBridge runtime) {
-        if (!runtime.available(player)) return;
+        if (!player.isAlive() || !runtime.available(player)) return;
         StaminaRuntimeState state = state(player);
         if (state.regenBlocked() || runtime.actionBlocksRegen(player)) return;
 
