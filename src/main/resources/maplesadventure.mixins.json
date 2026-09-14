@@ -13,14 +13,15 @@
     "MobPhaseItemPickupMixin",
     "HopperBlockEntityPhaseMixin",
     "BonfiresRestPhaseResetMixin",
-    "BonfiresLightPhaseResetMixin"
-    ,"EpicFightDodgeMovementMixin"
-    ,"EpicFightDodgeSkillChangeMixin"
-    ,"EpicFightDodgeSlotOwnershipMixin"
-    ,"EncumbranceSprintMixin"
-    ,"IronsSchoolPowerAccessor"
-    ,"EpicFightWeaponRequirementMixin"
-    ,"ProjectileWeaponRequirementMixin"
+    "BonfiresLightPhaseResetMixin",
+    "EpicFightDodgeMovementMixin",
+    "EpicFightDodgeSkillChangeMixin",
+    "EpicFightDodgeSlotOwnershipMixin",
+    "EpicFightNativeStaminaRegenMixin",
+    "EncumbranceSprintMixin",
+    "IronsSchoolPowerAccessor",
+    "EpicFightWeaponRequirementMixin",
+    "ProjectileWeaponRequirementMixin"
   ],
   "injectors": {
     "defaultRequire": 1
