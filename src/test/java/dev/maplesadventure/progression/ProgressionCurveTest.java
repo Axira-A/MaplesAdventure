@@ -37,11 +37,12 @@ class ProgressionCurveTest {
         assertEquals(350.0D, DerivedStatCalculator.mana(60), 0.0001D);
         assertEquals(398.75D, DerivedStatCalculator.mana(99), 0.0001D);
 
+        // END is normalized against Elden Ring END 10..99 and divided by the 4.8 stamina scale.
         assertEquals(20.0D, DerivedStatCalculator.stamina(5), 0.0001D);
-        assertEquals(32.0D, DerivedStatCalculator.stamina(20), 0.0001D);
-        assertEquals(42.0D, DerivedStatCalculator.stamina(40), 0.0001D);
-        assertEquals(47.0D, DerivedStatCalculator.stamina(60), 0.0001D);
-        assertEquals(50.12D, DerivedStatCalculator.stamina(99), 0.0001D);
+        assertEquals(25.0421099291D, DerivedStatCalculator.stamina(20), 0.0001D);
+        assertEquals(30.4454787234D, DerivedStatCalculator.stamina(40), 0.0001D);
+        assertEquals(32.9166666667D, DerivedStatCalculator.stamina(60), 0.0001D);
+        assertEquals(35.4166666667D, DerivedStatCalculator.stamina(99), 0.0001D);
     }
 
     @Test
