@@ -9,6 +9,7 @@ import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import dev.maplesadventure.progression.runtime.DerivedStatRefreshReason;
 import dev.maplesadventure.progression.runtime.DerivedStatRuntimeService;
 import dev.maplesadventure.progression.encumbrance.EncumbranceRuntimeService;
+import dev.maplesadventure.progression.stamina.StaminaRuntimeService;
 
 /** Event-driven persistence verification and local-player synchronization. */
 public final class ProgressionEvents {
@@ -72,6 +73,7 @@ public final class ProgressionEvents {
         }
         PlayerAttributeService.forget(event.getEntity().getUUID());
         EncumbranceRuntimeService.forget(event.getEntity().getUUID());
+        StaminaRuntimeService.forget(event.getEntity().getUUID());
     }
 
     @SubscribeEvent
@@ -80,11 +82,14 @@ public final class ProgressionEvents {
         DerivedStatRuntimeService.clearTransientState();
         UpgradeAccessService.clear();
         EncumbranceRuntimeService.clear();
+        StaminaRuntimeService.clear();
     }
 
     @SubscribeEvent
     public void onTick(net.neoforged.neoforge.event.tick.ServerTickEvent.Post event) {
         EncumbranceRuntimeService.tick(event.getServer());
+        // Run after encumbrance so Epic Fight STAMINA_REGEN already contains the current load modifier.
+        StaminaRuntimeService.tick(event.getServer());
         if (event.getServer().getTickCount() % 20 == 0) UpgradeAccessService.tick();
     }
 
@@ -97,7 +102,10 @@ public final class ProgressionEvents {
 
     @SubscribeEvent
     public void onDeath(net.neoforged.neoforge.event.entity.living.LivingDeathEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) UpgradeAccessService.close(player);
+        if (event.getEntity() instanceof ServerPlayer player) {
+            UpgradeAccessService.close(player);
+            StaminaRuntimeService.reset(player, false);
+        }
     }
 
     private static void deferredRefresh(ServerPlayer player, DerivedStatRefreshReason reason) {
@@ -107,6 +115,8 @@ public final class ProgressionEvents {
             if (player.connection == null || player.isRemoved()) return;
             DerivedStatRuntimeService.refresh(player, reason);
             EncumbranceRuntimeService.refresh(player);
+            if (reason == DerivedStatRefreshReason.RESPAWN) StaminaRuntimeService.reset(player, true);
+            else StaminaRuntimeService.state(player);
             AttributeSyncService.sync(player);
         });
     }
