@@ -1,8 +1,9 @@
 package dev.maplesadventure.progression;
 
 import static dev.maplesadventure.progression.ProgressionCurve.Segment;
+import dev.maplesadventure.progression.stamina.StaminaPolicy;
 
-/** Pure previews only; no third-party attributes are modified in Round 1. */
+/** Pure derived-stat formulas shared by previews and runtime adapters. */
 public final class DerivedStatCalculator {
     public static double maxHealth(int vigor) {
         return ProgressionCurve.piecewise(vigor, 20.0D,
@@ -16,10 +17,9 @@ public final class DerivedStatCalculator {
                 new Segment(60, 3.00D), new Segment(99, 1.25D));
     }
 
+    /** Maples END 5 is the white-box baseline and maps to Elden Ring END 10 / 96 stamina. */
     public static double stamina(int endurance) {
-        return ProgressionCurve.piecewise(endurance, 20.0D,
-                new Segment(20, 0.80D), new Segment(40, 0.50D),
-                new Segment(60, 0.25D), new Segment(99, 0.08D));
+        return StaminaPolicy.maxStamina(endurance);
     }
 
     private DerivedStatCalculator() {}
