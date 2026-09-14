@@ -16,19 +16,19 @@ public record EncumbranceProfile(double movementMultiplier, double staminaRegenM
     }
 
     public static EncumbranceProfile forTier(EquipLoadTier tier) {
+        // Stamina action costs are deliberately load-independent. Load affects movement, dodge quality and regen.
         return switch (tier) {
             case LIGHT -> new EncumbranceProfile(1.0D + EquipLoadConfig.lightMovementBonus(),
                     EquipLoadConfig.lightStaminaRegenMultiplier(),
-                    EquipLoadConfig.lightStaminaCostMultiplier(), DodgeMode.STEP, 1.0D, true, true);
+                    1.0D, DodgeMode.STEP, 1.0D, true, true);
             case NORMAL -> new EncumbranceProfile(1.0D, 1.0D, 1.0D,
                     DodgeMode.ROLL, 1.0D, true, true);
             case HEAVY -> new EncumbranceProfile(1.0D - EquipLoadConfig.heavyMovementPenalty(),
                     EquipLoadConfig.heavyStaminaRegenMultiplier(),
-                    EquipLoadConfig.heavyStaminaCostMultiplier(), DodgeMode.ROLL,
-                    EquipLoadConfig.heavyDodgeDistanceMultiplier(), true, true);
+                    1.0D, DodgeMode.ROLL, EquipLoadConfig.heavyDodgeDistanceMultiplier(), true, true);
             case OVERLOADED -> new EncumbranceProfile(1.0D - EquipLoadConfig.overloadedMovementPenalty(),
                     EquipLoadConfig.overloadedStaminaRegenMultiplier(),
-                    EquipLoadConfig.overloadedStaminaCostMultiplier(), DodgeMode.NONE, 0.0D, false, false);
+                    1.0D, DodgeMode.NONE, 0.0D, false, false);
         };
     }
 
