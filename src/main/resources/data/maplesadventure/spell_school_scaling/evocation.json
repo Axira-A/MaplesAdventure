@@ -1,0 +1,9 @@
+{
+  "school": "irons_spellbooks:evocation",
+  "weights": {
+    "intelligence": 0.2,
+    "faith": 0.8,
+    "arcane": 0
+  },
+  "max_bonus": 0.75
+}

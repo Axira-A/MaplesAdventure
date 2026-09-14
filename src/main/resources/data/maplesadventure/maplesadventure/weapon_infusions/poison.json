@@ -1,0 +1,13 @@
+{
+  "display": "infusion.maplesadventure.poison",
+  "icon": "maplesadventure:textures/gui/infusion/poison.png",
+  "base_multiplier": 0.9,
+  "physical_scaling": {
+    "strength": { "multiply": 0.6 },
+    "dexterity": { "multiply": 0.6 },
+    "intelligence": { "multiply": 0.0, "maximum": 0.0 },
+    "faith": { "multiply": 0.0, "maximum": 0.0 },
+    "arcane": { "multiply": 0.0, "minimum": 0.45, "maximum": 0.45 }
+  },
+  "future_buildup": "poison"
+}

@@ -1,0 +1,9 @@
+{
+  "school": "irons_spellbooks:eldritch",
+  "weights": {
+    "intelligence": 0.15,
+    "faith": 0,
+    "arcane": 0.85
+  },
+  "max_bonus": 0.75
+}

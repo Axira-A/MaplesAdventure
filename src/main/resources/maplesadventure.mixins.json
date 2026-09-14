@@ -1,0 +1,28 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.maplesadventure.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "LivingEntityPhaseCollisionMixin",
+    "ProjectileUtilPhaseMixin",
+    "TargetingConditionsPhaseMixin",
+    "LivingEntityPhaseExperienceMixin",
+    "ExperienceOrbPhaseMixin",
+    "ItemEntityPhaseMergeMixin",
+    "MobPhaseItemPickupMixin",
+    "HopperBlockEntityPhaseMixin",
+    "BonfiresRestPhaseResetMixin",
+    "BonfiresLightPhaseResetMixin"
+    ,"EpicFightDodgeMovementMixin"
+    ,"EpicFightDodgeSkillChangeMixin"
+    ,"EpicFightDodgeSlotOwnershipMixin"
+    ,"EncumbranceSprintMixin"
+    ,"IronsSchoolPowerAccessor"
+    ,"EpicFightWeaponRequirementMixin"
+    ,"ProjectileWeaponRequirementMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "display": "infusion.maplesadventure.keen",
+  "icon": "maplesadventure:textures/gui/infusion/keen.png",
+  "base_multiplier": 0.95,
+  "physical_scaling": {
+    "strength": { "multiply": 0.25 },
+    "dexterity": { "multiply": 1.0, "minimum": 0.8, "maximum": 1.5 },
+    "intelligence": { "multiply": 0.0, "maximum": 0.0 },
+    "faith": { "multiply": 0.0, "maximum": 0.0 },
+    "arcane": { "multiply": 0.0, "maximum": 0.0 }
+  }
+}

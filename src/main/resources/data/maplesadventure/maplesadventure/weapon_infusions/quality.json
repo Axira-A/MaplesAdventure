@@ -1,0 +1,12 @@
+{
+  "display": "infusion.maplesadventure.quality",
+  "icon": "maplesadventure:textures/gui/infusion/quality.png",
+  "base_multiplier": 0.94,
+  "physical_scaling": {
+    "strength": { "multiply": 1.0, "minimum": 0.55, "maximum": 0.65 },
+    "dexterity": { "multiply": 1.0, "minimum": 0.55, "maximum": 0.65 },
+    "intelligence": { "multiply": 0.0, "maximum": 0.0 },
+    "faith": { "multiply": 0.0, "maximum": 0.0 },
+    "arcane": { "multiply": 0.0, "maximum": 0.0 }
+  }
+}

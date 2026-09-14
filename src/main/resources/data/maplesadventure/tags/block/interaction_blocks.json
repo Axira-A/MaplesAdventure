@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "create:analog_lever",
+      "required": false
+    },
+    {
+      "id": "bonfires:ash_bone_pile",
+      "required": false
+    }
+  ]
+}

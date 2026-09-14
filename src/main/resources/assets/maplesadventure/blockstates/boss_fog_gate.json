@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "maplesadventure:block/boss_fog_gate" },
+    "facing=south": { "model": "maplesadventure:block/boss_fog_gate" },
+    "facing=east": { "model": "maplesadventure:block/boss_fog_gate" },
+    "facing=west": { "model": "maplesadventure:block/boss_fog_gate" }
+  }
+}

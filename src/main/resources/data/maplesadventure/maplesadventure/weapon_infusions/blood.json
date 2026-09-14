@@ -1,0 +1,13 @@
+{
+  "display": "infusion.maplesadventure.blood",
+  "icon": "maplesadventure:textures/gui/infusion/blood.png",
+  "base_multiplier": 0.9,
+  "physical_scaling": {
+    "strength": { "multiply": 0.6 },
+    "dexterity": { "multiply": 0.6 },
+    "intelligence": { "multiply": 0.0, "maximum": 0.0 },
+    "faith": { "multiply": 0.0, "maximum": 0.0 },
+    "arcane": { "multiply": 0.0, "minimum": 0.55, "maximum": 0.55 }
+  },
+  "future_buildup": "bleed"
+}

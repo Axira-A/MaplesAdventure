@@ -1,0 +1,283 @@
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.115'
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            def quickWorld = providers.gradleProperty('quickPlayWorld').getOrNull()
+            if (quickWorld != null && !quickWorld.isBlank()) {
+                programArgument '--quickPlaySingleplayer'
+                programArgument quickWorld
+            }
+            def quickServer = providers.gradleProperty('quickPlayServer').getOrNull()
+            if (quickServer != null && !quickServer.isBlank()) {
+                programArgument '--quickPlayMultiplayer'
+                programArgument quickServer
+                programArgument '--username'
+                programArgument providers.gradleProperty('testUsername').getOrElse('ProgTester')
+            }
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+        }
+
+        phaseServer {
+            server()
+            gameDirectory = file('run/phase-server')
+            programArgument '--nogui'
+        }
+
+        phaseClientA {
+            client()
+            gameDirectory = file('run/phase-client-a')
+            programArgument '--username'
+            programArgument 'PhaseA'
+            programArgument '--uuid'
+            programArgument '10000000-0000-0000-0000-00000000000a'
+            programArgument '--quickPlayMultiplayer'
+            programArgument '127.0.0.1:25575'
+        }
+
+        phaseClientB {
+            client()
+            gameDirectory = file('run/phase-client-b')
+            programArgument '--username'
+            programArgument 'PhaseB'
+            programArgument '--uuid'
+            programArgument '10000000-0000-0000-0000-00000000000b'
+            programArgument '--quickPlayMultiplayer'
+            programArgument '127.0.0.1:25575'
+        }
+
+        phaseClientC {
+            client()
+            gameDirectory = file('run/phase-client-c')
+            programArgument '--username'
+            programArgument 'PhaseC'
+            programArgument '--uuid'
+            programArgument '10000000-0000-0000-0000-00000000000c'
+            programArgument '--quickPlayMultiplayer'
+            programArgument '127.0.0.1:25575'
+        }
+
+        configureEach {
+            logLevel = org.slf4j.event.Level.INFO
+            // Isolated smoke-test worlds/clients; existing development saves remain untouched.
+            def runDirectory = providers.gradleProperty('runDirectory').getOrNull()
+            if (runDirectory != null) gameDirectory = file(runDirectory)
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+repositories {
+    maven { url = uri('.research/maven') }
+    mavenCentral()
+    maven { url = 'https://www.cursemaven.com' }
+}
+
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+def epicFightJar = file(providers.gradleProperty('epicFightJar')
+        .getOrElse('.research/epic-fight-21.17.3.1-mc1.21.1-neoforge.jar'))
+def betterLockOnJar = file(providers.gradleProperty('betterLockOnJar')
+        .getOrElse('.research/betterlockon-2.0.8-neoforge.jar'))
+def createJar = file(providers.gradleProperty('createJar')
+        .getOrElse('.research/create-1.21.1-6.0.10.jar'))
+def bonfiresJar = file(providers.gradleProperty('bonfiresJar')
+        .getOrElse('.research/Bonfires-1.21.1-1.2.20b-neoforge-88de527.jar'))
+def ironsSpellsJar = file(providers.gradleProperty('ironsSpellsJar')
+        .getOrElse('.research/irons_spellbooks-1.21.1-3.16.3.jar'))
+def ironsLibJar = file(providers.gradleProperty('ironsLibJar')
+        .getOrElse('.research/irons_lib-1.21.1-2.1.0.jar'))
+def curiosJar = file(providers.gradleProperty('curiosJar')
+        .getOrElse('.research/curios-neoforge-9.5.1+1.21.1.jar'))
+def geckoLibJar = file(providers.gradleProperty('geckoLibJar')
+        .getOrElse('.research/geckolib-neoforge-1.21.1-4.9.2.jar'))
+def playerAnimatorJar = file(providers.gradleProperty('playerAnimatorJar')
+        .getOrElse('.research/player-animation-lib-forge-2.0.4+1.21.1.jar'))
+def shoulderSurfingDefault = providers.gradleProperty('withShoulderSurfingLegacy')
+        .map(String::toBoolean)
+        .getOrElse(false)
+        ? '.research/ShoulderSurfing-NeoForge-1.21.1-4.22.10.jar'
+        : '.research/ShoulderSurfing-NeoForge-1.21.1-5.0.11.jar'
+def shoulderSurfingPath = providers.gradleProperty('shoulderSurfingJar').getOrElse(shoulderSurfingDefault)
+if (shoulderSurfingPath.isBlank()) {
+    shoulderSurfingPath = shoulderSurfingDefault
+}
+def shoulderSurfingJar = file(shoulderSurfingPath)
+def subtleEffectsJar = file(providers.gradleProperty('subtleEffectsJar')
+        .getOrElse('../SubtleEffects-neoforge-1.21.1-1.14.3.jar'))
+def fzzyConfigJar = file(providers.gradleProperty('fzzyConfigJar')
+        .getOrElse('.research/fzzy_config-0.7.3+1.21+neoforge.jar'))
+def kotlinForForgeJar = file(providers.gradleProperty('kotlinForForgeJar')
+        .getOrElse('.research/kotlinforforge-5.4.0-all.jar'))
+def presenceFootstepsJar = file(providers.gradleProperty('presenceFootstepsJar')
+        .getOrElse('.research/PresenceFootsteps-1.21.1-1.12.0-beta.1-1.21NeoForge.jar'))
+
+dependencies {
+    if (!epicFightJar.exists()) {
+        throw new GradleException("Epic Fight compile-only API JAR not found: ${epicFightJar}")
+    }
+    compileOnly files(epicFightJar)
+
+    if (!ironsSpellsJar.exists()) {
+        throw new GradleException("Iron's Spells compile-only API JAR not found: ${ironsSpellsJar}")
+    }
+    compileOnly files(ironsSpellsJar)
+
+    if (providers.gradleProperty('withEpicFight').map(String::toBoolean).getOrElse(false)) {
+        if (!epicFightJar.exists()) {
+            throw new GradleException("Epic Fight runtime JAR not found: ${epicFightJar}")
+        }
+        localRuntime files(epicFightJar)
+    }
+
+    if (providers.gradleProperty('withIronsSpells').map(String::toBoolean).getOrElse(false)) {
+        [ironsSpellsJar, ironsLibJar, curiosJar, geckoLibJar, playerAnimatorJar].each { dependencyJar ->
+            if (!dependencyJar.exists()) {
+                throw new GradleException("Iron's Spells runtime dependency not found: ${dependencyJar}")
+            }
+        }
+        localRuntime files(ironsSpellsJar, ironsLibJar, curiosJar, geckoLibJar, playerAnimatorJar)
+    }
+
+    if (providers.gradleProperty('withShoulderSurfing').map(String::toBoolean).getOrElse(false)) {
+        if (!shoulderSurfingJar.exists()) {
+            throw new GradleException("Shoulder Surfing runtime JAR not found: ${shoulderSurfingJar}")
+        }
+        localRuntime files(shoulderSurfingJar)
+    }
+
+    if (providers.gradleProperty('withBetterLockOn').map(String::toBoolean).getOrElse(false)) {
+        if (!betterLockOnJar.exists()) {
+            throw new GradleException("Better Lock On runtime JAR not found: ${betterLockOnJar}")
+        }
+        localRuntime files(betterLockOnJar)
+    }
+
+    if (providers.gradleProperty('withCreate').map(String::toBoolean).getOrElse(false)) {
+        if (!createJar.exists()) {
+            throw new GradleException("Create runtime JAR not found: ${createJar}")
+        }
+        localRuntime files(createJar)
+    }
+
+    if (providers.gradleProperty('withBonfires').map(String::toBoolean).getOrElse(false)) {
+        if (!bonfiresJar.exists()) {
+            throw new GradleException("Bonfires runtime JAR not found: ${bonfiresJar}")
+        }
+        localRuntime files(bonfiresJar)
+    }
+
+    if (providers.gradleProperty('withSubtleEffects').map(String::toBoolean).getOrElse(false)) {
+        if (!subtleEffectsJar.exists()) {
+            throw new GradleException("SubtleEffects runtime JAR not found: ${subtleEffectsJar}")
+        }
+        if (!fzzyConfigJar.exists()) {
+            throw new GradleException("SubtleEffects test dependency Fzzy Config not found: ${fzzyConfigJar}")
+        }
+        if (!kotlinForForgeJar.exists()) {
+            throw new GradleException("SubtleEffects test dependency Kotlin for Forge not found: ${kotlinForForgeJar}")
+        }
+        localRuntime files(subtleEffectsJar, fzzyConfigJar, kotlinForForgeJar)
+    }
+
+    if (providers.gradleProperty('withPresenceFootsteps').map(String::toBoolean).getOrElse(false)) {
+        if (!presenceFootstepsJar.exists()) {
+            throw new GradleException("Presence Footsteps runtime JAR not found: ${presenceFootstepsJar}")
+        }
+        localRuntime files(presenceFootstepsJar)
+    }
+
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    var replaceProperties = [
+            minecraft_version       : minecraft_version,
+            minecraft_version_range : minecraft_version_range,
+            neo_version_range       : neo_version_range,
+            loader_version_range    : loader_version_range,
+            mod_id                  : mod_id,
+            mod_name                : mod_name,
+            mod_license             : mod_license,
+            mod_version             : mod_version,
+            mod_authors             : mod_authors,
+            mod_description         : mod_description
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
+}
+
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+    options.compilerArgs.add('-Xlint:deprecation')
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
+sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
+sourceSets.test.runtimeClasspath += sourceSets.main.runtimeClasspath
+
+// Opt-in server regression fixture. Never included in the distribution JAR.
+if (providers.gradleProperty('weaponRegression').map(String::toBoolean).getOrElse(false)) {
+    sourceSets.create('weaponRegression')
+    sourceSets.weaponRegression.compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+    sourceSets.weaponRegression.runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    neoForge.mods {
+        weaponregression { sourceSet sourceSets.weaponRegression }
+    }
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+                'Specification-Title'   : mod_name,
+                'Specification-Version' : mod_version,
+                'Implementation-Title'  : project.name,
+                'Implementation-Version': project.version
+        ])
+    }
+}

@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "maplesadventure:boss_fog_gate",
+    "minecraft:barrier"
+  ]
+}

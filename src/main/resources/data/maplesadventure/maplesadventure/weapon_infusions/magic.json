@@ -1,0 +1,19 @@
+{
+  "display": "infusion.maplesadventure.magic",
+  "icon": "maplesadventure:textures/gui/infusion/magic.png",
+  "base_multiplier": 1.0,
+  "physical_scaling": {
+    "strength": { "multiply": 0.4 },
+    "dexterity": { "multiply": 0.4 },
+    "intelligence": { "multiply": 0.0, "maximum": 0.0 },
+    "faith": { "multiply": 0.0, "maximum": 0.0 },
+    "arcane": { "multiply": 0.0, "maximum": 0.0 }
+  },
+  "element": {
+    "channel": "magic",
+    "physical_ratio": 0.65,
+    "element_ratio": 0.35,
+    "scaling": { "intelligence": 0.8 },
+    "max_bonus": 1.15
+  }
+}

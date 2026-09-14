@@ -1,0 +1,8 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="All Rights Reserved"
+[[mods]]
+modId="weaponregression"
+version="1"
+displayName="Development Weapon Regression Fixture"
+displayTest="IGNORE_ALL_VERSION"
