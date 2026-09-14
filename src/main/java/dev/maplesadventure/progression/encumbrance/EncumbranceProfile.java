@@ -17,10 +17,10 @@ public record EncumbranceProfile(double movementMultiplier, double staminaRegenM
 
     public static EncumbranceProfile forTier(EquipLoadTier tier) {
         // Stamina action costs are deliberately load-independent. Load affects movement, dodge quality and regen.
+        // Light regen is fixed to 1.0 so legacy configs with the old 1.15 bonus cannot reintroduce the old model.
         return switch (tier) {
             case LIGHT -> new EncumbranceProfile(1.0D + EquipLoadConfig.lightMovementBonus(),
-                    EquipLoadConfig.lightStaminaRegenMultiplier(),
-                    1.0D, DodgeMode.STEP, 1.0D, true, true);
+                    1.0D, 1.0D, DodgeMode.STEP, 1.0D, true, true);
             case NORMAL -> new EncumbranceProfile(1.0D, 1.0D, 1.0D,
                     DodgeMode.ROLL, 1.0D, true, true);
             case HEAVY -> new EncumbranceProfile(1.0D - EquipLoadConfig.heavyMovementPenalty(),
