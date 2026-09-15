@@ -22,6 +22,7 @@ public final class ProgressionEvents {
     @SubscribeEvent
     public void onDatapackSync(net.neoforged.neoforge.event.OnDatapackSyncEvent event) {
         if (event.getPlayer() == null) dev.maplesadventure.progression.weapon.WeaponRequirementService.compile();
+        if (event.getPlayer() == null) dev.maplesadventure.progression.defense.EntityDefenseService.compile();
         var players = event.getPlayer() == null ? event.getPlayerList().getPlayers() : java.util.List.of(event.getPlayer());
         for (ServerPlayer player : players) {
             dev.maplesadventure.progression.weapon.WeaponRequirementNetwork.sync(player);

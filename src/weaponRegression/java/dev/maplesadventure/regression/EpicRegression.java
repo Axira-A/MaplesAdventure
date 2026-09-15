@@ -7,6 +7,11 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.skill.SkillSlots;
 final class EpicRegression {
+    static net.minecraft.world.damagesource.DamageSource defenseSource(ServerPlayer player) {
+        return new yesman.epicfight.world.damagesource.EpicFightDamageSource(player.damageSources().playerAttack(player))
+                .setUsedItem(player.getMainHandItem()).setAnimation(yesman.epicfight.gameasset.Animations.SWORD_AUTO1)
+                .setStunType(yesman.epicfight.world.damagesource.StunType.NONE);
+    }
     static int usedItem(CommandSourceStack source,ServerPlayer player) {
         for(var stack:java.util.List.of(player.getMainHandItem(),player.getOffhandItem(),net.minecraft.world.item.ItemStack.EMPTY)) {
             var damage=new yesman.epicfight.world.damagesource.EpicFightDamageSource(player.damageSources().playerAttack(player)).setUsedItem(stack)

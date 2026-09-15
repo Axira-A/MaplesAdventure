@@ -14,4 +14,7 @@ public enum DamageDefenseType {
     private final CharacterStat stat;
     DamageDefenseType(CharacterStat stat) { this.stat = stat; }
     public CharacterStat stat() { return stat; }
+    public dev.maplesadventure.progression.weapon.WeaponDamageChannel channel() {
+        return dev.maplesadventure.progression.defense.DamageChannelMapping.channel(this);
+    }
 }
