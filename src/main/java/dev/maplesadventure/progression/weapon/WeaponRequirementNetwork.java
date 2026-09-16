@@ -14,12 +14,13 @@ public final class WeaponRequirementNetwork {
     // Two entries leave room for maximum metadata, per-item eligibility and the bounded definition snapshot.
     public static final int BATCH_SIZE=2, MAX_BYTES=131072, MAX_BATCHES=16384;
     public record Entry(ResourceLocation item,WeaponRequirementProfile profile,WeaponScalingProfile scaling,double baseAttack,boolean weapon,
-                        WeaponDamageProfile damage,WeaponInfusionEligibility infusionEligibility) {
+                        WeaponDamageProfile damage,WeaponInfusionEligibility infusionEligibility,dev.maplesadventure.progression.status.WeaponStatusProfile statuses) {
+        public Entry(ResourceLocation item,WeaponRequirementProfile p,WeaponScalingProfile s,double base,boolean w,WeaponDamageProfile d,WeaponInfusionEligibility i) { this(item,p,s,base,w,d,i,dev.maplesadventure.progression.status.WeaponStatusProfile.EMPTY); }
         public Entry(ResourceLocation item,WeaponRequirementProfile profile,WeaponScalingProfile scaling,double baseAttack,boolean weapon,WeaponDamageProfile damage) { this(item,profile,scaling,baseAttack,weapon,damage,new WeaponInfusionEligibility(Set.of(WeaponInfusionRegistry.NORMAL_ID))); }
         public Entry(ResourceLocation item,WeaponRequirementProfile profile,WeaponScalingProfile scaling,double baseAttack,boolean weapon) { this(item,profile,scaling,baseAttack,weapon,WeaponDamageProfile.STANDARD); }
         public Entry(ResourceLocation item,WeaponRequirementProfile profile) { this(item,profile,WeaponScalingProfile.NONE,0,false); }
         public Entry { if(!Double.isFinite(baseAttack)||baseAttack<0||baseAttack>10000) throw new IllegalArgumentException("Weapon base bounds"); }
-        public WeaponLoadoutSnapshot.Held held() { return new WeaponLoadoutSnapshot.Held(item,profile,scaling,baseAttack,weapon,damage); }
+        public WeaponLoadoutSnapshot.Held held() { return new WeaponLoadoutSnapshot.Held(item,profile,scaling,baseAttack,weapon,damage,WeaponInfusionView.normal(),statuses); }
     }
     public record Batch(UUID revision,int index,int batches,double penalty,List<Entry> entries,List<WeaponInfusionDefinition> infusions) implements CustomPacketPayload {
         public static final Type<Batch> TYPE=new Type<>(ResourceLocation.fromNamespaceAndPath("maplesadventure","weapon_requirements"));
@@ -40,7 +41,7 @@ public final class WeaponRequirementNetwork {
                 List<Entry> entries=new ArrayList<>();
                 for(int i=0;i<count;i++) {
                     var held=WeaponLoadoutSnapshot.readHeld(b);
-                    entries.add(new Entry(held.item(),held.profile(),held.scaling(),held.baseAttack(),held.weapon(),held.damage(),WeaponInfusionEligibility.read(b)));
+                    entries.add(new Entry(held.item(),held.profile(),held.scaling(),held.baseAttack(),held.weapon(),held.damage(),WeaponInfusionEligibility.read(b),held.statuses()));
                 }
                 int infusionCount=b.readVarInt(); if(infusionCount<0||infusionCount>WeaponInfusionDefinition.MAX_DEFINITIONS) throw new IllegalArgumentException("Infusion registry count");
                 List<WeaponInfusionDefinition> infusions=new ArrayList<>(); for(int i=0;i<infusionCount;i++) infusions.add(WeaponInfusionDefinition.read(b));
@@ -77,11 +78,12 @@ public final class WeaponRequirementNetwork {
         Set<net.minecraft.world.item.Item> items=Collections.newSetFromMap(new IdentityHashMap<>());
         items.addAll(WeaponRequirementService.compiled().keySet()); items.addAll(WeaponScalingService.compiled().keySet());
         items.addAll(WeaponDamageProfileService.compiled().keySet());
+        items.addAll(dev.maplesadventure.progression.status.WeaponStatusRules.compiled().keySet());
         if(items.size()>WeaponRequirementService.MAX_ITEMS) throw new IllegalArgumentException("Weapon balance registry bounds");
         List<Entry> list=items.stream().map(item->{
                 var stack=item.getDefaultInstance(); var resolved=WeaponCombatProfileResolver.resolve(stack); boolean weapon=resolved.weapon();
                 return new Entry(BuiltInRegistries.ITEM.getKey(item),WeaponRequirementService.profile(stack),WeaponScalingService.profile(stack),
-                        weapon?WeaponClassifier.baseAttack(stack):0,weapon,WeaponDamageProfileService.profile(stack),WeaponInfusionEligibilityService.eligibility(stack));
+                        weapon?WeaponClassifier.baseAttack(stack):0,weapon,WeaponDamageProfileService.profile(stack),WeaponInfusionEligibilityService.eligibility(stack),dev.maplesadventure.progression.status.WeaponStatusRules.profile(stack));
             })
             .sorted(Comparator.comparing(Entry::item)).toList();
         int count=Math.max(1,(list.size()+BATCH_SIZE-1)/BATCH_SIZE);

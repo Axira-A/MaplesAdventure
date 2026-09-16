@@ -87,8 +87,8 @@ public final class LevelUpScreen extends Screen {
     private void recalculate() {
         preview = LevelUpPreviewCalculator.calculate(baseline.attributes(), draft.deltas(), baseline.experience(),
                 baseline.hardCap(), baseline.costMultiplier());
-        baselineStats = baseline.attributes().characterStats();
-        previewStats = preview.characterStats();
+        baselineStats = baseline.attributes().characterStats().withStatusThresholds(dev.maplesadventure.progression.status.client.ClientStatusState.thresholds());
+        previewStats = preview.characterStats().withStatusThresholds(dev.maplesadventure.progression.status.client.ClientStatusState.thresholds());
         compactStats = StatPreviewPriority.select(baselineStats, previewStats, 7);
         for (Attribute attribute : Attribute.values()) {
             if (!plus.containsKey(attribute)) continue;
@@ -348,9 +348,15 @@ public final class LevelUpScreen extends Screen {
             var before=baselineStats.weapons().stream().filter(v->v.offhand()==after.offhand() && v.held().item().equals(after.held().item())).findFirst().orElse(after);
             boolean requirementsChanged=!before.result().missingAttributes().equals(after.result().missingAttributes());
             boolean attackChanged=after.held().weapon() && Math.abs(before.attack().attackRating()-after.attack().attackRating())>1e-7;
-            if (!requirementsChanged && !attackChanged) continue;
+            boolean statusChanged=!before.statuses().equals(after.statuses());
+            if (!requirementsChanged && !attackChanged && !statusChanged) continue;
             var lines=new java.util.ArrayList<Component>();
             lines.add(after.held().name());
+            after.statuses().amounts().forEach((type,value)->{
+                double old=before.statuses().amounts().getOrDefault(type,0.0);
+                if(Math.abs(old-value)>1e-7) lines.add(Component.translatable("status.maplesadventure.preview",Component.translatable("status.maplesadventure."+type.id()),
+                        dev.maplesadventure.progression.weapon.client.WeaponAttackText.number(old),dev.maplesadventure.progression.weapon.client.WeaponAttackText.number(value)));
+            });
             if(requirementsChanged) lines.add(dev.maplesadventure.progression.weapon.client.WeaponRequirementText.status(before.result().satisfied()).copy().append(" → ")
                     .append(dev.maplesadventure.progression.weapon.client.WeaponRequirementText.status(after.result().satisfied())));
             if(after.held().weapon()) {

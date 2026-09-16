@@ -14,7 +14,7 @@ public final class ClientWeaponInfusions {
         definitions=Map.copyOf(next);
     }
     public static WeaponCombatProfileResolver.Resolved resolve(ItemStack stack,WeaponRequirementNetwork.Entry entry) {
-        var base=new WeaponCombatProfileResolver.Resolved(entry.profile(),entry.scaling(),entry.damage(),entry.weapon(),WeaponInfusionView.normal());
+        var base=new WeaponCombatProfileResolver.Resolved(entry.profile(),entry.scaling(),entry.damage(),entry.weapon(),WeaponInfusionView.normal(),entry.statuses());
         return WeaponCombatProfileResolver.resolveInfusion(base,WeaponInfusionService.state(stack).orElse(null),definitions,entry.infusionEligibility());
     }
     public static void clear() { definitions=WeaponInfusionRegistry.definitions(); }

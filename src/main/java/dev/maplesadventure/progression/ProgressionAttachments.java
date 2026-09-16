@@ -28,6 +28,8 @@ public final class ProgressionAttachments {
                     .build());
 
     public static void register(IEventBus modBus) { TYPES.register(modBus); }
+    public static final DeferredHolder<AttachmentType<?>,AttachmentType<dev.maplesadventure.progression.status.StatusRuntimeState>> STATUS_RUNTIME =
+            TYPES.register("status_runtime",()->AttachmentType.serializable(()->new dev.maplesadventure.progression.status.StatusRuntimeState()).build());
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<dev.maplesadventure.progression.defense.EntityDefenseProfileRef>> ENTITY_DEFENSE_PROFILE =
             TYPES.register("entity_defense_profile", () -> AttachmentType.serializable(
                     () -> new dev.maplesadventure.progression.defense.EntityDefenseProfileRef()).build());

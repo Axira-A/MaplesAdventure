@@ -10,8 +10,7 @@ public final class WeaponRequirementText {
         lines.add(Component.translatable("screen.maplesadventure.weapon."+(v.offhand()?"offhand":"mainhand"),v.held().name()));
         lines.add(Component.translatable("screen.maplesadventure.weapon.infusion",v.held().infusion().displayName()));
         if(v.held().weapon()) lines.addAll(WeaponAttackText.lines(v.attack()));
-        if(v.held().infusion().futureBuildup()!=WeaponInfusionBuildup.NONE)
-            lines.add(Component.translatable("screen.maplesadventure.weapon.buildup_unavailable."+v.held().infusion().futureBuildup().name().toLowerCase(java.util.Locale.ROOT)));
+        lines.addAll(dev.maplesadventure.progression.status.client.StatusText.lines(v.statuses()));
         for(var a:WeaponRequirementProfile.ATTRIBUTES) if(v.held().profile().get(a)>0)
             lines.add(Component.translatable("screen.maplesadventure.weapon.current_requirement",a.displayName(),v.attributes().get(a),v.held().profile().get(a))
                 .withStyle(v.attributes().get(a)>=v.held().profile().get(a)?net.minecraft.ChatFormatting.GRAY:net.minecraft.ChatFormatting.RED));

@@ -8,7 +8,11 @@ import java.util.*;
 /** Bounded data-driven transform applied only after the base item profile has resolved. */
 public record WeaponInfusionDefinition(ResourceLocation id, String translationKey, ResourceLocation icon,
         double baseMultiplier, Map<Attribute, AttributeTransform> physicalScaling,
-        ElementSplit elementSplit, WeaponInfusionBuildup futureBuildup) {
+        ElementSplit elementSplit, WeaponInfusionBuildup futureBuildup, dev.maplesadventure.progression.status.WeaponStatusProfile statuses) {
+    public WeaponInfusionDefinition(ResourceLocation id,String key,ResourceLocation icon,double base,Map<Attribute,AttributeTransform> transforms,
+            ElementSplit split,WeaponInfusionBuildup legacy) {
+        this(id,key,icon,base,transforms,split,legacy,dev.maplesadventure.progression.status.WeaponStatusProfile.legacy(legacy));
+    }
     public static final int MAX_DEFINITIONS = 16;
 
     public record AttributeTransform(double multiplier, double minimum, double maximum) {
@@ -94,7 +98,7 @@ public record WeaponInfusionDefinition(ResourceLocation id, String translationKe
             buffer.writeVarInt(elementSplit.channel().ordinal()); buffer.writeDouble(elementSplit.physicalRatio());
             buffer.writeDouble(elementSplit.elementRatio()); WeaponRequirementNetwork.writeScaling(buffer, elementSplit.elementScaling());
         }
-        buffer.writeVarInt(futureBuildup.ordinal());
+        buffer.writeVarInt(futureBuildup.ordinal()); statuses.write(buffer);
     }
 
     public static WeaponInfusionDefinition read(RegistryFriendlyByteBuf buffer) {
@@ -111,6 +115,6 @@ public record WeaponInfusionDefinition(ResourceLocation id, String translationKe
         }
         int buildup = buffer.readVarInt();
         if (buildup < 0 || buildup >= WeaponInfusionBuildup.values().length) throw new IllegalArgumentException("Infusion buildup bounds");
-        return new WeaponInfusionDefinition(id, key, icon, base, rules, split, WeaponInfusionBuildup.values()[buildup]);
+        return new WeaponInfusionDefinition(id, key, icon, base, rules, split, WeaponInfusionBuildup.values()[buildup],dev.maplesadventure.progression.status.WeaponStatusProfile.read(buffer));
     }
 }

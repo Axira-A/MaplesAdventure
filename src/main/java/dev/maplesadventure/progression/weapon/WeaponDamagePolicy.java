@@ -11,7 +11,7 @@ public final class WeaponDamagePolicy {
         var resolved=WeaponCombatProfileResolver.resolve(weapon);
         if(!(shooter instanceof ServerPlayer player) || !(projectile instanceof Projectile)
                 || projectile.hasData(ProgressionAttachments.PROJECTILE_REQUIREMENT)
-                || (!resolved.requirements().enabled() && !resolved.weapon())) return;
+                || (!resolved.requirements().enabled() && !resolved.weapon() && resolved.statuses().components().isEmpty())) return;
         var context=directContext(player,weapon);
         projectile.setData(ProgressionAttachments.PROJECTILE_REQUIREMENT,new ProjectileRequirementPenalty(context));
     }
@@ -31,12 +31,13 @@ public final class WeaponDamagePolicy {
         double base=facts==null?1:facts.damage();
         var bundle=resolved.weapon()?WeaponAttackRatingCalculator.calculate(base,resolved.scaling(),resolved.damage(),
                 dev.maplesadventure.progression.PlayerAttributeService.state(player),requirements.damageMultiplier()):WeaponDamageBundle.legacy(1,requirements.damageMultiplier());
-        return new WeaponHitContext(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(weapon.getItem()),bundle,requirements,false,player.getUUID());
+        return new WeaponHitContext(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(weapon.getItem()),bundle,requirements,false,player.getUUID(),
+                resolved.statuses().evaluate(dev.maplesadventure.progression.PlayerAttributeService.get(player,dev.maplesadventure.progression.Attribute.ARCANE)));
     }
     public static double multiplier(DamageSource source) { return context(source).map(WeaponHitContext::effectiveMultiplier).orElse(1.0); }
     public static java.util.Optional<WeaponHitContext> context(DamageSource source) {
         // Independent secondary damage stays independent even when it retains a weapon/projectile owner.
-        if(source.is(DamageTypes.MAGIC) || source.is(DamageTypes.INDIRECT_MAGIC)
+        if(dev.maplesadventure.progression.status.StatusDamageSources.isStatus(source) || source.is(DamageTypes.MAGIC) || source.is(DamageTypes.INDIRECT_MAGIC)
                 || source.is(net.minecraft.tags.DamageTypeTags.IS_FIRE)
                 || source.is(net.minecraft.tags.DamageTypeTags.IS_FALL)
                 || source.is(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION)) return java.util.Optional.empty();

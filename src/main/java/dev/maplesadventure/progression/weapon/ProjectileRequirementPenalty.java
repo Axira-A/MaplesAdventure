@@ -10,6 +10,7 @@ public final class ProjectileRequirementPenalty implements INBTSerializable<Comp
     public double multiplier=1;
     public double scalingMultiplier=1;
     private WeaponDamageBundle frozenBundle;
+    private dev.maplesadventure.progression.status.StatusBuildupSnapshot frozenStatuses=dev.maplesadventure.progression.status.StatusBuildupSnapshot.EMPTY;
     private net.minecraft.resources.ResourceLocation weaponId=net.minecraft.resources.ResourceLocation.withDefaultNamespace("air");
     public ProjectileRequirementPenalty() {}
     public ProjectileRequirementPenalty(UUID owner,WeaponRequirementResult result) { this.owner=owner; qualified=result.satisfied(); multiplier=result.damageMultiplier(); }
@@ -20,15 +21,15 @@ public final class ProjectileRequirementPenalty implements INBTSerializable<Comp
     }
     public ProjectileRequirementPenalty(WeaponHitContext context) {
         owner=context.owner(); qualified=context.requirements().satisfied(); multiplier=context.bundle().requirementMultiplier();
-        scalingMultiplier=context.bundle().nominalMultiplier(); frozenBundle=context.bundle(); weaponId=context.usedWeapon();
+        scalingMultiplier=context.bundle().nominalMultiplier(); frozenBundle=context.bundle(); weaponId=context.usedWeapon(); frozenStatuses=context.statuses();
     }
     public WeaponDamageBundle bundle() { return frozenBundle!=null?frozenBundle:WeaponDamageBundle.legacy(scalingMultiplier,multiplier); }
     public WeaponHitContext context() {
-        return new WeaponHitContext(weaponId,bundle(),new WeaponRequirementResult(qualified,java.util.Map.of(),multiplier,qualified),true,owner);
+        return new WeaponHitContext(weaponId,bundle(),new WeaponRequirementResult(qualified,java.util.Map.of(),multiplier,qualified),true,owner,frozenStatuses);
     }
     public double combatMultiplier() { return bundle().effectiveMultiplier(); }
     public CompoundTag serializeNBT(HolderLookup.Provider provider) {
-        var n=new CompoundTag(); n.putInt("dataVersion",3); n.putUUID("owner",owner); n.putBoolean("qualified",qualified);
+        var n=new CompoundTag(); n.putInt("dataVersion",4); n.put("statuses",frozenStatuses.save()); n.putUUID("owner",owner); n.putBoolean("qualified",qualified);
         n.putDouble("multiplier",multiplier); n.putDouble("scalingMultiplier",scalingMultiplier);
         var bundle=bundle(); n.putString("weapon",weaponId.toString()); n.putDouble("weaponBase",bundle.weaponBaseAttack());
         var channels=new net.minecraft.nbt.ListTag();
@@ -43,6 +44,9 @@ public final class ProjectileRequirementPenalty implements INBTSerializable<Comp
         multiplier=n.getDouble("multiplier"); if(!Double.isFinite(multiplier)||multiplier<.1||multiplier>1) multiplier=1;
         scalingMultiplier=n.contains("scalingMultiplier")?n.getDouble("scalingMultiplier"):1;
         frozenBundle=null; weaponId=net.minecraft.resources.ResourceLocation.withDefaultNamespace("air");
+        frozenStatuses=dev.maplesadventure.progression.status.StatusBuildupSnapshot.EMPTY;
+        if(n.getInt("dataVersion")>=4) try { frozenStatuses=dev.maplesadventure.progression.status.StatusBuildupSnapshot.load(n.getCompound("statuses")); }
+        catch(RuntimeException bad) { dev.maplesadventure.MaplesAdventure.LOGGER.warn("Invalid frozen status snapshot; using EMPTY"); }
         boolean modern=n.getInt("dataVersion")>=3;
         if(!Double.isFinite(scalingMultiplier)||scalingMultiplier<(modern?0:1)||scalingMultiplier>(modern?6:3)) scalingMultiplier=1;
         if(modern) {

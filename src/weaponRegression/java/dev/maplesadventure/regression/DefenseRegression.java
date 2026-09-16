@@ -202,7 +202,8 @@ public final class DefenseRegression {
         var entity=level.getEntity(CHUNK_PROBE);
         if(entity instanceof LivingEntity living) check(EntityDefenseService.resolve(living).requestedId().equals(STONE),"chunk probe retains defense ref");
         source.sendSuccess(()->Component.literal("chunk probe loaded="+(entity!=null)+" operation="+operation),false);
-        if(operation.equals("seed")||operation.equals("load"))
+        // Entity IO completes asynchronously after getChunk; keep the load ticket until chunkcheck.
+        if(operation.equals("seed")||operation.equals("check"))
             level.getChunkSource().removeRegionTicket(net.minecraft.server.level.TicketType.PORTAL,chunkPos,2,CHUNK_POS);
         return entity==null?0:1;
     }

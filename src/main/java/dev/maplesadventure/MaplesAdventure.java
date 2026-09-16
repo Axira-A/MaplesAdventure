@@ -75,6 +75,8 @@ public final class MaplesAdventure {
         dev.maplesadventure.progression.weapon.WeaponRequirementEvents.register();
         dev.maplesadventure.progression.weapon.WeaponRequirementCommands.register();
         dev.maplesadventure.progression.defense.EntityDefenseCommands.register();
+        dev.maplesadventure.progression.status.StatusEvents.register();
+        dev.maplesadventure.progression.status.StatusCommands.register();
         modEventBus.addListener((net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent event) ->
                 event.enqueueWork(dev.maplesadventure.progression.weapon.WeaponIntegrations::initialize));
         modEventBus.addListener((net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent event) ->
@@ -91,6 +93,7 @@ public final class MaplesAdventure {
         modContainer.registerConfig(ModConfig.Type.SERVER, EquipLoadConfig.SPEC, "maplesadventure-equipment-load-server.toml");
         modContainer.registerConfig(ModConfig.Type.SERVER, dev.maplesadventure.config.WeaponRequirementConfig.SPEC, "maplesadventure-weapon-requirements-server.toml");
         modContainer.registerConfig(ModConfig.Type.SERVER, dev.maplesadventure.config.EnemyDefenseConfig.SPEC, "maplesadventure-enemy-defense-server.toml");
+        modContainer.registerConfig(ModConfig.Type.SERVER, dev.maplesadventure.config.StatusConfig.SPEC, "maplesadventure-status-server.toml");
         modContainer.registerConfig(ModConfig.Type.CLIENT, EchoClientConfig.SPEC, "maplesadventure-echo-client.toml");
         modContainer.registerConfig(ModConfig.Type.CLIENT, InteractionConfig.SPEC, "maplesadventure-client.toml");
         if (FMLEnvironment.dist == Dist.CLIENT) {

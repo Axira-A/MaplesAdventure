@@ -4,10 +4,13 @@ import java.util.*;
 import net.minecraft.resources.ResourceLocation;
 import dev.maplesadventure.progression.weapon.WeaponDamageChannel;
 
-public record EntityDefenseProfile(ResourceLocation profileId, Map<WeaponDamageChannel, ChannelDefense> channels, String source) {
+public record EntityDefenseProfile(ResourceLocation profileId, Map<WeaponDamageChannel, ChannelDefense> channels, String source,
+        Map<dev.maplesadventure.progression.status.StatusEffectType,dev.maplesadventure.progression.status.StatusResistance> statusResistances) {
+    public EntityDefenseProfile(ResourceLocation id,Map<WeaponDamageChannel,ChannelDefense> channels,String source) { this(id,channels,source,Map.of()); }
     public static final EntityDefenseProfile NONE = new EntityDefenseProfile(
             ResourceLocation.fromNamespaceAndPath("maplesadventure", "none"), Map.of(), "NONE");
     public EntityDefenseProfile {
+        statusResistances=Map.copyOf(statusResistances);
         Objects.requireNonNull(profileId); Objects.requireNonNull(source);
         var copy = new EnumMap<WeaponDamageChannel, ChannelDefense>(WeaponDamageChannel.class);
         channels.forEach((channel, defense) -> copy.put(Objects.requireNonNull(channel), Objects.requireNonNull(defense)));

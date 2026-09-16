@@ -105,7 +105,7 @@ public final class EpicFightEncumbranceAdapter implements EncumbranceCombatAdapt
         var regen = player.getAttribute(EpicFightAttributes.STAMINA_REGEN);
         if (regen != null) {
             regen.removeModifier(REGEN_MODIFIER);
-            double amount = profile.staminaRegenMultiplier() - 1.0D;
+            double amount = profile.staminaRegenMultiplier() * dev.maplesadventure.progression.status.StatusRuntimeService.frostRegen(player) - 1.0D;
             if (Math.abs(amount) > 0.000_000_1D) regen.addOrReplacePermanentModifier(
                     new AttributeModifier(REGEN_MODIFIER, amount,
                             AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));

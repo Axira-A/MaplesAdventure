@@ -33,8 +33,8 @@ public final class CharacterStatsScreen extends Screen {
                                 CharacterStatsSnapshot preview) {
         super(Component.translatable("screen.maplesadventure.character_stats.title"));
         this.parent = parent;
-        this.current = current;
-        this.preview = preview;
+        this.current = current.withStatusThresholds(dev.maplesadventure.progression.status.client.ClientStatusState.thresholds());
+        this.preview = preview.withStatusThresholds(dev.maplesadventure.progression.status.client.ClientStatusState.thresholds());
     }
 
     @Override protected void init() {

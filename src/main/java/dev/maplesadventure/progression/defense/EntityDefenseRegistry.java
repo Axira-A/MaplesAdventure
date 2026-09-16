@@ -20,9 +20,9 @@ public final class EntityDefenseRegistry {
     public static void clear() { profiles = Map.of(); rules = List.of(); }
 
     public static EntityDefenseProfile parseProfile(ResourceLocation id, JsonObject json) {
-        fields(json, Set.of("channels"));
+        fields(json, Set.of("channels","status_resistances"));
         if (id.equals(EntityDefenseProfile.NONE.profileId())) throw new IllegalArgumentException("NONE is reserved identity");
-        var channels = json.getAsJsonObject("channels");
+        var channels = json.has("channels")?json.getAsJsonObject("channels"):new JsonObject();
         if (channels == null || channels.size() > WeaponDamageChannel.values().length) throw new IllegalArgumentException("Invalid channel count");
         var values = new EnumMap<WeaponDamageChannel, ChannelDefense>(WeaponDamageChannel.class);
         for (var entry : channels.entrySet()) {
@@ -31,7 +31,15 @@ public final class EntityDefenseRegistry {
             if (values.put(channel, new ChannelDefense(number(value, "defense", 0), number(value, "absorption", 0))) != null)
                 throw new IllegalArgumentException("Duplicate channel");
         }
-        return new EntityDefenseProfile(id, values, "DATAPACK");
+        var resistances=new EnumMap<dev.maplesadventure.progression.status.StatusEffectType,dev.maplesadventure.progression.status.StatusResistance>(dev.maplesadventure.progression.status.StatusEffectType.class);
+        if(json.has("status_resistances")) for(var entry:json.getAsJsonObject("status_resistances").entrySet()) {
+            var type=dev.maplesadventure.progression.status.StatusEffectType.parse(entry.getKey()); var v=entry.getValue().getAsJsonObject();
+            fields(v,Set.of("threshold","immune","proc_damage_multiplier"));
+            if(v.has("immune")&&(!v.get("immune").isJsonPrimitive()||!v.getAsJsonPrimitive("immune").isBoolean())) throw new IllegalArgumentException("Expected immune boolean");
+            if(resistances.put(type,new dev.maplesadventure.progression.status.StatusResistance(number(v,"threshold",100),v.has("immune")&&v.get("immune").getAsBoolean(),number(v,"proc_damage_multiplier",1)))!=null)
+                throw new IllegalArgumentException("Duplicate status resistance");
+        }
+        return new EntityDefenseProfile(id, values, "DATAPACK",resistances);
     }
     public static Rule parseRule(ResourceLocation id, JsonObject json) {
         fields(json, Set.of("entity", "tag", "priority", "profile"));

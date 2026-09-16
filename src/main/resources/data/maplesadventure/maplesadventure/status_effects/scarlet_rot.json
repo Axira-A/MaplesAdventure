@@ -1,0 +1,12 @@
+{
+  "decay_delay": 60,
+  "decay_per_second": 5,
+  "active_duration": 1200,
+  "tick_interval": 40,
+  "damage": {
+    "max_health_fraction": 0.0075,
+    "flat": 0.2
+  },
+  "damage_taken_multiplier": 1,
+  "stamina_regen_multiplier": 1
+}

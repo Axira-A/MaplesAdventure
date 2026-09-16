@@ -23,8 +23,11 @@ public final class ProgressionEvents {
     public void onDatapackSync(net.neoforged.neoforge.event.OnDatapackSyncEvent event) {
         if (event.getPlayer() == null) dev.maplesadventure.progression.weapon.WeaponRequirementService.compile();
         if (event.getPlayer() == null) dev.maplesadventure.progression.defense.EntityDefenseService.compile();
+        if (event.getPlayer() == null) dev.maplesadventure.progression.status.WeaponStatusRules.compile();
         var players = event.getPlayer() == null ? event.getPlayerList().getPlayers() : java.util.List.of(event.getPlayer());
         for (ServerPlayer player : players) {
+            dev.maplesadventure.progression.status.StatusNetwork.sync(player);
+            EncumbranceRuntimeService.equipmentChanged(player);
             dev.maplesadventure.progression.weapon.WeaponRequirementNetwork.sync(player);
             dev.maplesadventure.progression.spell.SpellScalingRuntimeService.refresh(player);
             AttributeSyncService.sync(player);

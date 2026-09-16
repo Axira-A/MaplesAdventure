@@ -14,8 +14,10 @@ public final class WeaponRequirementEvents {
         e.addListener(new WeaponRequirementRules()); e.addListener(new WeaponScalingRules()); e.addListener(new WeaponDamageProfileRules());
         e.addListener(new WeaponInfusionRegistry()); e.addListener(new WeaponInfusionEligibilityRules());
         e.addListener(new EntityDefenseRegistry.Profiles()); e.addListener(new EntityDefenseRegistry.Rules());
+        e.addListener(new dev.maplesadventure.progression.status.StatusDefinitions());
+        e.addListener(new dev.maplesadventure.progression.status.WeaponStatusRules());
     }
-    @SubscribeEvent public void start(ServerStartedEvent e) { WeaponRequirementService.compile(); EntityDefenseService.compile(); }
+    @SubscribeEvent public void start(ServerStartedEvent e) { WeaponRequirementService.compile(); EntityDefenseService.compile(); dev.maplesadventure.progression.status.WeaponStatusRules.compile(); }
     @SubscribeEvent public void stop(ServerStoppedEvent e) {
         WeaponRequirementService.clear(); WeaponInfusionRegistry.reset();
         EntityDefenseService.clear(); EntityDefenseRegistry.clear(); LastWeaponDamageResolution.clear();
@@ -29,12 +31,6 @@ public final class WeaponRequirementEvents {
     @SubscribeEvent(priority=EventPriority.LOWEST) public void damage(LivingDamageEvent.Pre e) {
         if(e.getEntity().level().isClientSide()) return;
         // After armor/effects/enchantments, before absorption hearts. The sole weapon-math modification site.
-        WeaponDamagePolicy.context(e.getSource()).ifPresent(context -> {
-            var resolution = WeaponCombatResolutionService.resolve(e.getNewDamage(), context, e.getEntity());
-            float damage = (float)resolution.finalDamage();
-            if (damage != e.getNewDamage()) e.setNewDamage(damage);
-            LastWeaponDamageResolution.record(context.owner(), e.getEntity().getUUID(),
-                    EntityDefenseService.resolve(e.getEntity()).requestedId().toString(), resolution);
-        });
+        dev.maplesadventure.progression.status.CombatDamageFinalizationService.apply(e);
     }
 }

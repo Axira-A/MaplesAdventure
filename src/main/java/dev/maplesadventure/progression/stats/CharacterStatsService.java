@@ -12,13 +12,13 @@ public final class CharacterStatsService {
         return CharacterStatCalculator.calculate(PlayerAttributeService.state(player),
                 DerivedStatRuntimeService.snapshot(player),
                 dev.maplesadventure.progression.encumbrance.EncumbranceRuntimeService.snapshot(player),
-                dev.maplesadventure.progression.spell.SpellScalingRuntimeService.snapshot(player));
+                dev.maplesadventure.progression.spell.SpellScalingRuntimeService.snapshot(player)).withStatusThresholds(thresholds(player));
     }
 
     public static CharacterStatsSnapshot preview(ServerPlayer player, PlayerAttributeState previewAttributes) {
         return CharacterStatCalculator.calculate(previewAttributes, DerivedStatRuntimeService.snapshot(player),
                 dev.maplesadventure.progression.encumbrance.EncumbranceRuntimeService.snapshot(player),
-                dev.maplesadventure.progression.spell.SpellScalingRuntimeService.snapshot(player));
+                dev.maplesadventure.progression.spell.SpellScalingRuntimeService.snapshot(player)).withStatusThresholds(thresholds(player));
     }
 
     /** Pure shared preview used after a server-authored attribute snapshot reaches the client. */
@@ -39,6 +39,11 @@ public final class CharacterStatsService {
     }
 
     private CharacterStatsService() {}
+    private static java.util.Map<dev.maplesadventure.progression.status.StatusEffectType,Double> thresholds(ServerPlayer player) {
+        var out=new java.util.EnumMap<dev.maplesadventure.progression.status.StatusEffectType,Double>(dev.maplesadventure.progression.status.StatusEffectType.class);
+        for(var type:dev.maplesadventure.progression.status.StatusEffectType.values()) out.put(type,dev.maplesadventure.progression.status.StatusResistanceService.resolve(player,type).threshold());
+        return out;
+    }
     public static CharacterStatsSnapshot preview(PlayerAttributeState attributes, RuntimeResourceSnapshot runtime,
             dev.maplesadventure.progression.encumbrance.EquipLoadRuntimeSnapshot equipLoad,
             dev.maplesadventure.progression.spell.SpellSchoolScalingSnapshot spellSchools) {

@@ -63,6 +63,9 @@ public final class MaplesAdventureClient {
         SummonClientEvents.register();
         dev.maplesadventure.progression.client.UpgradeClient.register();
         dev.maplesadventure.progression.weapon.client.ClientWeaponRequirements.register();
+        dev.maplesadventure.progression.status.client.ClientStatusState.register();
+        modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.CLIENT,dev.maplesadventure.config.StatusClientConfig.SPEC,"maplesadventure-status-client.toml");
+        modBus.addListener((net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent e)->e.registerReloadListener(new dev.maplesadventure.progression.status.client.StatusHudTextureCache()));
     }
 
     private static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -80,6 +83,7 @@ public final class MaplesAdventureClient {
     }
 
     private static void registerGuiLayers(RegisterGuiLayersEvent event) {
+        event.registerAbove(VanillaGuiLayers.HOTBAR,ResourceLocation.fromNamespaceAndPath(MaplesAdventure.MOD_ID,"status_hud"),dev.maplesadventure.progression.status.client.StatusHud::render);
         event.registerAbove(
                 VanillaGuiLayers.CROSSHAIR,
                 ResourceLocation.fromNamespaceAndPath(MaplesAdventure.MOD_ID, "interaction_marker"),

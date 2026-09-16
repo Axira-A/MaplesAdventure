@@ -38,14 +38,13 @@ public final class ClientWeaponRequirements {
             event.getToolTip().add(infusionLine(resolved.infusion()));
             var rating=WeaponAttackRatingCalculator.calculate(WeaponClassifier.baseAttack(event.getItemStack()),resolved.scaling(),resolved.damage(),state,requirement.damageMultiplier());
             event.getToolTip().addAll(WeaponAttackText.lines(WeaponAttackSnapshot.of(entry.item(),rating,resolved.scaling(),resolved.damage(),requirement)));
-            if(resolved.infusion().futureBuildup()!=WeaponInfusionBuildup.NONE)
-                event.getToolTip().add(Component.translatable("screen.maplesadventure.weapon.buildup_unavailable."+resolved.infusion().futureBuildup().name().toLowerCase(java.util.Locale.ROOT)).withStyle(ChatFormatting.DARK_GRAY));
             if(net.minecraft.client.gui.screens.Screen.hasShiftDown())
                 for(var c:resolved.damage().components()) {
                     event.getToolTip().add(c.channel().displayName());
                     event.getToolTip().addAll(WeaponAttackText.contributions(state,c.scaling(resolved.scaling())));
                 }
         }
+        event.getToolTip().addAll(dev.maplesadventure.progression.status.client.StatusText.lines(resolved.statuses().evaluate(state.get(dev.maplesadventure.progression.Attribute.ARCANE))));
         if(!p.enabled()) return;
         event.getToolTip().add(Component.translatable("screen.maplesadventure.weapon.requirements").withStyle(ChatFormatting.GOLD));
         for(var a:WeaponRequirementProfile.ATTRIBUTES) if(p.get(a)>0)

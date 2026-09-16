@@ -32,7 +32,7 @@ public final class WeaponInfusionRegistry extends SimpleJsonResourceReloadListen
     }
 
     public static WeaponInfusionDefinition parse(ResourceLocation id,JsonObject json,WeaponInfusionDefinition fallback) {
-        for(String key:json.keySet()) if(!Set.of("display","icon","base_multiplier","physical_scaling","element","future_buildup").contains(key))
+        for(String key:json.keySet()) if(!Set.of("display","icon","base_multiplier","physical_scaling","element","future_buildup","statuses").contains(key))
             throw new IllegalArgumentException("Unknown infusion field "+key);
         String display=json.has("display")?boundedString(json.get("display"),128):fallback!=null?fallback.translationKey():"infusion."+id.getNamespace()+'.'+id.getPath();
         ResourceLocation icon=json.has("icon")?ResourceLocation.parse(boundedString(json.get("icon"),256)):fallback==null?null:fallback.icon();
@@ -70,7 +70,9 @@ public final class WeaponInfusionRegistry extends SimpleJsonResourceReloadListen
             }
         }
         var buildup=json.has("future_buildup")?WeaponInfusionBuildup.parse(json.get("future_buildup").getAsString()):fallback==null?WeaponInfusionBuildup.NONE:fallback.futureBuildup();
-        return new WeaponInfusionDefinition(id,display,icon,base,transforms,split,buildup);
+        var statuses=json.has("statuses")?dev.maplesadventure.progression.status.WeaponStatusProfile.parse(json.getAsJsonObject("statuses")):
+                json.has("future_buildup")||fallback==null?dev.maplesadventure.progression.status.WeaponStatusProfile.legacy(buildup):fallback.statuses();
+        return new WeaponInfusionDefinition(id,display,icon,base,transforms,split,buildup,statuses);
     }
 
     private static Map<ResourceLocation,WeaponInfusionDefinition> builtins() {
