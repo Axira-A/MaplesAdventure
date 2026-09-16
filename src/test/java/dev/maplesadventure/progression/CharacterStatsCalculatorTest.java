@@ -30,7 +30,7 @@ class CharacterStatsCalculatorTest {
     @Test void previewDefenseKeepsExplainableSources() {
         PlayerAttributeState state = PlayerAttributeState.defaultsState().with(Attribute.VIGOR, 8, 99);
         CharacterStatValue physical = CharacterStatCalculator.calculate(state).value(CharacterStat.PHYSICAL_DEFENSE);
-        assertEquals(StatImplementationState.PREVIEW_ONLY, physical.implementation());
+        assertEquals(StatImplementationState.ACTIVE, physical.implementation());
         assertEquals(10D, physical.breakdown().base(), 0.0001D);
         assertEquals(.75D, physical.breakdown().attribute(), 0.0001D);
         assertEquals(0D, physical.breakdown().equipment(), 0.0001D);

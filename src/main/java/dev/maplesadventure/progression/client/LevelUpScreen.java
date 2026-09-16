@@ -87,8 +87,12 @@ public final class LevelUpScreen extends Screen {
     private void recalculate() {
         preview = LevelUpPreviewCalculator.calculate(baseline.attributes(), draft.deltas(), baseline.experience(),
                 baseline.hardCap(), baseline.costMultiplier());
-        baselineStats = baseline.attributes().characterStats().withStatusThresholds(dev.maplesadventure.progression.status.client.ClientStatusState.thresholds());
-        previewStats = preview.characterStats().withStatusThresholds(dev.maplesadventure.progression.status.client.ClientStatusState.thresholds());
+        var attributes = baseline.attributes();
+        var thresholds = dev.maplesadventure.progression.status.client.ClientStatusState.thresholds();
+        baselineStats = CharacterStatCalculator.calculate(attributes.state(),attributes.runtimeResources(),attributes.equipLoad(),attributes.spellSchools(),thresholds)
+                .withWeapons(attributes.weapons().evaluate(attributes.state()));
+        previewStats = CharacterStatCalculator.calculate(preview.state(),attributes.runtimeResources(),attributes.equipLoad(),attributes.spellSchools(),thresholds)
+                .withWeapons(attributes.weapons().evaluate(preview.state()));
         compactStats = StatPreviewPriority.select(baselineStats, previewStats, 7);
         for (Attribute attribute : Attribute.values()) {
             if (!plus.containsKey(attribute)) continue;

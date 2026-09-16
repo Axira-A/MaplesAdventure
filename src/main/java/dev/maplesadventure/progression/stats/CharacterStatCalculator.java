@@ -27,6 +27,11 @@ public final class CharacterStatCalculator {
 
     public static CharacterStatsSnapshot calculate(PlayerAttributeState attributes, RuntimeResourceSnapshot runtimeResources,
             EquipLoadRuntimeSnapshot equipLoadRuntime, dev.maplesadventure.progression.spell.SpellSchoolScalingSnapshot spellSchools) {
+        return calculate(attributes,runtimeResources,equipLoadRuntime,spellSchools,java.util.Map.of());
+    }
+    public static CharacterStatsSnapshot calculate(PlayerAttributeState attributes, RuntimeResourceSnapshot runtimeResources,
+            EquipLoadRuntimeSnapshot equipLoadRuntime, dev.maplesadventure.progression.spell.SpellSchoolScalingSnapshot spellSchools,
+            java.util.Map<dev.maplesadventure.progression.status.StatusEffectType,Double> thresholds) {
         if (attributes == null) throw new IllegalArgumentException("Missing player attributes");
         if (runtimeResources == null) throw new IllegalArgumentException("Missing runtime resources");
         EnumMap<CharacterStat, CharacterStatValue> values = new EnumMap<>(CharacterStat.class);
@@ -34,7 +39,7 @@ public final class CharacterStatCalculator {
         EquipLoadSnapshot equipLoad = EquipLoadCalculator.calculate(attributes, equipLoadRuntime, values);
         WeaponAttackCalculator.calculate(values);
         DefenseCalculator.calculate(attributes, values);
-        ResistanceCalculator.calculate(values);
+        ResistanceCalculator.calculate(thresholds, values);
         SpellScalingCalculator.calculate(attributes, values);
         return new CharacterStatsSnapshot(AttributeProgression.level(attributes), values, equipLoad, spellSchools.preview(attributes));
     }

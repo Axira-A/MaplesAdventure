@@ -7,7 +7,7 @@ public final class DefenseMitigationCurve {
         return penetration(attackRating, defense, DEFAULT_PRESSURE);
     }
     public static double penetration(double attackRating, double defense, double pressure) {
-        if (!Double.isFinite(attackRating) || attackRating < 0 || !Double.isFinite(pressure) || pressure < .05 || pressure > 2)
+        if (!Double.isFinite(attackRating) || attackRating < 0 || !Double.isFinite(pressure) || pressure < .01 || pressure > 2)
             throw new IllegalArgumentException("Invalid attack rating/defense pressure");
         new ChannelDefense(defense, 0);
         // In particular 0 AR / 0 defense is identity, not NaN.

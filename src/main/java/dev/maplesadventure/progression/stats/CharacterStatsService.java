@@ -12,13 +12,13 @@ public final class CharacterStatsService {
         return CharacterStatCalculator.calculate(PlayerAttributeService.state(player),
                 DerivedStatRuntimeService.snapshot(player),
                 dev.maplesadventure.progression.encumbrance.EncumbranceRuntimeService.snapshot(player),
-                dev.maplesadventure.progression.spell.SpellScalingRuntimeService.snapshot(player)).withStatusThresholds(thresholds(player));
+                dev.maplesadventure.progression.spell.SpellScalingRuntimeService.snapshot(player),thresholds(player));
     }
 
     public static CharacterStatsSnapshot preview(ServerPlayer player, PlayerAttributeState previewAttributes) {
         return CharacterStatCalculator.calculate(previewAttributes, DerivedStatRuntimeService.snapshot(player),
                 dev.maplesadventure.progression.encumbrance.EncumbranceRuntimeService.snapshot(player),
-                dev.maplesadventure.progression.spell.SpellScalingRuntimeService.snapshot(player)).withStatusThresholds(thresholds(player));
+                dev.maplesadventure.progression.spell.SpellScalingRuntimeService.snapshot(player),thresholds(player));
     }
 
     /** Pure shared preview used after a server-authored attribute snapshot reaches the client. */

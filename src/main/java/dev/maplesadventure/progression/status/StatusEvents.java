@@ -15,13 +15,19 @@ import dev.maplesadventure.progression.weapon.WeaponDamagePolicy;
 public final class StatusEvents {
     public static void register() { NeoForge.EVENT_BUS.register(new StatusEvents()); }
     @SubscribeEvent(priority=EventPriority.LOWEST) public void post(LivingDamageEvent.Post e) {
-        if(e.getEntity().level().isClientSide()||e.getNewDamage()<=0||StatusDamageSources.isStatus(e.getSource())) return;
-        if(e.getSource().is(net.minecraft.tags.DamageTypeTags.IS_FIRE)) StatusRuntimeService.fireHit(e.getEntity());
-        WeaponDamagePolicy.context(e.getSource()).ifPresent(context->context.statuses().amounts().forEach((type,amount)->
+        if(e.getEntity().level().isClientSide()) return;
+        var hit=dev.maplesadventure.progression.defense.CombatHitLifecycle.consume(e.getEntity().getUUID(),e.getSource());
+        if(e.getNewDamage()<=0||StatusDamageSources.isStatus(e.getSource())) return;
+        if(e.getSource().is(net.minecraft.tags.DamageTypeTags.IS_FIRE)
+                || hit.filter(dev.maplesadventure.progression.defense.CombatHitLifecycle::hasFire).isPresent()) StatusRuntimeService.fireHit(e.getEntity());
+        hit.ifPresent(context->context.statuses().amounts().forEach((type,amount)->
                 StatusBuildupService.apply(e.getEntity(),type,amount,new StatusSourceContext(context.owner(),StatusSourceContext.SourceKind.WEAPON,
                         context.usedWeapon(),context.projectileSnapshot(),type))));
     }
-    @SubscribeEvent public void tick(ServerTickEvent.Post e) { StatusRuntimeService.tick(e.getServer()); }
+    @SubscribeEvent public void tick(ServerTickEvent.Post e) {
+        StatusRuntimeService.tick(e.getServer());
+        dev.maplesadventure.progression.defense.CombatHitLifecycle.clear();
+    }
     @SubscribeEvent public void join(EntityJoinLevelEvent e) {
         if(!e.getLevel().isClientSide()&&e.getEntity() instanceof LivingEntity living) StatusRuntimeService.track(living);
     }
@@ -42,5 +48,5 @@ public final class StatusEvents {
     @SubscribeEvent public void logout(PlayerEvent.PlayerLoggedOutEvent e) { StatusRuntimeService.forget(e.getEntity()); }
     @SubscribeEvent public void respawn(PlayerEvent.PlayerRespawnEvent e) { if(e.getEntity() instanceof ServerPlayer p) { StatusRuntimeService.track(p); StatusNetwork.sync(p); } }
     @SubscribeEvent public void dimension(PlayerEvent.PlayerChangedDimensionEvent e) { if(e.getEntity() instanceof ServerPlayer p) { StatusRuntimeService.track(p); StatusNetwork.sync(p); } }
-    @SubscribeEvent public void stop(ServerStoppedEvent e) { StatusRuntimeService.shutdown(); }
+    @SubscribeEvent public void stop(ServerStoppedEvent e) { StatusRuntimeService.shutdown(); dev.maplesadventure.progression.defense.CombatHitLifecycle.clear(); }
 }

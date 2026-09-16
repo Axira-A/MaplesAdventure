@@ -5,7 +5,7 @@ import java.util.Optional;
 import net.minecraft.world.damagesource.DamageSource;
 import dev.maplesadventure.progression.weapon.WeaponDamageChannel;
 
-/** Future adapter seam only. No providers are registered or executed in Round 10. */
+/** Server-only descriptive adapter. Return bounded channel pressure; never mutate health/events. */
 public interface TypedDamageChannelProvider {
     Optional<Map<WeaponDamageChannel, Double>> channelAttackRatings(DamageSource source);
 }

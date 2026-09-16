@@ -93,6 +93,7 @@ public final class MaplesAdventure {
         modContainer.registerConfig(ModConfig.Type.SERVER, EquipLoadConfig.SPEC, "maplesadventure-equipment-load-server.toml");
         modContainer.registerConfig(ModConfig.Type.SERVER, dev.maplesadventure.config.WeaponRequirementConfig.SPEC, "maplesadventure-weapon-requirements-server.toml");
         modContainer.registerConfig(ModConfig.Type.SERVER, dev.maplesadventure.config.EnemyDefenseConfig.SPEC, "maplesadventure-enemy-defense-server.toml");
+        modContainer.registerConfig(ModConfig.Type.SERVER, dev.maplesadventure.config.PlayerDefenseConfig.SPEC, "maplesadventure-player-defense-server.toml");
         modContainer.registerConfig(ModConfig.Type.SERVER, dev.maplesadventure.config.StatusConfig.SPEC, "maplesadventure-status-server.toml");
         modContainer.registerConfig(ModConfig.Type.CLIENT, EchoClientConfig.SPEC, "maplesadventure-echo-client.toml");
         modContainer.registerConfig(ModConfig.Type.CLIENT, InteractionConfig.SPEC, "maplesadventure-client.toml");

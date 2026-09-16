@@ -48,7 +48,8 @@ public final class StatusRegression {
     }
     private static Zombie mob(ServerLevel level,ServerPlayer player) {
         var mob=Objects.requireNonNull(EntityType.ZOMBIE.create(level));
-        mob.setNoAi(true); mob.setPersistenceRequired(); mob.setPos(player.position().add(0,0,4));
+        mob.setNoAi(true); mob.setNoGravity(true); mob.setPersistenceRequired(); mob.setPos(player.position().add(0,0,4));
+        mob.setItemSlot(EquipmentSlot.HEAD,Items.NETHERITE_HELMET.getDefaultInstance());
         mob.getAttribute(Attributes.MAX_HEALTH).setBaseValue(1000); mob.getAttribute(Attributes.ARMOR).setBaseValue(20);
         mob.setHealth(1000); level.addFreshEntity(mob); return mob;
     }
@@ -134,7 +135,7 @@ public final class StatusRegression {
         pending.add(new Pending(source.getServer().getTickCount()+45,()->{
             try {
                 double expected=StatusDefinitions.get(StatusEffectType.POISON).damage(1000,1)+StatusDefinitions.get(StatusEffectType.SCARLET_ROT).damage(1000,1);
-                check(Math.abs(initial-poisoned.getHealth()-expected)<.01,"Real poison+rot DOT continues after source Phase changes; bypasses armor");
+                check(Math.abs(initial-poisoned.getHealth()-expected)<.01,"Real poison+rot DOT continues after source Phase changes; bypasses armor actual="+(initial-poisoned.getHealth())+" expected="+expected+" removed="+poisoned.isRemoved());
                 check(buildup(poisoned,StatusEffectType.BLEED)==0,"DOT does not trigger weapon status");
                 source.sendSuccess(()->Component.literal("Status regression complete: immediate + delayed checks PASS"),false);
                 MaplesAdventure.LOGGER.info("[Status regression] COMPLETE epicfight={} irons={}",ModList.get().isLoaded("epicfight"),ModList.get().isLoaded("irons_spellbooks"));

@@ -2,13 +2,20 @@ package dev.maplesadventure.progression.stats;
 
 import java.util.Map;
 
-/** Status buildup/resistance has no authoritative formula in this round. */
+/** Renders only the authoritative server resistance snapshot; attributes never invent thresholds. */
 final class ResistanceCalculator {
-    static void calculate(Map<CharacterStat, CharacterStatValue> target) {
-        target.put(CharacterStat.POISON_RESISTANCE, CharacterStatValue.unavailable());
-        target.put(CharacterStat.BLEED_RESISTANCE, CharacterStatValue.unavailable());
-        target.put(CharacterStat.FROST_RESISTANCE, CharacterStatValue.unavailable());
-        target.put(CharacterStat.SCARLET_RESISTANCE, CharacterStatValue.unavailable());
+    static void calculate(Map<dev.maplesadventure.progression.status.StatusEffectType,Double> thresholds,
+                          Map<CharacterStat, CharacterStatValue> target) {
+        thresholds.forEach((type,value)-> {
+            new dev.maplesadventure.progression.status.StatusResistance(value,false,1);
+            CharacterStat stat=switch(type) {
+                case BLEED -> CharacterStat.BLEED_RESISTANCE;
+                case POISON -> CharacterStat.POISON_RESISTANCE;
+                case SCARLET_ROT -> CharacterStat.SCARLET_RESISTANCE;
+                case FROSTBITE -> CharacterStat.FROST_RESISTANCE;
+            };
+            target.put(stat,CharacterStatValue.active(new StatBreakdown(value,0,0,0)));
+        });
     }
     private ResistanceCalculator() {}
 }

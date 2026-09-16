@@ -4,7 +4,7 @@ import dev.maplesadventure.progression.Attribute;
 import dev.maplesadventure.progression.PlayerAttributeState;
 import java.util.Map;
 
-/** Low-strength base-character defense previews. Armor remains a separate, future dominant contribution. */
+/** Sole pure build-defense formula for runtime and preview. Vanilla armor is not an input. */
 public final class DefenseCalculator {
     static void calculate(PlayerAttributeState a, Map<CharacterStat, CharacterStatValue> target) {
         double vig = points(a, Attribute.VIGOR), end = points(a, Attribute.ENDURANCE);
@@ -29,7 +29,15 @@ public final class DefenseCalculator {
 
     private static void put(Map<CharacterStat, CharacterStatValue> target, CharacterStat stat,
                             double base, double attribute) {
-        target.put(stat, CharacterStatValue.previewOnly(new StatBreakdown(base, attribute, 0, 0)));
+        target.put(stat, CharacterStatValue.active(new StatBreakdown(base, attribute, 0, 0)));
+    }
+
+    public static dev.maplesadventure.progression.defense.PlayerDefenseSnapshot snapshot(PlayerAttributeState attributes) {
+        var stats = new java.util.EnumMap<CharacterStat, CharacterStatValue>(CharacterStat.class);
+        calculate(attributes, stats);
+        var channels = new java.util.EnumMap<dev.maplesadventure.progression.weapon.WeaponDamageChannel, StatBreakdown>(dev.maplesadventure.progression.weapon.WeaponDamageChannel.class);
+        for (var type : DamageDefenseType.values()) channels.put(type.channel(), stats.get(type.stat()).breakdown());
+        return new dev.maplesadventure.progression.defense.PlayerDefenseSnapshot(channels);
     }
 
     private DefenseCalculator() {}

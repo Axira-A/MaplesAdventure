@@ -1,4 +1,0 @@
-[169月2026 11:41:38.134] [Test worker/WARN] [dev.maplesadventure.MaplesAdventure/]: Invalid projectile weapon bundle; using safe physical fallback: Channel AR bounds
-[169月2026 11:41:38.372] [Test worker/WARN] [dev.maplesadventure.MaplesAdventure/]: Invalid projectile weapon bundle; using safe physical fallback: Inconsistent bundle
-[169月2026 11:41:38.393] [Test worker/WARN] [dev.maplesadventure.MaplesAdventure/]: Invalid frozen status snapshot; using EMPTY
-[169月2026 11:41:38.401] [Test worker/WARN] [dev.maplesadventure.MaplesAdventure/]: Discarded invalid status entry: Status value out of bounds

@@ -14,6 +14,8 @@ public final class StatPreviewPriority {
         for (CharacterStat stat : CharacterStat.values()) {
             CharacterStatValue before = current.value(stat), after = preview.value(stat);
             if (!before.available() && !after.available()) continue;
+            if ((stat.section()==CharacterStatSection.DEFENSE || stat.section()==CharacterStatSection.ELEMENTAL)
+                    && !after.differsFrom(before)) continue;
             candidates.add(new Comparison(stat, before, after, after.differsFrom(before)));
         }
         candidates.sort(Comparator.<Comparison, Boolean>comparing(Comparison::changed).reversed()

@@ -33,8 +33,8 @@ public final class CharacterStatsScreen extends Screen {
                                 CharacterStatsSnapshot preview) {
         super(Component.translatable("screen.maplesadventure.character_stats.title"));
         this.parent = parent;
-        this.current = current.withStatusThresholds(dev.maplesadventure.progression.status.client.ClientStatusState.thresholds());
-        this.preview = preview.withStatusThresholds(dev.maplesadventure.progression.status.client.ClientStatusState.thresholds());
+        this.current = current;
+        this.preview = preview;
     }
 
     @Override protected void init() {
@@ -97,6 +97,8 @@ public final class CharacterStatsScreen extends Screen {
         ArrayList<Component> lines = new ArrayList<>();
         lines.add(Component.translatable(stat.translationKey()));
         lines.add(Component.translatable(value.implementation().translationKey()));
+        if (stat.section()==CharacterStatSection.DEFENSE || stat.section()==CharacterStatSection.ELEMENTAL)
+            lines.add(Component.translatable("screen.maplesadventure.character_stats.build_defense_layer"));
         if (value.available()) {
             StatBreakdown b = value.breakdown();
             lines.add(Component.translatable("screen.maplesadventure.character_stats.breakdown.base",

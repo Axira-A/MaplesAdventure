@@ -1,4 +1,5 @@
 {
+  "screen.maplesadventure.character_stats.build_defense_layer": "Build defense is an additional layer. Minecraft armor and toughness are calculated separately.",
   "screen.maplesadventure.weapon.channel.physical": "Standard physical",
   "screen.maplesadventure.weapon.channel.slash": "Slash",
   "screen.maplesadventure.weapon.channel.strike": "Strike",

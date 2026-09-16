@@ -1,0 +1,5 @@
+{
+  "item": "minecraft:golden_sword",
+  "priority": 1000,
+  "components": [{"channel": "fire", "base_ratio": 1.0}]
+}

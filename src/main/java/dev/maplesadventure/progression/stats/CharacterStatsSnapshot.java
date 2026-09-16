@@ -39,19 +39,6 @@ public final class CharacterStatsSnapshot {
     }
 
     public int level() { return level; }
-    public CharacterStatsSnapshot withStatusThresholds(Map<dev.maplesadventure.progression.status.StatusEffectType,Double> thresholds) {
-        var updated=new EnumMap<CharacterStat,CharacterStatValue>(CharacterStat.class); updated.putAll(values);
-        thresholds.forEach((type,value)->{
-            CharacterStat stat=switch(type) {
-                case BLEED -> CharacterStat.BLEED_RESISTANCE;
-                case POISON -> CharacterStat.POISON_RESISTANCE;
-                case SCARLET_ROT -> CharacterStat.SCARLET_RESISTANCE;
-                case FROSTBITE -> CharacterStat.FROST_RESISTANCE;
-            };
-            updated.put(stat,CharacterStatValue.active(new StatBreakdown(value,0,0,0)));
-        });
-        return new CharacterStatsSnapshot(level,updated,equipLoad,spellSchools,weapons);
-    }
     public List<dev.maplesadventure.progression.weapon.WeaponLoadoutSnapshot.View> weapons() { return weapons; }
     public CharacterStatsSnapshot withWeapons(List<dev.maplesadventure.progression.weapon.WeaponLoadoutSnapshot.View> weapons) {
         var updated=new EnumMap<CharacterStat,CharacterStatValue>(CharacterStat.class); updated.putAll(values);

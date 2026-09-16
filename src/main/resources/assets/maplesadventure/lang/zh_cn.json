@@ -1,4 +1,5 @@
 {
+  "screen.maplesadventure.character_stats.build_defense_layer": "角色防御是额外减伤层；Minecraft 护甲与韧性独立计算。",
   "screen.maplesadventure.weapon.channel.physical": "标准物理",
   "screen.maplesadventure.weapon.channel.slash": "斩击",
   "screen.maplesadventure.weapon.channel.strike": "打击",
