@@ -34,9 +34,9 @@ class StatusBuildupTest {
         }
         assertTrue(c.amount(40)>c.amount(5));
     }
-    @Test void onlyBloodAndPoisonDefaultToStatus() {
+    @Test void canonicalStatusInfusionsAreExplicit() {
         for(var definition:WeaponInfusionRegistry.definitions().values()) {
-            boolean expected=definition.id().equals(WeaponInfusionRegistry.BLOOD_ID)||definition.id().equals(WeaponInfusionRegistry.POISON_ID);
+            boolean expected=Set.of("blood","poison","cold","slumber","frenzied","rot","blight").contains(definition.id().getPath());
             assertEquals(expected,!definition.statuses().components().isEmpty());
         }
     }

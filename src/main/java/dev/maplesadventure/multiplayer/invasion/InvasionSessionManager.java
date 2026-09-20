@@ -228,6 +228,8 @@ public final class InvasionSessionManager implements BossGateEntryCoordinator {
     }
 
     private static void restore(ServerPlayer player, String reason) {
+        dev.maplesadventure.progression.status.StatusRuntimeService.clearAll(player,
+                dev.maplesadventure.progression.status.StatusRuntimeService.ClearReason.SESSION_RETURN);
         PendingInvasionReturnSavedData data = PendingInvasionReturnSavedData.get(player.server);
         ReturnContext context = data.get(player.getUUID()).orElse(null);
         if (context == null) {

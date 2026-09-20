@@ -22,6 +22,13 @@ public final class IronsManaAdapter implements DerivedStatRuntimeAdapter {
     private static final double IRONS_BASELINE = 100.0D;
 
     @Override public DerivedRuntimeResource resource() { return DerivedRuntimeResource.MANA; }
+    @Override public boolean consumeExact(ServerPlayer player,double amount) {
+        MagicData magicData=MagicData.getPlayerMagicData(player);
+        if(magicData==null) return false;
+        magicData.setMana((float)Math.max(0,magicData.getMana()-amount));
+        PacketDistributor.sendToPlayer(player,new SyncManaPacket(magicData));
+        return true;
+    }
 
     @Override
     public RuntimeResourceValue refresh(ServerPlayer player, PlayerAttributeState state, DerivedStatRefreshReason reason) {

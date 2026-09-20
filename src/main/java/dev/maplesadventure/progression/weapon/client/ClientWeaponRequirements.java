@@ -44,7 +44,7 @@ public final class ClientWeaponRequirements {
                     event.getToolTip().addAll(WeaponAttackText.contributions(state,c.scaling(resolved.scaling())));
                 }
         }
-        event.getToolTip().addAll(dev.maplesadventure.progression.status.client.StatusText.lines(resolved.statuses().evaluate(state.get(dev.maplesadventure.progression.Attribute.ARCANE))));
+        event.getToolTip().addAll(dev.maplesadventure.progression.status.client.StatusText.lines(resolved.statuses().evaluate(state.get(dev.maplesadventure.progression.Attribute.ARCANE),resolved.scaling().arcane(),1)));
         if(!p.enabled()) return;
         event.getToolTip().add(Component.translatable("screen.maplesadventure.weapon.requirements").withStyle(ChatFormatting.GOLD));
         for(var a:WeaponRequirementProfile.ATTRIBUTES) if(p.get(a)>0)

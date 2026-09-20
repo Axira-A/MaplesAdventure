@@ -13,6 +13,7 @@ public final class WeaponRequirementCommands {
     @SubscribeEvent public void commands(RegisterCommandsEvent event) {
         for(String root:new String[]{"ma","maplesadventure"}) event.getDispatcher().register(Commands.literal(root)
             .then(Commands.literal("weapon").requires(s->s.hasPermission(2))
+                .then(Commands.literal("status").executes(c->status(c.getSource())))
                 .then(Commands.literal("damage").executes(c->damage(c.getSource(),c.getSource().getPlayerOrException().getMainHandItem()))
                     .then(Commands.argument("item",ItemArgument.item(event.getBuildContext())).executes(c->damage(c.getSource(),ItemArgument.getItem(c,"item").createItemStack(1,false)))))
                 .then(Commands.literal("scaling").executes(c->scaling(c.getSource(),c.getSource().getPlayerOrException().getMainHandItem()))
@@ -40,6 +41,17 @@ public final class WeaponRequirementCommands {
             var result=WeaponRequirementService.evaluate(player,stack);
             source.sendSuccess(()->Component.literal("missing="+result.missingAttributes()+" satisfied="+result.satisfied()+" multiplier="+result.damageMultiplier()+" innateAllowed="+result.weaponSkillAllowed()),false);
         }
+        return 1;
+    }
+    public static int status(CommandSourceStack source) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        var player=source.getPlayerOrException(); var resolved=WeaponCombatProfileResolver.resolve(player.getMainHandItem());
+        int arc=dev.maplesadventure.progression.PlayerAttributeService.get(player,dev.maplesadventure.progression.Attribute.ARCANE);
+        var weight=resolved.statuses().weightClass()!=null?resolved.statuses().weightClass():dev.maplesadventure.progression.status.StatusWeaponWeightClass.archetype(resolved.requirements().weaponClass());
+        source.sendSuccess(()->Component.literal("infusion="+resolved.infusion().id()+" weight="+weight+" ARC="+arc+" motion=1 (neutral preview)"),false);
+        for(var c:resolved.statuses().components()) source.sendSuccess(()->Component.literal(c.type()+" base="+c.baseBuildup()+" policy="+c.policy()
+                +" curve="+dev.maplesadventure.progression.status.StatusArcaneScalingCurve.evaluate(arc)+" scaling="+
+                (c.policy()==dev.maplesadventure.progression.status.StatusArcaneScalingPolicy.FOLLOW_WEAPON_ARCANE?resolved.scaling().arcane():c.arcaneScaling())
+                +" final="+c.amount(arc,resolved.scaling().arcane(),1)),false);
         return 1;
     }
     private static int damage(CommandSourceStack source,ItemStack stack) {
@@ -71,7 +83,7 @@ public final class WeaponRequirementCommands {
         var state=WeaponInfusionService.state(stack); var resolved=WeaponCombatProfileResolver.resolve(stack);
         source.sendSuccess(()->Component.literal("stored="+state.map(v->v.infusionId()+" v"+v.dataVersion()).orElse("<implicit normal>")
                 +" runtime="+resolved.infusion().id()+" status="+resolved.infusion().status()+" eligible="+WeaponInfusionEligibilityService.eligibility(stack).allowed()),false);
-        return damage(source,stack);
+        status(source); return damage(source,stack);
     }
     private static int setInfusion(CommandSourceStack source,net.minecraft.resources.ResourceLocation id) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
         var player=source.getPlayerOrException(); var result=WeaponInfusionService.set(player,id);

@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 abstract class EncumbranceSprintMixin {
     @Inject(method = "setSprinting", at = @At("HEAD"), cancellable = true)
     private void maplesadventure$preventOverloadedSprint(boolean sprinting, CallbackInfo ci) {
-        if (sprinting && !EncumbranceRuntimeService.canSprint((LivingEntity) (Object) this)) ci.cancel();
+        if (sprinting && (!EncumbranceRuntimeService.canSprint((LivingEntity) (Object) this)
+                || dev.maplesadventure.progression.status.StatusControlLockService.locked((LivingEntity)(Object)this))) ci.cancel();
     }
 }

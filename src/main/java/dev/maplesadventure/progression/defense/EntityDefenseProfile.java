@@ -5,7 +5,12 @@ import net.minecraft.resources.ResourceLocation;
 import dev.maplesadventure.progression.weapon.WeaponDamageChannel;
 
 public record EntityDefenseProfile(ResourceLocation profileId, Map<WeaponDamageChannel, ChannelDefense> channels, String source,
-        Map<dev.maplesadventure.progression.status.StatusEffectType,dev.maplesadventure.progression.status.StatusResistance> statusResistances) implements ChannelDefenseView {
+        Map<dev.maplesadventure.progression.status.StatusEffectType,dev.maplesadventure.progression.status.StatusResistance> statusResistances,
+        dev.maplesadventure.progression.status.StatusTargetTraits statusTraits) implements ChannelDefenseView {
+    public EntityDefenseProfile(ResourceLocation id,Map<WeaponDamageChannel,ChannelDefense> channels,String source,
+            Map<dev.maplesadventure.progression.status.StatusEffectType,dev.maplesadventure.progression.status.StatusResistance> resistances) {
+        this(id,channels,source,resistances,dev.maplesadventure.progression.status.StatusTargetTraits.DEFAULT);
+    }
     public EntityDefenseProfile(ResourceLocation id,Map<WeaponDamageChannel,ChannelDefense> channels,String source) { this(id,channels,source,Map.of()); }
     public static final EntityDefenseProfile NONE = new EntityDefenseProfile(
             ResourceLocation.fromNamespaceAndPath("maplesadventure", "none"), Map.of(), "NONE");

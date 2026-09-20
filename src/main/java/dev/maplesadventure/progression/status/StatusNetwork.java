@@ -19,11 +19,13 @@ public final class StatusNetwork {
             if(remaining<0||total<0||total>72000||remaining>total||decayIn<0||decayIn>72000||serial<0) throw new IllegalArgumentException("HUD time bounds");
         }
     }
-    public record Snapshot(long serverTime,long revision,List<Row> rows) implements CustomPacketPayload {
+    public record Snapshot(long serverTime,long revision,List<Row> rows,long controlRemaining) implements CustomPacketPayload {
+        public Snapshot(long time,long revision,List<Row> rows) { this(time,revision,rows,0); }
         public static final Type<Snapshot> TYPE=new Type<>(ResourceLocation.fromNamespaceAndPath("maplesadventure","status_hud"));
         public Snapshot {
             rows=List.copyOf(rows);
-            if(serverTime<0||revision<0||rows.size()!=4||rows.stream().map(Row::type).distinct().count()!=4) throw new IllegalArgumentException("HUD bounds");
+            if(controlRemaining<0||controlRemaining>1200) throw new IllegalArgumentException("Control snapshot bounds");
+            if(serverTime<0||revision<0||rows.size()!=StatusEffectType.values().length||rows.stream().map(Row::type).distinct().count()!=StatusEffectType.values().length) throw new IllegalArgumentException("HUD bounds");
         }
         public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
@@ -36,9 +38,9 @@ public final class StatusNetwork {
         public Snapshot decode(RegistryFriendlyByteBuf b) {
             if(b.readableBytes()>1024) throw new IllegalArgumentException("Status HUD bytes");
             long time=b.readVarLong(),rev=b.readVarLong(); var rows=new ArrayList<Row>();
-            for(int i=0;i<4;i++) rows.add(new Row(b.readEnum(StatusEffectType.class),b.readEnum(HUDMode.class),b.readDouble(),b.readDouble(),
+            for(int i=0;i<StatusEffectType.values().length;i++) rows.add(new Row(b.readEnum(StatusEffectType.class),b.readEnum(HUDMode.class),b.readDouble(),b.readDouble(),
                     b.readVarLong(),b.readVarLong(),b.readVarLong(),b.readDouble(),b.readVarLong()));
-            return new Snapshot(time,rev,rows);
+            return new Snapshot(time,rev,rows,b.readVarLong());
         }
         public void encode(RegistryFriendlyByteBuf b,Snapshot s) {
             b.writeVarLong(s.serverTime()); b.writeVarLong(s.revision());
@@ -46,6 +48,7 @@ public final class StatusNetwork {
                 b.writeEnum(row.type()); b.writeEnum(row.mode()); b.writeDouble(row.current()); b.writeDouble(row.maximum());
                 b.writeVarLong(row.remaining()); b.writeVarLong(row.total()); b.writeVarLong(row.decayIn()); b.writeDouble(row.decayPerSecond()); b.writeVarLong(row.serial());
             }
+            b.writeVarLong(s.controlRemaining());
         }
     };
     private static final StreamCodec<RegistryFriendlyByteBuf,Proc> PROC_CODEC=new StreamCodec<>() {
@@ -65,7 +68,7 @@ public final class StatusNetwork {
                     active?e.activeEnd-now:0,active?e.activeEnd-e.activeStart:0,e==null?0:Math.clamp(e.lastBuildup+d.decayDelay()-now,0,72000),
                     d.decayPerSecond(),e==null?0:e.procSerial));
         }
-        return new Snapshot(now,state==null?0:state.revision(),rows);
+        return new Snapshot(now,state==null?0:state.revision(),rows,state!=null&&state.locked(now)?Math.min(1200,state.lockEnd-now):0);
     }
     public static void sync(ServerPlayer player) { if(player.connection!=null) PacketDistributor.sendToPlayer(player,snapshot(player)); }
     public static void proc(ServerPlayer player,StatusEffectType type,long revision,long serial) {

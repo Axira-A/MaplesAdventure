@@ -32,6 +32,7 @@ public final class StatusRegression {
         NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent e)->e.getDispatcher().register(
             Commands.literal("statusregression").requires(s->s.hasPermission(2))
                 .then(Commands.literal("run").executes(c->run(c.getSource())))
+                .then(Commands.literal("extended").executes(c->extended(c.getSource())))
                 .then(Commands.literal("persist").executes(c->persist(c.getSource(),false)))
                 .then(Commands.literal("checkpersist").executes(c->persist(c.getSource(),true)))
                 .then(Commands.literal("hud").then(Commands.argument("player",EntityArgument.player())
@@ -75,6 +76,7 @@ public final class StatusRegression {
             target.hurt(direct,1);
             check(Math.abs(buildup(target,StatusEffectType.BLEED)-amount)<1e-8,"Vanilla successful hit adds exactly once independent of damage/armor");
             if(ModList.get().isLoaded("epicfight")) {
+                EpicRegression.statusMotion(player,target);
                 StatusRuntimeService.clearAll(target,StatusRuntimeService.ClearReason.ADMIN); target.invulnerableTime=0;
                 target.hurt(EpicRegression.defenseSource(player),1);
                 check(Math.abs(buildup(target,StatusEffectType.BLEED)-amount)<1e-8,"Epic Fight hit adds exactly once");
@@ -104,9 +106,9 @@ public final class StatusRegression {
             check(buildup(target,StatusEffectType.BLEED)==0&&!StatusRuntimeService.active(target,StatusEffectType.BLEED),"Bleed discards overflow, no duration/no recursion");
             hp=target.getHealth();
             StatusBuildupService.proc(target,StatusEffectType.FROSTBITE,StatusSourceContext.admin(StatusEffectType.FROSTBITE));
-            check(Math.abs(hp-target.getHealth()-110)<.002,"Frost burst precedes vulnerability");
-            check(StatusRuntimeService.active(target,StatusEffectType.FROSTBITE)&&StatusRuntimeService.damageTaken(target)==1.07,"Frost active vulnerability");
-            check(StatusRuntimeService.frostRegen(target)==.75,"Frost regen profile");
+            check(Math.abs(hp-target.getHealth()-100)<.002,"Frost burst precedes vulnerability");
+            check(StatusRuntimeService.active(target,StatusEffectType.FROSTBITE)&&StatusRuntimeService.damageTaken(target)==1.20,"Frost active vulnerability");
+            check(StatusRuntimeService.frostRegen(target)==.80,"Frost regen profile");
             long until=StatusRuntimeService.state(target).get(StatusEffectType.FROSTBITE).activeEnd;
             StatusBuildupService.proc(target,StatusEffectType.FROSTBITE,StatusSourceContext.admin(StatusEffectType.FROSTBITE));
             check(StatusRuntimeService.state(target).get(StatusEffectType.FROSTBITE).activeEnd==until,"Active Frost cannot refresh/reproc");
@@ -134,7 +136,7 @@ public final class StatusRegression {
         float initial=poisoned.getHealth();
         pending.add(new Pending(source.getServer().getTickCount()+45,()->{
             try {
-                double expected=StatusDefinitions.get(StatusEffectType.POISON).damage(1000,1)+StatusDefinitions.get(StatusEffectType.SCARLET_ROT).damage(1000,1);
+                double expected=2*(StatusDefinitions.get(StatusEffectType.POISON).damage(1000,1)+StatusDefinitions.get(StatusEffectType.SCARLET_ROT).damage(1000,1));
                 check(Math.abs(initial-poisoned.getHealth()-expected)<.01,"Real poison+rot DOT continues after source Phase changes; bypasses armor actual="+(initial-poisoned.getHealth())+" expected="+expected+" removed="+poisoned.isRemoved());
                 check(buildup(poisoned,StatusEffectType.BLEED)==0,"DOT does not trigger weapon status");
                 source.sendSuccess(()->Component.literal("Status regression complete: immediate + delayed checks PASS"),false);
@@ -148,6 +150,78 @@ public final class StatusRegression {
         var rows=new ArrayList<StatusNetwork.Row>();
         for(var type:StatusEffectType.values()) rows.add(new StatusNetwork.Row(type,StatusNetwork.HUDMode.BUILDUP,percent,100,0,0,1200,0,0));
         net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,new StatusNetwork.Snapshot(StatusRuntimeService.now(player),100000,rows));
+        return 1;
+    }
+    private static int extended(CommandSourceStack source) {
+        var level=source.getLevel();
+        var manaPlayer=PlayerDefenseRegression.player(level,"StatusManaFixture");
+        try {
+            if(ModList.get().isLoaded("irons_spellbooks")) StatusManaRegression.run(manaPlayer);
+            else check(!dev.maplesadventure.progression.runtime.PlayerManaService.consumeExact(manaPlayer,40),"No Iron's: no invented mana and no class loading crash");
+        } finally { StatusRuntimeService.forget(manaPlayer); PhaseManager.forget(manaPlayer.getUUID()); }
+        var player=FakePlayerFactory.get(level,new GameProfile(UUID.fromString("13000000-0000-0000-0000-000000000013"),"Status13Fixture"));
+        player.setPos(level.getSharedSpawnPos().getX()+.5,100,level.getSharedSpawnPos().getZ()+.5);
+        level.getChunk(player.blockPosition());
+        var target=mob(level,player); var victim=mob(level,player);
+        try {
+            check(StatusResistanceService.resolve(target,StatusEffectType.MADNESS).immune(),"Ordinary mob is Madness immune");
+            check(StatusResistanceService.resolve(target,StatusEffectType.DEATH_BLIGHT).immune(),"Ordinary mob is Death Blight immune");
+            float hp=target.getHealth();
+            check(!StatusBuildupService.proc(target,StatusEffectType.MADNESS,StatusSourceContext.admin(StatusEffectType.MADNESS))&&target.getHealth()==hp,"Immune mob cannot proc Madness");
+            dev.maplesadventure.progression.defense.EntityDefenseService.assign(target,ResourceLocation.parse("weaponregression:status13"));
+            StatusBuildupService.proc(target,StatusEffectType.BLEED,StatusSourceContext.admin(StatusEffectType.BLEED));
+            check(StatusResistanceService.resolve(target,StatusEffectType.BLEED).threshold()==241,"First proc uses +21 correction, not percentage");
+            StatusRuntimeService.clear(target,StatusEffectType.BLEED,StatusRuntimeService.ClearReason.CURE);
+            check(StatusResistanceService.resolve(target,StatusEffectType.BLEED).threshold()==241,"Cure/empty bar preserves correction history");
+            StatusRuntimeService.clear(target,StatusEffectType.BLEED,StatusRuntimeService.ClearReason.ADMIN);
+            check(StatusResistanceService.resolve(target,StatusEffectType.BLEED).threshold()==220,"Explicit single-status admin reset works after bar removed");
+            target.setHealth(1000);
+            StatusBuildupService.proc(target,StatusEffectType.FROSTBITE,StatusSourceContext.admin(StatusEffectType.FROSTBITE));
+            hp=target.getHealth();
+            StatusBuildupService.proc(target,StatusEffectType.BLEED,StatusSourceContext.admin(StatusEffectType.BLEED));
+            check(Math.abs(hp-target.getHealth()-150)<.002,"Frost does not amplify status burst damage");
+            StatusRuntimeService.clearAll(target,StatusRuntimeService.ClearReason.ADMIN);
+            hp=target.getHealth();
+            StatusBuildupService.proc(target,StatusEffectType.SLEEP,StatusSourceContext.admin(StatusEffectType.SLEEP));
+            check(target.getHealth()==hp&&StatusControlLockService.locked(target),"Deep Sleep locks without HP damage");
+            float victimHp=victim.getHealth(); victim.invulnerableTime=0;
+            victim.hurt(victim.damageSources().mobAttack(target),10);
+            check(victim.getHealth()==victimHp,"Locked mob cannot deal direct attacks");
+            target.invulnerableTime=0; target.hurt(target.damageSources().generic(),1);
+            check(!StatusControlLockService.locked(target),"Positive external hurt wakes deep sleep");
+            StatusBuildupService.proc(target,StatusEffectType.MADNESS,StatusSourceContext.admin(StatusEffectType.MADNESS));
+            check(StatusControlLockService.locked(target),"Explicit TarnishedLike mob permits Madness control lock");
+            StatusRuntimeService.clearAll(target,StatusRuntimeService.ClearReason.ADMIN);
+            target.setNoAi(false); hp=target.getHealth();
+            StatusBuildupService.proc(target,StatusEffectType.SLEEP,StatusSourceContext.admin(StatusEffectType.SLEEP));
+            check(!target.isNoAi()&&target.getHealth()==hp,"Sleep does not permanently set NoAI");
+            StatusRuntimeService.clearAll(target,StatusRuntimeService.ClearReason.ADMIN);
+            StatusBuildupService.proc(target,StatusEffectType.DEATH_BLIGHT,StatusSourceContext.admin(StatusEffectType.DEATH_BLIGHT));
+            check(!target.isAlive()&&StatusRuntimeService.state(target).empty(),"Eligible Death Blight uses actual death pipeline and clears runtime");
+        } finally { target.discard(); victim.discard(); }
+        var sleepy=mob(level,player);
+        sleepy.setNoAi(false);
+        StatusBuildupService.proc(sleepy,StatusEffectType.SLEEP,StatusSourceContext.admin(StatusEffectType.SLEEP));
+        check(StatusControlLockService.locked(sleepy),"Default mob stagger starts");
+        pending.add(new Pending(source.getServer().getTickCount()+10,()->check(StatusControlLockService.locked(sleepy),"Removing empty buildup bar does not cancel 30-tick stagger")));
+        pending.add(new Pending(source.getServer().getTickCount()+35,()->{
+            try { check(!StatusControlLockService.locked(sleepy)&&!sleepy.isNoAi(),"Stagger expires and AI flag unchanged"); }
+            finally { sleepy.discard(); }
+        }));
+        var poison=mob(level,player);
+        StatusBuildupService.proc(poison,StatusEffectType.POISON,StatusSourceContext.admin(StatusEffectType.POISON));
+        var entry=StatusRuntimeService.state(poison).get(StatusEffectType.POISON);
+        // Shortened test clock: two genuine pulses including the duration-end boundary.
+        entry.activeEnd=entry.activeStart+40;
+        float initial=poison.getHealth();
+        pending.add(new Pending(source.getServer().getTickCount()+45,()->{
+            try {
+                check(Math.abs(initial-poison.getHealth()-9)<.01,"Poison includes final duration pulse (2 x 4.5 HP)");
+                check(!StatusRuntimeService.active(poison,StatusEffectType.POISON),"DOT expires after final pulse");
+                MaplesAdventure.LOGGER.info("[Status regression] EXTENDED COMPLETE epicfight={} irons={}",ModList.get().isLoaded("epicfight"),ModList.get().isLoaded("irons_spellbooks"));
+            } finally { poison.discard(); }
+        }));
+        source.sendSuccess(()->Component.literal("Extended immediate PASS; control and final-pulse checks pending 45 ticks."),false);
         return 1;
     }
     private static int persist(CommandSourceStack source,boolean verify) {

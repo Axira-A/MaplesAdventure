@@ -25,7 +25,11 @@ public final class WeaponCombatProfileResolver {
             return withView(base,WeaponInfusionView.of(definition,WeaponInfusionView.Status.INELIGIBLE));
         if(definition.id().equals(WeaponInfusionRegistry.NORMAL_ID)) return withView(base,WeaponInfusionView.of(definition,WeaponInfusionView.Status.NORMAL));
         var applied=definition.apply(base.scaling(),base.damage());
-        return new Resolved(base.requirements(),applied.scaling(),applied.damage(),base.weapon(),WeaponInfusionView.of(definition,WeaponInfusionView.Status.APPLIED),base.statuses().merge(definition.statuses()));
+        var inherited=definition.id().equals(WeaponInfusionRegistry.OCCULT_ID)?base.statuses().followWeaponArcane():base.statuses();
+        var weight=base.statuses().weightClass()!=null?base.statuses().weightClass():
+                dev.maplesadventure.progression.status.StatusWeaponWeightClass.archetype(base.requirements().weaponClass());
+        return new Resolved(base.requirements(),applied.scaling(),applied.damage(),base.weapon(),WeaponInfusionView.of(definition,WeaponInfusionView.Status.APPLIED),
+                inherited.merge(definition.statuses().forWeight(weight)));
     }
     public static Resolved resolveInfusion(Resolved base,WeaponInfusionState state,
             java.util.Map<net.minecraft.resources.ResourceLocation,WeaponInfusionDefinition> definitions,WeaponInfusionEligibility eligibility) {

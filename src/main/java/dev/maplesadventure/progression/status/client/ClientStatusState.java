@@ -22,9 +22,12 @@ public final class ClientStatusState {
     private static final ArrayDeque<StatusNetwork.Proc> procs=new ArrayDeque<>();
     private static final EnumMap<StatusEffectType,Long> thresholdsRevision=new EnumMap<>(StatusEffectType.class);
     private static long procStart;
+    private static double controlEnd;
+    public static boolean controlLocked() { return gameTime()<controlEnd; }
     public static void register() { NeoForge.EVENT_BUS.register(new ClientStatusState()); }
     public static void accept(StatusNetwork.Snapshot snapshot) {
         double now=gameTime();
+        controlEnd=now+snapshot.controlRemaining();
         for(var row:snapshot.rows()) {
             var old=rows.get(row.type());
             if(old==null) { if(row.current()>0||row.remaining()>0) rows.put(row.type(),new Display(row,now)); }
@@ -57,7 +60,15 @@ public final class ClientStatusState {
         double elapsed=(System.nanoTime()-procStart)/1000000.0;
         return (float)Math.clamp(elapsed<100?elapsed/100:elapsed<1400?1:(1800-elapsed)/400,0,1);
     }
-    @SubscribeEvent public void logout(ClientPlayerNetworkEvent.LoggingOut e) { rows.clear(); procs.clear(); thresholdsRevision.clear(); latest=null; }
-    @SubscribeEvent public void clone(ClientPlayerNetworkEvent.Clone e) { rows.clear(); procs.clear(); thresholdsRevision.clear(); }
+    @SubscribeEvent public void input(net.neoforged.neoforge.client.event.MovementInputUpdateEvent e) {
+        if(!controlLocked()) return;
+        var input=e.getInput(); input.forwardImpulse=0; input.leftImpulse=0; input.jumping=false; input.shiftKeyDown=false;
+        input.up=false; input.down=false; input.left=false; input.right=false;
+    }
+    @SubscribeEvent public void click(net.neoforged.neoforge.client.event.InputEvent.InteractionKeyMappingTriggered e) {
+        if(controlLocked()) { e.setCanceled(true); e.setSwingHand(false); }
+    }
+    @SubscribeEvent public void logout(ClientPlayerNetworkEvent.LoggingOut e) { rows.clear(); procs.clear(); thresholdsRevision.clear(); latest=null; controlEnd=0; }
+    @SubscribeEvent public void clone(ClientPlayerNetworkEvent.Clone e) { rows.clear(); procs.clear(); thresholdsRevision.clear(); controlEnd=0; }
     private ClientStatusState() {}
 }

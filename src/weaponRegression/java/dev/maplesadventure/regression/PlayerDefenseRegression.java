@@ -33,14 +33,14 @@ public final class PlayerDefenseRegression {
         if(!result) throw new IllegalStateException("[Player defense] FAIL "+label);
         MaplesAdventure.LOGGER.info("[Player defense] PASS {}",label);
     }
-    private static ServerPlayer player(ServerLevel level,String name) {
+    static ServerPlayer player(ServerLevel level,String name) {
         var profile=new GameProfile(UUID.nameUUIDFromBytes(name.getBytes(java.nio.charset.StandardCharsets.UTF_8)),name);
         // NeoForge FakePlayer is always invulnerable and canHarmPlayer=false. Use the real class
         // with only a no-op network sink; retain normal ServerPlayer.hurt/PvP logic.
         var p=new ServerPlayer(level.getServer(),level,profile,ClientInformation.createDefault());
         p.connection=FakePlayerFactory.get(level,profile).connection;
         p.setPos(level.getSharedSpawnPos().getX()+.5,120,level.getSharedSpawnPos().getZ()+.5);
-        // FakePlayer.tick() is deliberately inert, including spawn protection. Test-only setup.
+        // These synthetic participants do not tick in the player list. Clear spawn protection for the fixture.
         try { var field=ServerPlayer.class.getDeclaredField("spawnInvulnerableTime"); field.setAccessible(true); field.setInt(p,0); }
         catch(ReflectiveOperationException failure) { throw new IllegalStateException("Fixture spawn protection setup",failure); }
         p.getAbilities().invulnerable=false; p.getAbilities().instabuild=false; p.setInvulnerable(false);
@@ -79,7 +79,7 @@ public final class PlayerDefenseRegression {
                     List.of(Items.DIAMOND_HELMET,Items.DIAMOND_CHESTPLATE,Items.DIAMOND_LEGGINGS,Items.DIAMOND_BOOTS))) {
                 int i=0; for(var slot:List.of(EquipmentSlot.HEAD,EquipmentSlot.CHEST,EquipmentSlot.LEGS,EquipmentSlot.FEET)) {
                     var stack=armor.get(i++).getDefaultInstance(); target.setItemSlot(slot,stack);
-                    // Fake players do not tick equipment reconciliation; apply actual stack slot modifiers.
+                    // Synthetic participants do not tick equipment reconciliation; apply actual stack slot modifiers.
                     stack.forEachModifier(slot,(attribute,modifier)->target.getAttribute(attribute).addOrReplacePermanentModifier(modifier));
                 }
                 hit(target,attacker.damageSources().playerAttack(attacker),20,armor.get(0).toString());
@@ -141,12 +141,37 @@ public final class PlayerDefenseRegression {
             check(before==target.getHealth()&&LastWeaponDamageResolution.get(attacker.getUUID()).isEmpty(),"illegal cross phase has no defense/status side effects");
             PhaseManager.join(target,attacker);
             if(net.neoforged.fml.ModList.get().isLoaded("epicfight")) hit(target,EpicRegression.defenseSource(attacker),10,"Epic Fight actual UsedItem PvP");
+            verifyForeignReturn(target);
             command.sendSuccess(()->Component.literal("Player defense fixture PASS (synthetic players, not real-client PvP)"),false);
             MaplesAdventure.LOGGER.info("[Player defense] COMPLETE");
             return 1;
         } finally {
             StatusRuntimeService.clearAll(target,StatusRuntimeService.ClearReason.ADMIN);
             PhaseManager.forget(attacker.getUUID()); PhaseManager.forget(target.getUUID()); zombie.discard(); arrow.discard();
+        }
+    }
+    private static void verifyForeignReturn(ServerPlayer player) {
+        PhaseManager.assignSolo(player);
+        var original=dev.maplesadventure.multiplayer.coop.ReturnContext.capture(player,PhaseManager.state(player));
+        var attributes=PlayerAttributeService.state(player);
+        for (boolean hostile : new boolean[]{false,true}) {
+            StatusBuildupService.apply(player,StatusEffectType.BLEED,40,StatusSourceContext.admin(StatusEffectType.BLEED));
+            StatusBuildupService.proc(player,StatusEffectType.POISON,StatusSourceContext.admin(StatusEffectType.POISON));
+            PhaseManager.set(player,new PlayerPhaseState(new PhaseId(UUID.randomUUID()),hostile?PhaseRole.INVADER:PhaseRole.COOPERATOR),"return regression");
+            if(hostile) {
+                var pending=dev.maplesadventure.multiplayer.invasion.PendingInvasionReturnSavedData.get(player.server);
+                pending.put(player.getUUID(),original);
+                dev.maplesadventure.multiplayer.invasion.InvasionSessionManager.recoverPendingReturn(player);
+                check(!pending.contains(player.getUUID()),"hostile pending return consumed");
+            } else {
+                var pending=dev.maplesadventure.multiplayer.coop.PendingReturnSavedData.get(player.server);
+                pending.put(player.getUUID(),original);
+                dev.maplesadventure.multiplayer.coop.CoopSessionManager.recoverPendingReturn(player);
+                check(!pending.contains(player.getUUID()),"coop pending return consumed");
+            }
+            check(StatusRuntimeService.state(player).empty(),"return clears active DOT and unprocced buildup hostile="+hostile);
+            check(PhaseManager.state(player).equals(PlayerPhaseState.solo(player.getUUID())),"return restores SOLO hostile="+hostile);
+            check(PlayerAttributeService.state(player).equals(attributes),"return preserves personal attributes hostile="+hostile);
         }
     }
 }

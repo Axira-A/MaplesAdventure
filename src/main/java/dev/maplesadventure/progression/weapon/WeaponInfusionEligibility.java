@@ -5,7 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.*;
 
 public record WeaponInfusionEligibility(Set<ResourceLocation> allowed) {
-    public static final int MAX_ALLOWED = 16;
+    public static final int MAX_ALLOWED = 32;
     public WeaponInfusionEligibility {
         allowed = Set.copyOf(allowed);
         if (allowed.isEmpty() || allowed.size() > MAX_ALLOWED || allowed.stream().anyMatch(id -> id.toString().length() > 256))

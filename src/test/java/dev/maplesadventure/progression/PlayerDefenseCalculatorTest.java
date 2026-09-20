@@ -41,14 +41,14 @@ class PlayerDefenseCalculatorTest {
         assertEquals(.25,after.channel(WeaponDamageChannel.PHYSICAL).defense()-before.channel(WeaponDamageChannel.PHYSICAL).defense(),1e-12);
         assertEquals(before.channel(WeaponDamageChannel.MAGIC),after.channel(WeaponDamageChannel.MAGIC));
     }
-    @Test void statusThresholdComesFromExplicitSnapshotNotAttributeFormula() {
+    @Test void statusThresholdUsesCanonicalRound13FormulaNotLegacyThresholdMap() {
         var state=all(99);
         var snapshot=CharacterStatCalculator.calculate(state,
                 dev.maplesadventure.progression.runtime.RuntimeResourceSnapshot.progressionOnly(state),
                 dev.maplesadventure.progression.encumbrance.EquipLoadRuntimeSnapshot.unavailable(),
                 dev.maplesadventure.progression.spell.SpellSchoolScalingSnapshot.empty(),
                 java.util.Map.of(dev.maplesadventure.progression.status.StatusEffectType.BLEED,173.0));
-        assertEquals(173,snapshot.value(CharacterStat.BLEED_RESISTANCE).value());
-        assertEquals(StatImplementationState.ACTIVE,snapshot.value(CharacterStat.BLEED_RESISTANCE).implementation());
+        assertEquals(237.25,snapshot.value(CharacterStat.ROBUSTNESS).value());
+        assertEquals(StatImplementationState.ACTIVE,snapshot.value(CharacterStat.ROBUSTNESS).implementation());
     }
 }

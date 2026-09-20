@@ -27,10 +27,10 @@ public enum CharacterStat {
     ICE_DEFENSE(CharacterStatSection.ELEMENTAL, 64),
     HOLY_DEFENSE(CharacterStatSection.ELEMENTAL, 65),
 
-    POISON_RESISTANCE(CharacterStatSection.RESISTANCE, 100),
-    BLEED_RESISTANCE(CharacterStatSection.RESISTANCE, 101),
-    FROST_RESISTANCE(CharacterStatSection.RESISTANCE, 102),
-    SCARLET_RESISTANCE(CharacterStatSection.RESISTANCE, 103),
+    IMMUNITY(CharacterStatSection.RESISTANCE, 100),
+    ROBUSTNESS(CharacterStatSection.RESISTANCE, 101),
+    FOCUS(CharacterStatSection.RESISTANCE, 102),
+    VITALITY(CharacterStatSection.RESISTANCE, 103),
 
     INTELLIGENCE_SCALING(CharacterStatSection.MAGIC, 110),
     FAITH_SCALING(CharacterStatSection.MAGIC, 111),

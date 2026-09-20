@@ -13,7 +13,7 @@ public record WeaponInfusionDefinition(ResourceLocation id, String translationKe
             ElementSplit split,WeaponInfusionBuildup legacy) {
         this(id,key,icon,base,transforms,split,legacy,dev.maplesadventure.progression.status.WeaponStatusProfile.legacy(legacy));
     }
-    public static final int MAX_DEFINITIONS = 16;
+    public static final int MAX_DEFINITIONS = 32;
 
     public record AttributeTransform(double multiplier, double minimum, double maximum) {
         public AttributeTransform {

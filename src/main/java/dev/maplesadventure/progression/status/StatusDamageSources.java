@@ -7,6 +7,10 @@ import net.minecraft.world.entity.*;
 
 /** Established ailments belong to the target; attribution must not revoke them when their source leaves a phase. */
 public final class StatusDamageSources {
+    public static boolean isQuietDot(DamageSource source) {
+        return source.is(ResourceKey.create(Registries.DAMAGE_TYPE,StatusEffectType.POISON.definitionId()))
+                ||source.is(ResourceKey.create(Registries.DAMAGE_TYPE,StatusEffectType.SCARLET_ROT.definitionId()));
+    }
     public static boolean isStatus(DamageSource source) {
         for(var type:StatusEffectType.values()) if(source.is(ResourceKey.create(Registries.DAMAGE_TYPE,type.definitionId()))) return true;
         return false;

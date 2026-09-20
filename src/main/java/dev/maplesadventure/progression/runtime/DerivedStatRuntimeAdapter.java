@@ -11,4 +11,5 @@ public interface DerivedStatRuntimeAdapter {
     RuntimeResourceValue inspect(ServerPlayer player, PlayerAttributeState state);
     default OptionalDouble captureCurrentRatio(ServerPlayer player) { return OptionalDouble.empty(); }
     default void restoreCurrentRatio(ServerPlayer player, double ratio) {}
+    default boolean consumeExact(ServerPlayer player,double amount) { return false; }
 }

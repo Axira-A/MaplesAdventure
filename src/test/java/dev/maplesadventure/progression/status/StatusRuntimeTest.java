@@ -17,14 +17,14 @@ class StatusRuntimeTest {
     }
     @Test void bleedHasNoDurationAndCanAccumulateAgain() {
         var s=state(StatusEffectType.BLEED);
-        assertTrue(s.accumulate(StatusEffectType.BLEED,100,StatusResistance.DEFAULT,StatusSourceContext.admin(StatusEffectType.BLEED),101));
+        assertTrue(s.accumulate(StatusEffectType.BLEED,120,StatusResistance.DEFAULT,StatusSourceContext.admin(StatusEffectType.BLEED),101));
         assertFalse(s.get(StatusEffectType.BLEED).active(101));
     }
     @Test void durationDefinitionsRemainIndependent() {
         assertEquals(0,StatusDefinitions.get(StatusEffectType.BLEED).duration());
         assertEquals(.15,StatusDefinitions.get(StatusEffectType.BLEED).maxHealthFraction());
-        assertEquals(.11,StatusDefinitions.get(StatusEffectType.FROSTBITE).maxHealthFraction());
-        assertEquals(1.07,StatusDefinitions.get(StatusEffectType.FROSTBITE).damageTakenMultiplier());
+        assertEquals(.10,StatusDefinitions.get(StatusEffectType.FROSTBITE).maxHealthFraction());
+        assertEquals(1.20,StatusDefinitions.get(StatusEffectType.FROSTBITE).damageTakenMultiplier());
         assertTrue(StatusDefinitions.get(StatusEffectType.SCARLET_ROT).damage(100,1)>StatusDefinitions.get(StatusEffectType.POISON).damage(100,1));
     }
     @Test void activeDoesNotStackButOtherStatusesCanAccumulate() {

@@ -97,6 +97,7 @@ public final class CharacterStatsScreen extends Screen {
         ArrayList<Component> lines = new ArrayList<>();
         lines.add(Component.translatable(stat.translationKey()));
         lines.add(Component.translatable(value.implementation().translationKey()));
+        if(stat.section()==CharacterStatSection.RESISTANCE) lines.add(Component.translatable(stat.translationKey()+".description"));
         if (stat.section()==CharacterStatSection.DEFENSE || stat.section()==CharacterStatSection.ELEMENTAL)
             lines.add(Component.translatable("screen.maplesadventure.character_stats.build_defense_layer"));
         if (value.available()) {

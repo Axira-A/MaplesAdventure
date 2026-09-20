@@ -11,7 +11,7 @@ public final class WeaponInfusionEligibilityService {
 
     public static void compile() {
         var next=new IdentityHashMap<Item,WeaponInfusionEligibility>();
-        var all=WeaponInfusionRegistry.definitions().keySet();
+        var all=WeaponInfusionRegistry.definitions().keySet().stream().filter(id->!WeaponInfusionRegistry.requiresExplicitEligibility(id)).collect(java.util.stream.Collectors.toUnmodifiableSet());
         for(Item item:BuiltInRegistries.ITEM) {
             if(item==Items.AIR) continue;
             try {

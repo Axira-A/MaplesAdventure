@@ -29,7 +29,7 @@ public final class ProjectileRequirementPenalty implements INBTSerializable<Comp
     }
     public double combatMultiplier() { return bundle().effectiveMultiplier(); }
     public CompoundTag serializeNBT(HolderLookup.Provider provider) {
-        var n=new CompoundTag(); n.putInt("dataVersion",4); n.put("statuses",frozenStatuses.save()); n.putUUID("owner",owner); n.putBoolean("qualified",qualified);
+        var n=new CompoundTag(); n.putInt("dataVersion",5); n.put("statuses",frozenStatuses.save()); n.putUUID("owner",owner); n.putBoolean("qualified",qualified);
         n.putDouble("multiplier",multiplier); n.putDouble("scalingMultiplier",scalingMultiplier);
         var bundle=bundle(); n.putString("weapon",weaponId.toString()); n.putDouble("weaponBase",bundle.weaponBaseAttack());
         var channels=new net.minecraft.nbt.ListTag();

@@ -20,7 +20,7 @@ public final class EntityDefenseRegistry {
     public static void clear() { profiles = Map.of(); rules = List.of(); }
 
     public static EntityDefenseProfile parseProfile(ResourceLocation id, JsonObject json) {
-        fields(json, Set.of("channels","status_resistances"));
+        fields(json, Set.of("channels","status_resistances","status_traits"));
         if (id.equals(EntityDefenseProfile.NONE.profileId())) throw new IllegalArgumentException("NONE is reserved identity");
         var channels = json.has("channels")?json.getAsJsonObject("channels"):new JsonObject();
         if (channels == null || channels.size() > WeaponDamageChannel.values().length) throw new IllegalArgumentException("Invalid channel count");
@@ -34,12 +34,22 @@ public final class EntityDefenseRegistry {
         var resistances=new EnumMap<dev.maplesadventure.progression.status.StatusEffectType,dev.maplesadventure.progression.status.StatusResistance>(dev.maplesadventure.progression.status.StatusEffectType.class);
         if(json.has("status_resistances")) for(var entry:json.getAsJsonObject("status_resistances").entrySet()) {
             var type=dev.maplesadventure.progression.status.StatusEffectType.parse(entry.getKey()); var v=entry.getValue().getAsJsonObject();
-            fields(v,Set.of("threshold","immune","proc_damage_multiplier"));
+            fields(v,Set.of("threshold","immune","proc_damage_multiplier","correction","response"));
             if(v.has("immune")&&(!v.get("immune").isJsonPrimitive()||!v.getAsJsonPrimitive("immune").isBoolean())) throw new IllegalArgumentException("Expected immune boolean");
-            if(resistances.put(type,new dev.maplesadventure.progression.status.StatusResistance(number(v,"threshold",100),v.has("immune")&&v.get("immune").getAsBoolean(),number(v,"proc_damage_multiplier",1)))!=null)
+            if(resistances.put(type,new dev.maplesadventure.progression.status.StatusResistance(number(v,"threshold",160),v.has("immune")&&v.get("immune").getAsBoolean(),number(v,"proc_damage_multiplier",1),
+                    v.has("correction")?id(v.get("correction")):dev.maplesadventure.progression.status.StatusResistanceCorrections.NONE,
+                    v.has("response")?dev.maplesadventure.progression.status.SleepResponse.valueOf(v.get("response").getAsString().toUpperCase(Locale.ROOT)):dev.maplesadventure.progression.status.SleepResponse.STAGGER_ONLY))!=null)
                 throw new IllegalArgumentException("Duplicate status resistance");
         }
-        return new EntityDefenseProfile(id, values, "DATAPACK",resistances);
+        var traits=dev.maplesadventure.progression.status.StatusTargetTraits.DEFAULT;
+        if(json.has("status_traits")) {
+            var t=json.getAsJsonObject("status_traits"); fields(t,Set.of("tarnished_like","madness_immune","death_blight_immune","allow_death_blight"));
+            for(var e:t.entrySet()) if(!e.getValue().isJsonPrimitive()||!e.getValue().getAsJsonPrimitive().isBoolean()) throw new IllegalArgumentException("Status trait boolean required");
+            traits=new dev.maplesadventure.progression.status.StatusTargetTraits(t.has("tarnished_like")&&t.get("tarnished_like").getAsBoolean(),
+                    t.has("madness_immune")&&t.get("madness_immune").getAsBoolean(),t.has("death_blight_immune")&&t.get("death_blight_immune").getAsBoolean(),
+                    t.has("allow_death_blight")&&t.get("allow_death_blight").getAsBoolean());
+        }
+        return new EntityDefenseProfile(id, values, "DATAPACK",resistances,traits);
     }
     public static Rule parseRule(ResourceLocation id, JsonObject json) {
         fields(json, Set.of("entity", "tag", "priority", "profile"));

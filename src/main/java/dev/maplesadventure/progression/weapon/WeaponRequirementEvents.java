@@ -15,6 +15,8 @@ public final class WeaponRequirementEvents {
         e.addListener(new WeaponInfusionRegistry()); e.addListener(new WeaponInfusionEligibilityRules());
         e.addListener(new EntityDefenseRegistry.Profiles()); e.addListener(new EntityDefenseRegistry.Rules());
         e.addListener(new dev.maplesadventure.progression.status.StatusDefinitions());
+        e.addListener(new dev.maplesadventure.progression.status.StatusResistanceCorrections());
+        e.addListener(new dev.maplesadventure.progression.status.StatusMotionRules());
         e.addListener(new dev.maplesadventure.progression.status.WeaponStatusRules());
     }
     @SubscribeEvent public void start(ServerStartedEvent e) { WeaponRequirementService.compile(); EntityDefenseService.compile(); dev.maplesadventure.progression.status.WeaponStatusRules.compile(); }

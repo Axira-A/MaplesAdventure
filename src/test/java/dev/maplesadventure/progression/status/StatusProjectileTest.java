@@ -15,7 +15,7 @@ class StatusProjectileTest {
         var projectile=new ProjectileRequirementPenalty(hit); var loaded=new ProjectileRequirementPenalty();
         loaded.deserializeNBT(null,projectile.serializeNBT(null));
         assertEquals(frozen,loaded.context().statuses()); assertNotEquals(p.evaluate(99),frozen);
-        assertEquals(4,projectile.serializeNBT(null).getInt("dataVersion"));
+        assertEquals(5,projectile.serializeNBT(null).getInt("dataVersion"));
     }
     @Test void oldNbtHasEmptyStatusWithoutChangingOldDamage() {
         var n=new CompoundTag(); n.putInt("dataVersion",2); n.putDouble("multiplier",.35); n.putDouble("scalingMultiplier",1.5);

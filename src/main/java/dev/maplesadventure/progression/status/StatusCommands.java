@@ -16,6 +16,10 @@ public final class StatusCommands {
         for(String root:new String[]{"ma","maplesadventure"}) event.getDispatcher().register(Commands.literal(root).then(
             Commands.literal("status").requires(s->s.hasPermission(2))
                 .then(actions("info",false,false)).then(actions("clearall",false,false))
+                .then(Commands.literal("simulate").then(Commands.argument("type",StringArgumentType.word())
+                    .suggests((c,b)->SharedSuggestionProvider.suggest(java.util.Arrays.stream(StatusEffectType.values()).map(StatusEffectType::id),b))
+                    .then(Commands.argument("buildup",DoubleArgumentType.doubleArg(0,1000)).executes(c->simulate(c,1))
+                        .then(Commands.argument("motion",DoubleArgumentType.doubleArg(0,4)).executes(c->simulate(c,DoubleArgumentType.getDouble(c,"motion")))))))
                 .then(actions("clear",true,false)).then(actions("proc",true,false)).then(actions("add",true,true))));
     }
     private static com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack> actions(String action,boolean type,boolean amount) {
@@ -48,8 +52,11 @@ public final class StatusCommands {
         } catch(IllegalArgumentException bad) { source.sendFailure(Component.literal(bad.getMessage())); return 0; }
         var state=StatusRuntimeService.state(target); long now=StatusRuntimeService.now(target);
         say(source,target.getName().getString()+" "+target.getUUID()+" type="+net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(target.getType())+" revision="+state.revision());
+        if(target instanceof net.minecraft.server.level.ServerPlayer p) say(source,"Resistance "+PlayerStatusResistanceCalculator.calculate(dev.maplesadventure.progression.PlayerAttributeService.state(p)).values());
         for(var type:StatusEffectType.values()) {
             var r=StatusResistanceService.resolve(target,type); var e=state.get(type); boolean active=e!=null&&e.active(now);
+            var base=target instanceof net.minecraft.world.entity.player.Player?r:dev.maplesadventure.progression.defense.EntityDefenseService.resolve(target).profile().statusResistances().getOrDefault(type,StatusResistance.DEFAULT);
+            say(source,"group="+type.resistanceType()+" base="+base.threshold()+" correction="+(r.threshold()-base.threshold())+" procCount="+state.procCount(type));
             say(source,type+" current="+(e==null?0:e.current)+" threshold="+r.threshold()+" ratio="+(e==null?0:e.current/r.threshold())+
                     " immune="+r.immune()+" mode="+(active?"ACTIVE_DURATION":"BUILDUP")+" remaining="+(active?e.activeEnd-now:0)+
                     " last="+(e==null?0:e.lastBuildup)+" source="+(e==null?null:e.source)+" definition="+type.definitionId());
@@ -57,4 +64,16 @@ public final class StatusCommands {
         return 1;
     }
     private static void say(CommandSourceStack s,String text) { s.sendSuccess(()->Component.literal(text),false); }
+    private static int simulate(com.mojang.brigadier.context.CommandContext<CommandSourceStack> c,double motion) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        var player=c.getSource().getPlayerOrException();
+        try {
+            var type=StatusEffectType.parse(StringArgumentType.getString(c,"type"));
+            double amount=DoubleArgumentType.getDouble(c,"buildup")*motion;
+            var resistance=StatusResistanceService.resolve(player,type); var state=StatusRuntimeService.state(player);var entry=state.get(type);
+            double current=entry==null?0:entry.current;
+            say(c.getSource(),type+" resistance="+type.resistanceType()+" threshold="+resistance.threshold()+" current="+current+" motion="+motion
+                    +" ARC factor=1 (explicit raw source, no scaling policy) final="+amount+" estimatedHits="+(amount<=0?"infinite":Math.ceil(Math.max(0,resistance.threshold()-current)/amount)));
+            return 1;
+        } catch(IllegalArgumentException e) { c.getSource().sendFailure(Component.literal(e.getMessage())); return 0; }
+    }
 }

@@ -103,5 +103,11 @@ public final class DerivedStatIntegrationRegistry {
     }
 
     static synchronized void clearFailures() { FAILED.clear(); }
+    static boolean consumeExact(DerivedRuntimeResource resource,ServerPlayer player,double amount) {
+        initialize(); var adapter=ADAPTERS.get(resource);
+        if(adapter==null||FAILED.contains(resource)) return false;
+        try { return adapter.consumeExact(player,amount); }
+        catch(RuntimeException|LinkageError error) { MaplesAdventure.LOGGER.warn("Cannot drain {}: {}",resource,error.getMessage()); return false; }
+    }
     private DerivedStatIntegrationRegistry() {}
 }

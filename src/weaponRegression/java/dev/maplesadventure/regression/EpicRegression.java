@@ -7,6 +7,25 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.skill.SkillSlots;
 final class EpicRegression {
+    static void statusMotion(ServerPlayer player,net.minecraft.world.entity.LivingEntity target) {
+        var patch=EpicFightCapabilities.getEntityPatch(target,yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch.class);
+        if(patch==null) throw new IllegalStateException("Fixture requires a real joined Epic Fight entity patch");
+        var animations=java.util.List.of(yesman.epicfight.gameasset.Animations.RUSHING_TEMPO1,
+                yesman.epicfight.gameasset.Animations.BLADE_RUSH_COMBO1,yesman.epicfight.gameasset.Animations.EVISCERATE_FIRST,
+                yesman.epicfight.gameasset.Animations.RELENTLESS_COMBO);
+        for(var accessor:animations) {
+            var animation=accessor.get(); double total=0;
+            for(var phase:animation.phases) {
+                // Public source factory executes the production optional Mixin, not a manual attach.
+                var damage=animation.getEpicFightDamageSource(player.damageSources().playerAttack(player),patch,target,phase)
+                        .setUsedItem(player.getMainHandItem());
+                var decision=dev.maplesadventure.progression.status.StatusMotionValueResolver.resolve(damage,"sword");
+                if(!decision.source().equals("ANIMATION")||decision.value()>=1) throw new IllegalStateException("Motion Hook did not capture "+accessor.registryName()+": "+decision);
+                total+=decision.value();
+            }
+            dev.maplesadventure.MaplesAdventure.LOGGER.info("[Status regression] PASS real EF source factory animation={} phases={} totalMotion={}",accessor.registryName(),animation.phases.length,total);
+        }
+    }
     static net.minecraft.world.damagesource.DamageSource defenseSource(ServerPlayer player) {
         return new yesman.epicfight.world.damagesource.EpicFightDamageSource(player.damageSources().playerAttack(player))
                 .setUsedItem(player.getMainHandItem()).setAnimation(yesman.epicfight.gameasset.Animations.SWORD_AUTO1)

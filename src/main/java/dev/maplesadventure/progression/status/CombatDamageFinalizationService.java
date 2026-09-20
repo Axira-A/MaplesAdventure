@@ -21,7 +21,7 @@ public final class CombatDamageFinalizationService {
                     typed.get().sourceKind(),defense.pressure(),StatusRuntimeService.damageTaken(event.getEntity()));
         }
         // Frost's initial burst is issued before the debuff is activated.
-        damage*=StatusRuntimeService.damageTaken(event.getEntity());
+        if(!StatusDamageSources.isStatus(event.getSource())) damage*=StatusRuntimeService.damageTaken(event.getEntity());
         float result=(float)damage;
         if(result!=event.getNewDamage()) event.setNewDamage(result);
     }

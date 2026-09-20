@@ -11,12 +11,13 @@ public final class StatusHud {
         var mc=Minecraft.getInstance();
         if(mc.player==null||mc.options.hideGui||!mc.player.isAlive()) return;
         var layout=StatusHudLayout.forScreen(g.guiWidth(),g.guiHeight()); int index=0;
+        int count=(int)ClientStatusState.displays().values().stream().filter(display->display.alpha()>0).count();
         for(var type:StatusEffectType.values()) {
             var display=ClientStatusState.displays().get(type); if(display==null) continue;
             float alpha=display.alpha(); if(alpha<=0) continue;
-            int y=layout.bottom()-index++*layout.stride();
+            var position=layout.bar(index++,count,g.guiWidth(),g.guiHeight());
             var texture=StatusHudTextureCache.texture(type); if(texture==null) continue;
-            g.pose().pushPose(); g.pose().translate(layout.x(),y,0); g.pose().scale(layout.scale(),layout.scale(),1);
+            g.pose().pushPose(); g.pose().translate(position.x(),position.y(),0); g.pose().scale(layout.scale(),layout.scale(),1);
             RenderSystem.enableBlend(); RenderSystem.setShaderColor(1,1,1,alpha);
             mc.getTextureManager().getTexture(StatusHudTextureCache.EMPTY).setFilter(false,false);
             g.blit(StatusHudTextureCache.EMPTY,0,0,0,0,128,32,128,32);
@@ -32,10 +33,11 @@ public final class StatusHud {
         if(proc!=null) {
             var text=Component.translatable("status.maplesadventure.proc."+proc.status().id());
             float alpha=ClientStatusState.procAlpha(); int width=mc.font.width(text)+24;
-            int x=(g.guiWidth()-width)/2,y=Math.max(16,layout.bottom()-Math.max(1,index)*layout.stride()-24);
+            int x=(g.guiWidth()-width)/2+dev.maplesadventure.config.StatusClientConfig.PROC_OFFSET_X.get(),
+                    y=StatusHudLayout.procY(g.guiHeight(),dev.maplesadventure.config.StatusClientConfig.PROC_OFFSET_Y.get());
             g.fill(x,y,x+width,y+24,((int)(alpha*140)<<24)|0x4D0909);
             g.renderOutline(x,y,width,24,((int)(alpha*200)<<24)|0xA3302A);
-            if(alpha>.02) g.drawCenteredString(mc.font,text,g.guiWidth()/2,y+8,((int)(alpha*255)<<24)|0xEEE8E0);
+            if(alpha>.02) g.drawCenteredString(mc.font,text,x+width/2,y+8,((int)(alpha*255)<<24)|0xEEE8E0);
         }
     }
     private StatusHud() {}

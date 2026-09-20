@@ -21,6 +21,10 @@
     ,"IronsSchoolPowerAccessor"
     ,"EpicFightWeaponRequirementMixin"
     ,"ProjectileWeaponRequirementMixin"
+    ,"StatusMobControlMixin"
+    ,"StatusPlayerMovementMixin"
+    ,"StatusQuietDamageMixin"
+    ,"EpicFightStatusMotionMixin"
   ],
   "injectors": {
     "defaultRequire": 1

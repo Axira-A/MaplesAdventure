@@ -39,7 +39,7 @@ public final class CharacterStatCalculator {
         EquipLoadSnapshot equipLoad = EquipLoadCalculator.calculate(attributes, equipLoadRuntime, values);
         WeaponAttackCalculator.calculate(values);
         DefenseCalculator.calculate(attributes, values);
-        ResistanceCalculator.calculate(thresholds, values);
+        ResistanceCalculator.calculate(attributes, values);
         SpellScalingCalculator.calculate(attributes, values);
         return new CharacterStatsSnapshot(AttributeProgression.level(attributes), values, equipLoad, spellSchools.preview(attributes));
     }

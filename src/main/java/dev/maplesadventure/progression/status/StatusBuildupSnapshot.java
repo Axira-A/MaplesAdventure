@@ -15,7 +15,7 @@ public record StatusBuildupSnapshot(Map<StatusEffectType,Double> amounts) {
         var n=new CompoundTag(); amounts.forEach((t,v)->n.putDouble(t.id(),v)); return n;
     }
     public static StatusBuildupSnapshot load(CompoundTag n) {
-        if(n.getAllKeys().size()>4) throw new IllegalArgumentException("Status snapshot count");
+        if(n.getAllKeys().size()>StatusEffectType.values().length) throw new IllegalArgumentException("Status snapshot count");
         var values=new EnumMap<StatusEffectType,Double>(StatusEffectType.class);
         for(String key:n.getAllKeys()) values.put(StatusEffectType.parse(key),n.getDouble(key));
         return new StatusBuildupSnapshot(values);

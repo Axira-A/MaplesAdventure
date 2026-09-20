@@ -11,6 +11,11 @@ import java.util.*;
 public final class WeaponInfusionRegistry extends SimpleJsonResourceReloadListener {
     public static final ResourceLocation NORMAL_ID=id("normal"), HEAVY_ID=id("heavy"), KEEN_ID=id("keen"), QUALITY_ID=id("quality"),
             MAGIC_ID=id("magic"), SACRED_ID=id("sacred"), BLOOD_ID=id("blood"), POISON_ID=id("poison");
+    public static final ResourceLocation COLD_ID=id("cold"), OCCULT_ID=id("occult"), SLUMBER_ID=id("slumber"),
+            FRENZIED_ID=id("frenzied"), ROT_ID=id("rot"), BLIGHT_ID=id("blight");
+    public static boolean requiresExplicitEligibility(ResourceLocation id) {
+        return id.equals(FRENZIED_ID)||id.equals(ROT_ID)||id.equals(BLIGHT_ID);
+    }
     private static volatile Map<ResourceLocation,WeaponInfusionDefinition> definitions=builtins();
 
     public WeaponInfusionRegistry() { super(new Gson(), "maplesadventure/weapon_infusions"); }
@@ -23,7 +28,7 @@ public final class WeaponInfusionRegistry extends SimpleJsonResourceReloadListen
         input.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry->{
             try {
                 if(!next.containsKey(entry.getKey()) && next.size()>=WeaponInfusionDefinition.MAX_DEFINITIONS)
-                    throw new IllegalArgumentException("Max 16 infusion definitions");
+                    throw new IllegalArgumentException("Max 32 infusion definitions");
                 next.put(entry.getKey(),parse(entry.getKey(),entry.getValue().getAsJsonObject(),next.get(entry.getKey())));
             } catch(RuntimeException error) { MaplesAdventure.LOGGER.error("Rejected weapon infusion {}: {}",entry.getKey(),error.getMessage()); }
         });
@@ -86,12 +91,34 @@ public final class WeaponInfusionRegistry extends SimpleJsonResourceReloadListen
         result.put(SACRED_ID,definition(SACRED_ID,1,magicPhysical,split(WeaponDamageChannel.HOLY,0,.8,0),WeaponInfusionBuildup.NONE));
         result.put(BLOOD_ID,definition(BLOOD_ID,.90,rules(.6,0,1.5,.6,0,1.5,0,0,0,0,0,0,0,.55,.55),null,WeaponInfusionBuildup.BLEED));
         result.put(POISON_ID,definition(POISON_ID,.90,rules(.6,0,1.5,.6,0,1.5,0,0,0,0,0,0,0,.45,.45),null,WeaponInfusionBuildup.POISON));
+        result.put(COLD_ID,statusDefinition(COLD_ID,.95,rules(.85,0,1.5,.85,0,1.5,0,0,0,0,0,0,0,0,0),
+                split(WeaponDamageChannel.MAGIC,.70,.30,.65,0,0),dev.maplesadventure.progression.status.StatusEffectType.FROSTBITE,0));
+        result.put(OCCULT_ID,statusDefinition(OCCULT_ID,.96,rules(.25,0,1.5,.25,0,1.5,0,0,0,0,0,0,1,.75,1.5),null,null,0));
+        result.put(SLUMBER_ID,statusDefinition(SLUMBER_ID,.95,rules(.4,0,1.5,.6,.45,1.5,0,0,0,0,0,0,0,.20,.20),
+                split(WeaponDamageChannel.MAGIC,.75,.25,.55,0,.20),dev.maplesadventure.progression.status.StatusEffectType.SLEEP,.20));
+        result.put(FRENZIED_ID,statusDefinition(FRENZIED_ID,.95,magicPhysical,
+                split(WeaponDamageChannel.FIRE,.65,.35,0,.65,.25),dev.maplesadventure.progression.status.StatusEffectType.MADNESS,.25));
+        result.put(ROT_ID,statusDefinition(ROT_ID,.90,rules(.6,0,1.5,.6,0,1.5,0,0,0,0,0,0,0,0,0),null,
+                dev.maplesadventure.progression.status.StatusEffectType.SCARLET_ROT,0));
+        result.put(BLIGHT_ID,statusDefinition(BLIGHT_ID,.90,magicPhysical,split(WeaponDamageChannel.HOLY,.70,.30,0,.55,.25),
+                dev.maplesadventure.progression.status.StatusEffectType.DEATH_BLIGHT,0));
         return Map.copyOf(result);
     }
     private static WeaponInfusionDefinition definition(ResourceLocation id,double base,Map<Attribute,WeaponInfusionDefinition.AttributeTransform> rules,
             WeaponInfusionDefinition.ElementSplit split,WeaponInfusionBuildup buildup) {
+        return statusDefinition(id,base,rules,split,buildup.status().orElse(null),buildup==WeaponInfusionBuildup.NONE?0:.30);
+    }
+    private static WeaponInfusionDefinition statusDefinition(ResourceLocation id,double base,Map<Attribute,WeaponInfusionDefinition.AttributeTransform> rules,
+            WeaponInfusionDefinition.ElementSplit split,dev.maplesadventure.progression.status.StatusEffectType type,double arcane) {
+        var statuses=type==null?dev.maplesadventure.progression.status.WeaponStatusProfile.EMPTY:new dev.maplesadventure.progression.status.WeaponStatusProfile(List.of(
+                new dev.maplesadventure.progression.status.StatusBuildupComponent(type,dev.maplesadventure.progression.status.StatusWeaponWeightClass.NORMAL.buildup(type),arcane)));
+        String icon=switch(id.getPath()) { case "cold"->"cold"; case "occult"->"occult"; case "slumber"->"slumber"; case "frenzied"->"frenzied"; case "rot"->"rot"; case "blight"->"blight"; default->id.getPath(); };
         return new WeaponInfusionDefinition(id,"infusion.maplesadventure."+id.getPath(),
-                ResourceLocation.fromNamespaceAndPath("maplesadventure","textures/gui/infusion/"+id.getPath()+".png"),base,rules,split,buildup);
+                ResourceLocation.fromNamespaceAndPath("maplesadventure","textures/gui/infusion/"+icon+".png"),base,rules,split,WeaponInfusionBuildup.NONE,statuses);
+    }
+    private static WeaponInfusionDefinition.ElementSplit split(WeaponDamageChannel channel,double physical,double element,double intelligence,double faith,double arcane) {
+        return new WeaponInfusionDefinition.ElementSplit(channel,physical,element,new WeaponScalingProfile(0,0,intelligence,faith,arcane,
+                WeaponScalingProfile.DEFAULT_MAX_BONUS,"INFUSION","ELEMENT",channel.id()));
     }
     private static WeaponInfusionDefinition.ElementSplit split(WeaponDamageChannel channel,double intelligence,double faith,double arcane) {
         return new WeaponInfusionDefinition.ElementSplit(channel,.65,.35,new WeaponScalingProfile(0,0,intelligence,faith,arcane,

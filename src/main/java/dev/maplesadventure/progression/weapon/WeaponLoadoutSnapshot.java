@@ -22,7 +22,7 @@ public record WeaponLoadoutSnapshot(Held mainHand,Held offHand,double penalty) {
         public Component name() { var type=BuiltInRegistries.ITEM.get(item); return type==null?Component.empty():type.getDescription(); }
     }
     public record View(boolean offhand,Held held,PlayerAttributeState attributes,WeaponRequirementResult result) {
-        public dev.maplesadventure.progression.status.StatusBuildupSnapshot statuses() { return held.statuses().evaluate(attributes.get(dev.maplesadventure.progression.Attribute.ARCANE)); }
+        public dev.maplesadventure.progression.status.StatusBuildupSnapshot statuses() { return held.statuses().evaluate(attributes.get(dev.maplesadventure.progression.Attribute.ARCANE),held.scaling().arcane(),1); }
         public WeaponAttackSnapshot attack() {
             return WeaponAttackSnapshot.of(held.item(),WeaponAttackRatingCalculator.calculate(held.baseAttack(),held.scaling(),held.damage(),attributes,result.damageMultiplier()),held.scaling(),held.damage(),result);
         }

@@ -1,0 +1,7 @@
+{
+  "status_traits": {"tarnished_like": true},
+  "status_resistances": {
+    "bleed": {"threshold": 220, "correction": "maplesadventure:standard"},
+    "sleep": {"threshold": 160, "response": "deep_sleep"}
+  }
+}

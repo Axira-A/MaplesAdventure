@@ -72,8 +72,8 @@ class WeaponInfusionTest {
     @Test void bloodAndPoisonAreArcanePhysicalOnlyAndDoNotInventChannels() {
         var blood=resolve(WeaponInfusionRegistry.BLOOD_ID); var poison=resolve(WeaponInfusionRegistry.POISON_ID);
         assertEquals(Set.of(WeaponDamageChannel.SLASH),bundle(blood,stats(20,20,99,99,99)).channels().keySet());
-        assertEquals(WeaponInfusionBuildup.BLEED,blood.infusion().futureBuildup()); assertEquals(.55,blood.scaling().arcane());
-        assertEquals(WeaponInfusionBuildup.POISON,poison.infusion().futureBuildup()); assertEquals(.45,poison.scaling().arcane());
+        assertEquals(dev.maplesadventure.progression.status.StatusEffectType.BLEED,blood.statuses().components().getFirst().type()); assertEquals(.55,blood.scaling().arcane());
+        assertEquals(dev.maplesadventure.progression.status.StatusEffectType.POISON,poison.statuses().components().getFirst().type()); assertEquals(.45,poison.scaling().arcane());
         assertEquals(.9,blood.damage().components().getFirst().baseRatio()); assertEquals(.9,poison.damage().components().getFirst().baseRatio());
         assertTrue(ar(blood,stats(20,20,5,5,99))>ar(blood,stats(20,20,5,5,5)));
     }

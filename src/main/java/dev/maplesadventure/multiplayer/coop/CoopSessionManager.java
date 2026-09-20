@@ -188,6 +188,9 @@ public final class CoopSessionManager {
     }
 
     private static void restorePendingReturn(ServerPlayer player, String reason) {
+        // Combat state from the foreign world must not survive return or pending-return recovery.
+        dev.maplesadventure.progression.status.StatusRuntimeService.clearAll(player,
+                dev.maplesadventure.progression.status.StatusRuntimeService.ClearReason.SESSION_RETURN);
         PendingReturnSavedData data = PendingReturnSavedData.get(player.server);
         ReturnContext context = data.get(player.getUUID()).orElse(null);
         if (context == null) {

@@ -9,5 +9,5 @@
     "faith": { "multiply": 0.0, "maximum": 0.0 },
     "arcane": { "multiply": 0.0, "minimum": 0.55, "maximum": 0.55 }
   },
-  "future_buildup": "bleed"
+  "statuses": { "bleed": { "base_buildup": 28, "arcane_scaling": 0.30, "arcane_policy": "explicit" } }
 }

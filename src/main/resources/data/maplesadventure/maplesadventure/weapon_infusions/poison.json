@@ -9,5 +9,5 @@
     "faith": { "multiply": 0.0, "maximum": 0.0 },
     "arcane": { "multiply": 0.0, "minimum": 0.45, "maximum": 0.45 }
   },
-  "future_buildup": "poison"
+  "statuses": { "poison": { "base_buildup": 30, "arcane_scaling": 0.30, "arcane_policy": "explicit" } }
 }

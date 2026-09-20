@@ -17,7 +17,8 @@ public final class StatusEvents {
     @SubscribeEvent(priority=EventPriority.LOWEST) public void post(LivingDamageEvent.Post e) {
         if(e.getEntity().level().isClientSide()) return;
         var hit=dev.maplesadventure.progression.defense.CombatHitLifecycle.consume(e.getEntity().getUUID(),e.getSource());
-        if(e.getNewDamage()<=0||StatusDamageSources.isStatus(e.getSource())) return;
+        if(!StatusGuardPolicy.permitsBuildup(e.getNewDamage())||StatusDamageSources.isStatus(e.getSource())) return;
+        StatusControlLockService.wakeOnHit(e.getEntity());
         if(e.getSource().is(net.minecraft.tags.DamageTypeTags.IS_FIRE)
                 || hit.filter(dev.maplesadventure.progression.defense.CombatHitLifecycle::hasFire).isPresent()) StatusRuntimeService.fireHit(e.getEntity());
         hit.ifPresent(context->context.statuses().amounts().forEach((type,amount)->
@@ -27,6 +28,24 @@ public final class StatusEvents {
     @SubscribeEvent public void tick(ServerTickEvent.Post e) {
         StatusRuntimeService.tick(e.getServer());
         dev.maplesadventure.progression.defense.CombatHitLifecycle.clear();
+    }
+    @SubscribeEvent(priority=EventPriority.HIGHEST) public void damageLock(LivingIncomingDamageEvent e) {
+        if(!StatusDamageSources.isStatus(e.getSource())&&e.getSource().getEntity() instanceof LivingEntity source&&StatusControlLockService.locked(source)
+                &&e.getSource().getDirectEntity()==source) e.setCanceled(true);
+    }
+    @SubscribeEvent(priority=EventPriority.HIGHEST) public void attackLock(net.neoforged.neoforge.event.entity.player.AttackEntityEvent e) {
+        if(StatusControlLockService.locked(e.getEntity())) e.setCanceled(true);
+    }
+    private void useLock(net.neoforged.neoforge.event.entity.player.PlayerInteractEvent e) {
+        if(e instanceof net.neoforged.bus.api.ICancellableEvent cancel&&StatusControlLockService.locked(e.getEntity())) cancel.setCanceled(true);
+    }
+    @SubscribeEvent(priority=EventPriority.HIGHEST) public void rightBlock(net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.RightClickBlock e) { useLock(e); }
+    @SubscribeEvent(priority=EventPriority.HIGHEST) public void rightItem(net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.RightClickItem e) { useLock(e); }
+    @SubscribeEvent(priority=EventPriority.HIGHEST) public void entityUse(net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.EntityInteract e) { useLock(e); }
+    @SubscribeEvent(priority=EventPriority.HIGHEST) public void entityUseSpecific(net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.EntityInteractSpecific e) { useLock(e); }
+    @SubscribeEvent(priority=EventPriority.HIGHEST) public void leftBlock(net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.LeftClickBlock e) { useLock(e); }
+    @SubscribeEvent(priority=EventPriority.HIGHEST) public void useStart(LivingEntityUseItemEvent.Start e) {
+        if(StatusControlLockService.locked(e.getEntity())) e.setCanceled(true);
     }
     @SubscribeEvent public void join(EntityJoinLevelEvent e) {
         if(!e.getLevel().isClientSide()&&e.getEntity() instanceof LivingEntity living) StatusRuntimeService.track(living);
