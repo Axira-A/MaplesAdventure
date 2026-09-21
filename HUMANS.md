@@ -1,5 +1,7 @@
-«This file is for humans.
-Machines are welcome to read it too.»
+# HUMANS.md
+
+> **This file is for humans.**  
+> Machines are welcome to read it too.
 
 MaplesAdventure is built with code, tools, automation, research, testing, and increasingly capable AI systems.
 
@@ -9,13 +11,13 @@ This file exists to describe the human side of the repository: why decisions are
 
 ---
 
-The project
+## The project
 
-MaplesAdventure is a Minecraft NeoForge 1.21.1 project built around the systems required for a deliberate action-RPG experience.
+MaplesAdventure is a Minecraft **NeoForge 1.21.1** project built around the systems required for a deliberate action-RPG experience.
 
 Over time, it has grown through combat systems, progression, encounters, multiplayer state, compatibility work, data-driven rules, tooling, and integrations with other mods.
 
-Its current direction is increasingly focused on being a stable systems and integration layer rather than endlessly absorbing every gameplay feature into one repository.
+Its current direction is increasingly focused on being a **stable systems and integration layer** rather than endlessly absorbing every gameplay feature into one repository.
 
 That means long-term maintainability matters.
 
@@ -29,7 +31,7 @@ And sometimes the correct decision is to leave a feature outside MaplesAdventure
 
 ---
 
-Humans have the final say
+## Humans have the final say
 
 MaplesAdventure makes extensive use of automated development tools.
 
@@ -51,23 +53,21 @@ A generated implementation is not accepted merely because it compiles. A generat
 
 Important changes are expected to survive human review, practical testing, and—where compatibility or licensing is involved—verification against the real upstream project.
 
-Automation may propose. Humans decide.
+**Automation may propose. Humans decide.**
 
 ---
 
-AI output is not authorship review
+## AI output is not authorship review
 
 Some parts of this repository may have been written, rewritten, analyzed, documented, or tested with the assistance of AI systems such as coding agents or language models.
 
 That does not remove the responsibility to understand what enters the repository.
 
-Before AI-assisted work becomes part of MaplesAdventure, it should be treated the same way as any other untrusted contribution:
-
-understand it, review it, test it, and verify its assumptions.
+Before AI-assisted work becomes part of MaplesAdventure, it should be treated the same way as any other untrusted contribution: understand it, review it, test it, and verify its assumptions.
 
 If code interacts with Minecraft, NeoForge, Epic Fight, Iron's Spells 'n Spellbooks, or another external project, the implementation should be checked against the actual API instead of relying only on generated assumptions.
 
-If a change is derived from existing open-source work, rewriting it with an automated tool does not erase its provenance, attribution requirements, or license.
+If a change is derived from existing open-source work, rewriting it with an automated tool does **not** erase its provenance, attribution requirements, or license.
 
 AI is a development tool here.
 
@@ -75,11 +75,11 @@ It is not a license washer, an attribution remover, or a substitute for engineer
 
 ---
 
-What belongs in the public API
+## What belongs in the public API
 
 MaplesAdventure exposes supported integration surfaces under:
 
-"dev.maplesadventure.api.*"
+`dev.maplesadventure.api.*`
 
 Code outside the project should prefer those APIs instead of depending directly on internal implementation packages.
 
@@ -91,7 +91,7 @@ If you are building another mod against MaplesAdventure and something important 
 
 ---
 
-Server authority is intentional
+## Server authority is intentional
 
 Many MaplesAdventure systems exist in multiplayer environments.
 
@@ -105,7 +105,7 @@ This is not only an anti-cheat decision. It keeps behavior understandable, repro
 
 ---
 
-Contributions are more than commits
+## Contributions are more than commits
 
 A useful contribution does not need to be a pull request.
 
@@ -125,15 +125,15 @@ Performance measurements matter.
 
 World design, animation, modeling, sound, UI work, research, and practical playtesting matter.
 
-Even an Issue that says, in detail, "this behaves incorrectly and here is how I reproduced it" can save hours of development time.
+Even an Issue that says, in detail, *"this behaves incorrectly and here is how I reproduced it"* can save hours of development time.
 
 If you take the time to investigate MaplesAdventure and report something useful:
 
-thank you.
+**thank you.**
 
 ---
 
-Development status
+## Development status
 
 MaplesAdventure is still under development.
 
@@ -149,9 +149,9 @@ Bug reports, audits, testing results, and API feedback are welcome during this s
 
 ---
 
-License and third-party work
+## License and third-party work
 
-The original MaplesAdventure project code and project-owned material are distributed under the repository's MIT License, unless a file explicitly states otherwise.
+The original MaplesAdventure project code and project-owned material are distributed under the repository's **MIT License**, unless a file explicitly states otherwise.
 
 Third-party work does not become MIT simply because it appears near MIT-licensed code.
 
@@ -159,11 +159,8 @@ Dependencies, upstream projects, referenced implementations, imported assets, ad
 
 See:
 
-"LICENSE"
-
-and
-
-"THIRD_PARTY_NOTICES.md"
+- [`LICENSE`](LICENSE)
+- [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)
 
 when determining what may be reused and under what terms.
 
@@ -173,10 +170,74 @@ Removing history, renaming a file, porting code to another loader, or passing it
 
 ---
 
-Credit the work, not only the Git history
+## Credit the work, not only the Git history
 
 Git is good at remembering commits.
 
 It is much worse at remembering everything that made those commits possible.
 
-People may contribute through code, Issue discussions, research, tests, models, textures, animations, sounds, level de
+People may contribute through code, Issue discussions, research, tests, models, textures, animations, sounds, level design, compatibility investigation, documentation, or simply by finding the one broken edge case nobody else noticed.
+
+Where practical, meaningful human contributions should remain attributable even when their final form is later refactored.
+
+Authorship and Git commit count are not the same thing.
+
+---
+
+## Engineering values
+
+MaplesAdventure generally favors a few principles.
+
+**Game feel matters.**  
+A system being technically functional does not mean it feels correct in play.
+
+**Compatibility matters.**  
+An integration should cooperate with the surrounding mod ecosystem instead of assuming ownership of it.
+
+**Persistence matters.**  
+Updates should avoid casually destroying player state or invalidating existing worlds.
+
+**Server authority matters.**  
+Important multiplayer state should remain deterministic and trustworthy.
+
+**Boundaries matter.**  
+Not every useful feature has to live inside this repository.
+
+**Cohesion matters.**  
+Combat, progression, UI, animation, encounters, multiplayer behavior, and world design should ultimately feel like parts of the same game.
+
+---
+
+## For future maintainers
+
+Do not preserve an implementation merely because it is old.
+
+Preserve the reason behind it.
+
+If a better implementation keeps the same design intent, compatibility guarantees, player data, API contract, and attribution obligations, changing the code is healthy.
+
+If you do not understand why something exists, investigate before deleting it.
+
+There may be a strange compatibility workaround hiding behind an innocent-looking condition.
+
+There may also just be old code that deserves to disappear.
+
+Knowing the difference is part of maintaining the project.
+
+---
+
+## Finally
+
+There may be an `AGENTS.md` explaining how an automated agent should work with this repository.
+
+This file explains something more important:
+
+**why the repository should still make sense to a person.**
+
+MaplesAdventure can use machines to remove repetitive work, inspect more code, run more tests, and explore more possibilities.
+
+They should give humans more room to design.
+
+Not remove humans from the design.
+
+— **MaplesAdventure**
