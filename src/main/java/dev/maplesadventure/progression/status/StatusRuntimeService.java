@@ -36,19 +36,38 @@ public final class StatusRuntimeService {
         }
     }
     public static void clear(LivingEntity target,StatusEffectType type,ClearReason reason) {
-        if(target.level().isClientSide()) return;
+        if(target.level().isClientSide()||dev.maplesadventure.integration.api.ApiNotifications.busy()) return;
         var state=target.getExistingData(ProgressionAttachments.STATUS_RUNTIME).orElse(null);
         if(state==null) return;
+        boolean affected=state.get(type)!=null||state.lockType==type||reason==ClearReason.ADMIN&&state.procCount(type)>0;
+        if(!affected) return;
+        var before=dev.maplesadventure.integration.api.StatusEventPublisher.view(target,type);
         state.remove(type); changed(target);
         if(state.lockType==type&&reason!=ClearReason.EXPIRE) { state.unlock(); changed(target); }
         if(reason==ClearReason.ADMIN) state.resetCorrection(type);
+        dev.maplesadventure.integration.api.StatusEventPublisher.cleared(target,before,dev.maplesadventure.api.event.StatusClearEvent.Reason.valueOf(reason.name()));
+    }
+    /** Clears only pending accumulation; does not cure an active effect or forget correction. */
+    public static void clearBuildup(LivingEntity target,StatusEffectType type) {
+        if(target.level().isClientSide()||dev.maplesadventure.integration.api.ApiNotifications.busy()) return;
+        var state=target.getExistingData(ProgressionAttachments.STATUS_RUNTIME).orElse(null);
+        var entry=state==null?null:state.get(type);
+        if(entry==null||entry.current==0) return;
+        var before=dev.maplesadventure.integration.api.StatusEventPublisher.view(target,type);
+        entry.current=0; state.changed(); changed(target);
+        dev.maplesadventure.integration.api.StatusEventPublisher.cleared(target,before,dev.maplesadventure.api.event.StatusClearEvent.Reason.BUILDUP_ONLY);
     }
     public static void clearAll(LivingEntity target,ClearReason reason) {
-        if(target.level().isClientSide()) return;
+        if(target.level().isClientSide()||dev.maplesadventure.integration.api.ApiNotifications.busy()) return;
         var state=target.getExistingData(ProgressionAttachments.STATUS_RUNTIME).orElse(null);
+        var before=new java.util.ArrayList<dev.maplesadventure.api.status.StatusView>();
+        if(state!=null) for(var type:StatusEffectType.values())
+            if(state.get(type)!=null||state.lockType==type||state.procCount(type)>0)
+                before.add(dev.maplesadventure.integration.api.StatusEventPublisher.view(target,type));
         if(state!=null) state.clear();
         ACTIVE.remove(target);
         if(target instanceof ServerPlayer p) { StatusNetwork.sync(p); dev.maplesadventure.progression.encumbrance.EncumbranceRuntimeService.equipmentChanged(p); }
+        for(var view:before) dev.maplesadventure.integration.api.StatusEventPublisher.cleared(target,view,dev.maplesadventure.api.event.StatusClearEvent.Reason.valueOf(reason.name()));
     }
     public static void fireHit(LivingEntity target) {
         if(active(target,StatusEffectType.FROSTBITE)) clear(target,StatusEffectType.FROSTBITE,ClearReason.FIRE_RESET);

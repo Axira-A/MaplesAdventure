@@ -4,6 +4,7 @@ import net.minecraft.server.level.ServerLevel;
 
 public final class StatusBuildupService {
     public static boolean apply(LivingEntity target,StatusEffectType type,double amount,StatusSourceContext source) {
+        if(dev.maplesadventure.integration.api.ApiNotifications.busy()) return false;
         StatusResistance.bounded(amount,0,100000);
         if(target.level().isClientSide()||!target.isAlive()||target.isRemoved()||source==null||source.statusType()!=type) return false;
         // Public adapters cannot turn an incompatible live attacker into legal buildup.
@@ -13,9 +14,11 @@ public final class StatusBuildupService {
         }
         var resistance=StatusResistanceService.resolve(target,type);
         if(resistance.immune()||StatusRuntimeService.active(target,type)||amount==0) return false;
+        var before=dev.maplesadventure.integration.api.StatusEventPublisher.view(target,type);
         var state=StatusRuntimeService.state(target);
         boolean proc=state.accumulate(type,amount,resistance,source,StatusRuntimeService.now(target));
         if(proc) StatusRuntimeService.proc(target,type,resistance); else StatusRuntimeService.changed(target);
+        dev.maplesadventure.integration.api.StatusEventPublisher.applied(target,before,source,amount,proc);
         return proc;
     }
     public static boolean proc(LivingEntity target,StatusEffectType type,StatusSourceContext source) {

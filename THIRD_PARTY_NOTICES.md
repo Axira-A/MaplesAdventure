@@ -1,50 +1,54 @@
 # Third-party notices
 
-## Better Lock On
+MaplesAdventure's MIT license covers project-owned material, not Minecraft, NeoForge, dependency
+JARs or third-party assets. Dependencies must be obtained separately under their own licenses.
+The build does not shade or bundle these mods. Local inspection/testing is not redistribution
+permission. See [ASSET_LICENSE.md](ASSET_LICENSE.md).
 
-Better Lock On remains an independent optional runtime mod. MaplesAdventure does
-not bundle, copy, modify or replace its source or JAR, and the contextual interaction
-system does not read or write Better Lock On target state.
+## Current integrations
 
-## Shoulder Surfing Reloaded
+| Project | Relationship in current source |
+|---|---|
+| Minecraft / NeoForge | Platform/toolchain dependency; normal events, registries, Attachments and targeted vanilla Mixins. Not redistributed as MaplesAdventure source. |
+| Epic Fight | Compile-only API; optional runtime integration for stamina, skill/dodge ownership, weapon facts, status motion, echo animation and sensory filtering. Includes optional Mixins targeting Epic Fight classes. |
+| Iron's Spells 'n Spellbooks | Compile-only API; optional mana, school scaling/affinity integration and optional school-power accessor Mixin. |
+| EpicFight-Nightfall | Optional runtime integration through Epic Fight registry IDs and mod ID efn; no hard Nightfall class dependency. |
+| Bonfires | Optional runtime reflection/accessor and targeted Mixins for successful rest/light hooks and authorized menu access. Not merely a generic block tag; the integration uses its actual block/screen behavior. |
+| Presence Footsteps | Optional runtime source-aware sound integration with a targeted optional Mixin. |
+| Subtle Effects | Optional runtime source-aware entity/packet VFX integration with targeted optional Mixins. |
+| Better Lock On | Independent optional compatibility-test runtime. No compile-only API or copied target-management system; Phase target rules remain MaplesAdventure's responsibility. |
+| Shoulder Surfing Reloaded | Independent optional compatibility-test runtime; no direct API dependency or Shoulder Surfing-specific Mixin in current source. |
+| Create | Independent optional compatibility-test runtime and interaction block tag; no compile-only API or bundled code. |
 
-Shoulder Surfing Reloaded remains an independent optional runtime mod. The current
-interaction implementation has no compile-time API dependency and does not install a
-Shoulder Surfing plugin or Mixin because candidate selection is independent of the
-camera raycast and camera rotation.
+Epic Fight and Iron's references are isolated from the public API signatures. Optional
+integration does not mean source builds need no compile-time APIs; consult the README.
+Compatibility hooks written in this repository are not copies of a third-party mod's complete
+implementation. No third-party mod JAR is patched or included in the release.
 
-Upstream: https://github.com/Exopandora/ShoulderSurfing
+Supporting optional test runtimes include Iron's Lib, Curios, GeckoLib, Player Animator,
+Fzzy Config and Kotlin for Forge. These are dependency/test-runtime roles, not bundled assets.
 
-## Epic Fight
+## Reviewed references
 
-Epic Fight remains an independent optional runtime mod. MaplesAdventure uses the
-normal Minecraft/NeoForge interaction input and game-mode paths and does not access
-Epic Fight combat targets, camera state or animation internals in this release.
+The Seramicx project `epic-fight-better-lockon-movement-camera-fix` was reviewed for an earlier
+target-lock prototype. Current source does not incorporate that project's implementation.
+This is a reference-only notice, not a claim that its license covers other dependencies.
 
-Upstream: https://github.com/Antikythera-Studios/epicfight
+Relevant upstream project locations:
 
-## Create
+- Epic Fight: https://github.com/Antikythera-Studios/epicfight
+- Shoulder Surfing Reloaded: https://github.com/Exopandora/ShoulderSurfing
+- Create: https://github.com/Creators-of-Create/Create
+- Bonfires: https://github.com/Wehavecookies56/Bonfires
+- Reviewed camera-fix reference: https://github.com/Seramicx/epic-fight-better-lockon-movement-camera-fix
 
-Create remains an independent optional runtime mod. Version 6.0.10 for Minecraft
-1.21.1 is used only by the local compatibility run profile and is not bundled in
-MaplesAdventure. The generic provider can discover menu-backed Create blocks;
-complex click-location behavior remains eligible for a future dedicated provider.
+## Copied code and assets
 
-Upstream: https://github.com/Creators-of-Create/Create
+The source audit identifies API references, independent compatibility code and test dependencies;
+it does not identify a bundled third-party mod implementation or dependency JAR. Referencing
+Minecraft textures, player skins or another mod's resources at runtime does not transfer their
+copyright to this project. Do not infer ownership of externally supplied artwork from its file
+name. Preserve any applicable per-asset notice and obtain permission where provenance is unclear.
 
-## Bonfires
-
-Bonfires 1.2.20b for Minecraft 1.21.1 remains an independent optional runtime mod
-and is not bundled. MaplesAdventure adds its `bonfires:ash_bone_pile` block to the
-optional interaction tag and delegates all behavior to Bonfires through Minecraft's
-normal `MultiPlayerGameMode#useItemOn` path. No Bonfires code is copied and no screen
-or packet implementation is called directly.
-
-Upstream: https://github.com/Wehavecookies56/Bonfires
-
-## epic-fight-better-lockon-movement-camera-fix
-
-The MIT-licensed project by Seramicx was reviewed during the previous target-lock
-prototype. No source code from that project is incorporated into MaplesAdventure.
-
-Upstream: https://github.com/Seramicx/epic-fight-better-lockon-movement-camera-fix
+The Gradle wrapper bootstrap binary is build tooling, not a third-party gameplay mod.
+No generic upstream license template is presented as evidence of a copied implementation.

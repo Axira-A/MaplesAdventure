@@ -6,3 +6,17 @@ out/
 .idea/
 .research/
 logs/
+debug/
+crash-reports/
+*.log
+*.hprof
+*.jfr
+*.dmp
+local-development.properties
+docs/progression-round*
+docs/verification.md
+docs/assets/round*/
+screenshots/
+# Third-party binaries are local only; retain the Gradle bootstrap binary.
+*.jar
+!gradle/wrapper/gradle-wrapper.jar

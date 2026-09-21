@@ -12,7 +12,23 @@ base {
     archivesName = mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+    withSourcesJar()
+    withJavadocJar()
+}
+
+// Machine-specific paths belong in this ignored file or -P options, never in source control.
+def localDevelopment = new java.util.Properties()
+def localDevelopmentFile = file('local-development.properties')
+if (localDevelopmentFile.exists()) localDevelopmentFile.withInputStream { localDevelopment.load(it) }
+def developmentProperty = { String key ->
+    providers.gradleProperty(key).getOrElse(localDevelopment.getProperty(key, ''))
+}
+def dependencyJar = { String key ->
+    def path = developmentProperty(key)
+    path.isBlank() ? null : file(path)
+}
 
 neoForge {
     version = project.neo_version
@@ -100,7 +116,8 @@ neoForge {
 }
 
 repositories {
-    maven { url = uri('.research/maven') }
+    def localRepository = developmentProperty('localDependencyRepository')
+    if (!localRepository.isBlank()) maven { url = uri(localRepository) }
     mavenCentral()
     maven { url = 'https://www.cursemaven.com' }
 }
@@ -109,113 +126,91 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
-def epicFightJar = file(providers.gradleProperty('epicFightJar')
-        .getOrElse('.research/epic-fight-21.17.3.1-mc1.21.1-neoforge.jar'))
-def betterLockOnJar = file(providers.gradleProperty('betterLockOnJar')
-        .getOrElse('.research/betterlockon-2.0.8-neoforge.jar'))
-def createJar = file(providers.gradleProperty('createJar')
-        .getOrElse('.research/create-1.21.1-6.0.10.jar'))
-def bonfiresJar = file(providers.gradleProperty('bonfiresJar')
-        .getOrElse('.research/Bonfires-1.21.1-1.2.20b-neoforge-88de527.jar'))
-def ironsSpellsJar = file(providers.gradleProperty('ironsSpellsJar')
-        .getOrElse('.research/irons_spellbooks-1.21.1-3.16.3.jar'))
-def ironsLibJar = file(providers.gradleProperty('ironsLibJar')
-        .getOrElse('.research/irons_lib-1.21.1-2.1.0.jar'))
-def curiosJar = file(providers.gradleProperty('curiosJar')
-        .getOrElse('.research/curios-neoforge-9.5.1+1.21.1.jar'))
-def geckoLibJar = file(providers.gradleProperty('geckoLibJar')
-        .getOrElse('.research/geckolib-neoforge-1.21.1-4.9.2.jar'))
-def playerAnimatorJar = file(providers.gradleProperty('playerAnimatorJar')
-        .getOrElse('.research/player-animation-lib-forge-2.0.4+1.21.1.jar'))
-def shoulderSurfingDefault = providers.gradleProperty('withShoulderSurfingLegacy')
-        .map(String::toBoolean)
-        .getOrElse(false)
-        ? '.research/ShoulderSurfing-NeoForge-1.21.1-4.22.10.jar'
-        : '.research/ShoulderSurfing-NeoForge-1.21.1-5.0.11.jar'
-def shoulderSurfingPath = providers.gradleProperty('shoulderSurfingJar').getOrElse(shoulderSurfingDefault)
-if (shoulderSurfingPath.isBlank()) {
-    shoulderSurfingPath = shoulderSurfingDefault
-}
-def shoulderSurfingJar = file(shoulderSurfingPath)
-def subtleEffectsJar = file(providers.gradleProperty('subtleEffectsJar')
-        .getOrElse('../SubtleEffects-neoforge-1.21.1-1.14.3.jar'))
-def fzzyConfigJar = file(providers.gradleProperty('fzzyConfigJar')
-        .getOrElse('.research/fzzy_config-0.7.3+1.21+neoforge.jar'))
-def kotlinForForgeJar = file(providers.gradleProperty('kotlinForForgeJar')
-        .getOrElse('.research/kotlinforforge-5.4.0-all.jar'))
-def presenceFootstepsJar = file(providers.gradleProperty('presenceFootstepsJar')
-        .getOrElse('.research/PresenceFootsteps-1.21.1-1.12.0-beta.1-1.21NeoForge.jar'))
+def epicFightJar = dependencyJar('epicFightJar')
+def betterLockOnJar = dependencyJar('betterLockOnJar')
+def createJar = dependencyJar('createJar')
+def bonfiresJar = dependencyJar('bonfiresJar')
+def ironsSpellsJar = dependencyJar('ironsSpellsJar')
+def ironsLibJar = dependencyJar('ironsLibJar')
+def curiosJar = dependencyJar('curiosJar')
+def geckoLibJar = dependencyJar('geckoLibJar')
+def playerAnimatorJar = dependencyJar('playerAnimatorJar')
+def shoulderSurfingJar = dependencyJar('shoulderSurfingJar')
+def subtleEffectsJar = dependencyJar('subtleEffectsJar')
+def fzzyConfigJar = dependencyJar('fzzyConfigJar')
+def kotlinForForgeJar = dependencyJar('kotlinForForgeJar')
+def presenceFootstepsJar = dependencyJar('presenceFootstepsJar')
 
 dependencies {
-    if (!epicFightJar.exists()) {
+    if (!epicFightJar?.exists()) {
         throw new GradleException("Epic Fight compile-only API JAR not found: ${epicFightJar}")
     }
     compileOnly files(epicFightJar)
 
-    if (!ironsSpellsJar.exists()) {
+    if (!ironsSpellsJar?.exists()) {
         throw new GradleException("Iron's Spells compile-only API JAR not found: ${ironsSpellsJar}")
     }
     compileOnly files(ironsSpellsJar)
 
     if (providers.gradleProperty('withEpicFight').map(String::toBoolean).getOrElse(false)) {
-        if (!epicFightJar.exists()) {
+        if (!epicFightJar?.exists()) {
             throw new GradleException("Epic Fight runtime JAR not found: ${epicFightJar}")
         }
         localRuntime files(epicFightJar)
     }
 
     if (providers.gradleProperty('withIronsSpells').map(String::toBoolean).getOrElse(false)) {
-        [ironsSpellsJar, ironsLibJar, curiosJar, geckoLibJar, playerAnimatorJar].each { dependencyJar ->
-            if (!dependencyJar.exists()) {
-                throw new GradleException("Iron's Spells runtime dependency not found: ${dependencyJar}")
+        [ironsSpellsJar, ironsLibJar, curiosJar, geckoLibJar, playerAnimatorJar].each { runtimeJar ->
+            if (!runtimeJar?.exists()) {
+                throw new GradleException("Iron's Spells runtime dependency not found: ${runtimeJar}")
             }
         }
         localRuntime files(ironsSpellsJar, ironsLibJar, curiosJar, geckoLibJar, playerAnimatorJar)
     }
 
     if (providers.gradleProperty('withShoulderSurfing').map(String::toBoolean).getOrElse(false)) {
-        if (!shoulderSurfingJar.exists()) {
+        if (!shoulderSurfingJar?.exists()) {
             throw new GradleException("Shoulder Surfing runtime JAR not found: ${shoulderSurfingJar}")
         }
         localRuntime files(shoulderSurfingJar)
     }
 
     if (providers.gradleProperty('withBetterLockOn').map(String::toBoolean).getOrElse(false)) {
-        if (!betterLockOnJar.exists()) {
+        if (!betterLockOnJar?.exists()) {
             throw new GradleException("Better Lock On runtime JAR not found: ${betterLockOnJar}")
         }
         localRuntime files(betterLockOnJar)
     }
 
     if (providers.gradleProperty('withCreate').map(String::toBoolean).getOrElse(false)) {
-        if (!createJar.exists()) {
+        if (!createJar?.exists()) {
             throw new GradleException("Create runtime JAR not found: ${createJar}")
         }
         localRuntime files(createJar)
     }
 
     if (providers.gradleProperty('withBonfires').map(String::toBoolean).getOrElse(false)) {
-        if (!bonfiresJar.exists()) {
+        if (!bonfiresJar?.exists()) {
             throw new GradleException("Bonfires runtime JAR not found: ${bonfiresJar}")
         }
         localRuntime files(bonfiresJar)
     }
 
     if (providers.gradleProperty('withSubtleEffects').map(String::toBoolean).getOrElse(false)) {
-        if (!subtleEffectsJar.exists()) {
+        if (!subtleEffectsJar?.exists()) {
             throw new GradleException("SubtleEffects runtime JAR not found: ${subtleEffectsJar}")
         }
-        if (!fzzyConfigJar.exists()) {
+        if (!fzzyConfigJar?.exists()) {
             throw new GradleException("SubtleEffects test dependency Fzzy Config not found: ${fzzyConfigJar}")
         }
-        if (!kotlinForForgeJar.exists()) {
+        if (!kotlinForForgeJar?.exists()) {
             throw new GradleException("SubtleEffects test dependency Kotlin for Forge not found: ${kotlinForForgeJar}")
         }
         localRuntime files(subtleEffectsJar, fzzyConfigJar, kotlinForForgeJar)
     }
 
     if (providers.gradleProperty('withPresenceFootsteps').map(String::toBoolean).getOrElse(false)) {
-        if (!presenceFootstepsJar.exists()) {
+        if (!presenceFootstepsJar?.exists()) {
             throw new GradleException("Presence Footsteps runtime JAR not found: ${presenceFootstepsJar}")
         }
         localRuntime files(presenceFootstepsJar)
@@ -261,6 +256,12 @@ tasks.withType(Test).configureEach {
 sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
 sourceSets.test.runtimeClasspath += sourceSets.main.runtimeClasspath
 
+// Compile the supported integration example without packaging it into the mod.
+sourceSets.create('integrationExamples')
+sourceSets.integrationExamples.java.srcDir 'docs/integration/examples'
+sourceSets.integrationExamples.compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+tasks.named('check').configure { dependsOn tasks.named('compileIntegrationExamplesJava') }
+
 // Opt-in server regression fixture. Never included in the distribution JAR.
 if (providers.gradleProperty('weaponRegression').map(String::toBoolean).getOrElse(false)) {
     sourceSets.create('weaponRegression')
@@ -280,4 +281,30 @@ tasks.named('jar', Jar).configure {
                 'Implementation-Version': project.version
         ])
     }
+}
+
+tasks.named('javadoc').configure {
+    // Only the supported facade is an integration contract; do not publish internal Javadoc.
+    source = fileTree('src/main/java') { include 'dev/maplesadventure/api/**/*.java' }
+    classpath = sourceSets.main.compileClasspath + sourceSets.main.output
+    options.encoding = 'UTF-8'
+    options.addStringOption('Xdoclint:all,-missing', '-quiet')
+}
+
+publishing {
+    publications {
+        mavenJava(org.gradle.api.publish.maven.MavenPublication) {
+            from components.java
+            artifactId = mod_id
+            pom {
+                name = mod_name
+                description = 'Souls-like adventure, combat and server-authoritative integration API for NeoForge.'
+                url = 'https://github.com/Axira-A/MaplesAdventure'
+                licenses { license { name = 'MIT License'; url = 'https://opensource.org/license/mit' } }
+                developers { developer { id = 'Axira'; name = 'Axira' } }
+                scm { url = 'https://github.com/Axira-A/MaplesAdventure' }
+            }
+        }
+    }
+    // No hosted repository or credentials. Use publishToMavenLocal until hosting is available.
 }

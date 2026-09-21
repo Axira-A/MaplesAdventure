@@ -1,0 +1,77 @@
+{
+  "channels": {
+    "physical": {
+      "defense": 40,
+      "absorption": 0
+    },
+    "slash": {
+      "defense": 50,
+      "absorption": 0.1
+    },
+    "strike": {
+      "defense": 20,
+      "absorption": -0.1
+    },
+    "pierce": {
+      "defense": 35,
+      "absorption": 0
+    },
+    "magic": {
+      "defense": 30,
+      "absorption": 0
+    },
+    "fire": {
+      "defense": 25,
+      "absorption": 0
+    },
+    "lightning": {
+      "defense": 20,
+      "absorption": 0
+    },
+    "ice": {
+      "defense": 30,
+      "absorption": 0
+    },
+    "holy": {
+      "defense": 15,
+      "absorption": 0
+    }
+  },
+  "status_resistances": {
+    "bleed": {
+      "threshold": 220,
+      "proc_damage_multiplier": 0.7,
+      "correction": "maplesadventure:standard"
+    },
+    "poison": {
+      "threshold": 200
+    },
+    "scarlet_rot": {
+      "threshold": 220
+    },
+    "frostbite": {
+      "threshold": 260,
+      "proc_damage_multiplier": 0.7,
+      "correction": "maplesadventure:standard"
+    },
+    "sleep": {
+      "threshold": 180,
+      "response": "stagger_only",
+      "correction": "maplesadventure:resistant"
+    },
+    "madness": {
+      "threshold": 200,
+      "immune": true
+    },
+    "death_blight": {
+      "threshold": 200,
+      "immune": true
+    }
+  },
+  "status_traits": {
+    "tarnished_like": false,
+    "madness_immune": true,
+    "death_blight_immune": true,
+    "allow_death_blight": false
+  }
+}

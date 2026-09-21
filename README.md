@@ -1,67 +1,110 @@
 # MaplesAdventure
 
-MaplesAdventure is a Minecraft 1.21.1 / NeoForge 21.1.219 / Java 21 adventure
-interaction and compatibility core. Better Lock On remains an independent combat
-targeting mod; MaplesAdventure does not own or synchronize its combat target.
+A Souls-inspired adventure and RPG combat framework for shared Minecraft worlds. Map makers
+define encounters and bosses; players build attributes, manage equipment and interact through
+contextual world targets. Server-authoritative phase relationships support solo exploration,
+cooperation, duels and opt-in invasion without making the client a gameplay authority.
 
-## Contextual interaction
+## Requirements
 
-- `F`: interact with the current contextual target.
-- `Y`: cycle through nearby interaction targets.
+- Minecraft **1.21.1**
+- NeoForge **21.1.219 or compatible 21.1.x**
+- **Java 21**
 
-Both controls are ordinary `KeyMapping` entries and can be rebound in Minecraft's
-Controls screen. The known default conflict between `F` and Swap Item With Offhand
-is intentionally left visible; MaplesAdventure does not rewrite vanilla bindings.
+Install the mod on both server and clients with matching versions/protocol. Optional integrations
+are not bundled. Their absence must not prevent the core from loading.
 
-The client scans a small broad-phase around the player's bounding box every three
-ticks by default. A formal target must be within the configured 1.25-block
-body-to-shape distance, remain inside vanilla reach, and expose a visible surface
-through Minecraft's collision-shape clipping. Candidate discovery is pure: it never
-calls a block or entity interaction method. Targets are scored by distance, body
-direction, camera alignment and provider priority, then retained with target
-stickiness until invalid or manually cycled. Pressing interact revalidates immediately
-and performs a bounded refresh when the cached target is absent or stale.
+## Combat, attributes and defense
 
-Actual interaction uses Minecraft's `MultiPlayerGameMode` block/entity paths. This
-preserves NeoForge events, hand fallback, client prediction and standard server
-checks for reach, world border and `ServerLevel#mayInteract` permissions.
+Eight RPG attributes, derived capabilities, exact-XP upgrades, equipment load and automatic dodge
+selection. Weapon requirements, scaling, multi-channel attack rating, infusions, enemy defense
+profiles and player defense share a single damage-resolution pipeline. Projectile weapon data is
+frozen at launch. Damage channels are standard physical, slash, strike, pierce, magic, fire,
+lightning, ice and holy; a multi-channel hit is still one Minecraft hit.
 
-## Extensibility
+Epic Fight can supply stamina, skills, animation and dodge integration. Nightfall dodge skills
+are selected when available. Iron's Spells can supply mana and spell-school integration.
+These remain optional; see [third-party notices](THIRD_PARTY_NOTICES.md).
 
-Providers can be registered through `InteractionRegistry`. Datapacks can opt blocks
-or entity types in and out with:
+## Status ailments
 
-- `maplesadventure:interaction_blocks`
-- `maplesadventure:interaction_block_blacklist`
-- `maplesadventure:interaction_entity_types`
-- `maplesadventure:interaction_entity_type_blacklist`
+Bleed, Poison, Scarlet Rot, Frostbite, Sleep, Madness and Death Blight use server-owned buildup,
+resistance, eligibility and repeat-proc correction. Immunity, Robustness, Focus and Vitality
+provide the defensive views. ARC status scaling is independent of weapon attack scaling.
+HUD bars and trigger notices display server state; client input cannot force a proc.
 
-Blacklist tags take precedence over explicit providers, opt-in tags and built-in
-Vanilla recognition. Ordinary HUD text uses translated `Component` names and never
-shows registry IDs; IDs are only visible when `interactionDebug` is enabled.
+## Multiplayer phase and encounters
 
-The bundled opt-in tag includes Create's `analog_lever` and Bonfires'
-`ash_bone_pile`. Both use their own normal right-click logic through
-`MultiPlayerGameMode`; complex controls that depend on a specialized click location
-remain eligible for a dedicated provider instead of being guessed by the core scanner.
+Solo phases, gold cooperation, red invasion/duel sessions, safe foreign-player returns,
+phase-bound enemies and loot, historical player echoes and sensory isolation. Fixed encounters
+support per-phase attempts, boss primary/child lineage, locked co-op scaling, phase boss bars
+and fog gates. Map authors remain responsible for enclosed room geometry.
 
-## Compatibility scope
+These are shared-world systems, not separate dimension copies. Complex third-party boss
+replacement/effect semantics require explicit adapters; automatic support for every boss mod
+is not claimed.
 
-The interaction system does not depend on Better Lock On, Shoulder Surfing or Epic
-Fight and does not write camera rotation, player rotation, movement or combat target
-state. No Mixin configuration is present. Optional runtime profiles remain available
-for main-menu and in-world compatibility tests.
+## Interaction
 
-## Build
+Rebindable defaults:
 
-```text
-./gradlew build
-./gradlew runClient
-./gradlew -PwithEpicFight=true runClient
-./gradlew -PwithShoulderSurfing=true runClient
-./gradlew -PwithShoulderSurfing=true -PwithShoulderSurfingLegacy=true runClient
-./gradlew -PwithEpicFight=true -PwithShoulderSurfing=true runClient
-./gradlew -PwithEpicFight=true -PwithShoulderSurfing=true -PwithBetterLockOn=true runClient
-./gradlew -PwithCreate=true runClient
-./gradlew -PwithBonfires=true runClient
+- **L**: Multiplayer Hub — messages, helper signs, duelist signs and invasion search.
+- **F**: interact with the selected nearby world target.
+- **Y**: cycle nearby targets.
+
+F may conflict with vanilla offhand swap; configure controls as appropriate. Structured messages,
+summon signs, fog gates, containers and supported blocks reuse contextual interaction.
+Lost Souls preserve unspent XP through the established death/recovery flow. Optional Bonfires
+integration connects authorized upgrade access and successful rest, without replacing its JAR.
+
+## Public API and datapacks
+
+Third-party integrations should use **`dev.maplesadventure.api.*`**, not internal progression,
+Attachments, networking or caches.
+
+- [Integration setup](docs/integration/README.md)
+- [Status and events](docs/integration/status-api.md)
+- [Defense snapshots/profile assignment](docs/integration/defense-api.md)
+- [Typed damage descriptions](docs/integration/typed-damage-api.md)
+- [Defense datapack schema](docs/integration/datapack-api.md)
+- [Compilable Java and loadable datapack examples](docs/integration/examples/)
+
+Public API v1 is a compatibility contract. Calls are server-thread operations; notifications and
+providers are read-only. No hosted Maven repository is currently advertised.
+
+## Build and development
+
+The source includes compile-only adapters for **Epic Fight 21.17.3.1** and **Iron's Spells
+3.16.3**. Obtain their Minecraft 1.21.1 NeoForge JARs from their legitimate distributions.
+Provide `epicFightJar` and `ironsSpellsJar` through Gradle `-P` properties, or an ignored
+`local-development.properties` file. Values are paths to locally obtained dependency files.
+Do not commit these files or credentials. They are compile-only, not runtime requirements for
+the base mod and not bundled into its distribution.
+
+```sh
+./gradlew clean test
+./gradlew clean build
+./gradlew publishToMavenLocal
 ```
+
+Windows: use `gradlew.bat`. Build creates mod, sources and API Javadoc JARs in `build/libs`.
+See [integration setup](docs/integration/README.md) for local Maven and composite dependencies.
+The wrapper JAR is tracked; third-party binaries and generated output are not.
+
+Development runs: `runClient`, `runServer`. Optional `-PwithEpicFight=true` and
+`-PwithIronsSpells=true` enable runtime testing; Iron's also requires configured `ironsLibJar`,
+`curiosJar`, `geckoLibJar`, and `playerAnimatorJar`. Other optional profiles and property names
+are declared in `build.gradle`. A local repository cache may be supplied with
+`localDependencyRepository`; no private cache location is assumed.
+
+Reproducible server fixtures are source-only and opt-in:
+`./gradlew runServer -PweaponRegression=true`. Use a disposable test world and operator commands
+`apiregression`, `statusregression run`, `statusregression extended`,
+`playerdefenseregression`, `defenseregression run`.
+Fixtures never ship in the mod. The compiled integration example is included in `check`.
+
+## License
+
+[MIT License](LICENSE), copyright (c) 2026 Axira. Original project code and assets may be reused
+in independent mods under MIT; see [asset reuse](ASSET_LICENSE.md).
+Third-party content retains its own terms: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

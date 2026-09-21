@@ -1,0 +1,5 @@
+{
+  "entity": "minecraft:zombie",
+  "profile": "example:boss",
+  "priority": 10
+}
