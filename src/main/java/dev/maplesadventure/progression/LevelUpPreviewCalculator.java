@@ -12,7 +12,7 @@ public final class LevelUpPreviewCalculator {
         Preview plan = calculate(baseline.state(), baseline.runtimeResources(), baseline.equipLoad(), deltas, xp, cap, multiplier);
         var stats = dev.maplesadventure.progression.stats.CharacterStatsService.preview(plan.state(),
                 baseline.runtimeResources(), baseline.equipLoad(), baseline.spellSchools())
-                .withWeapons(baseline.weapons().evaluate(plan.state()));
+                .withWeapons(baseline.weapons(), plan.state());
         return new Preview(plan.state(), plan.level(), plan.maxHealth(), plan.mana(), plan.stamina(), stats,
                 plan.points(), plan.totalCost(), plan.remainingXp());
     }

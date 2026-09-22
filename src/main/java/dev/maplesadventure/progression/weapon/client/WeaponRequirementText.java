@@ -8,6 +8,11 @@ public final class WeaponRequirementText {
     public static List<Component> lines(WeaponLoadoutSnapshot.View v) {
         List<Component> lines=new ArrayList<>();
         lines.add(Component.translatable("screen.maplesadventure.weapon."+(v.offhand()?"offhand":"mainhand"),v.held().name()));
+        if (v.held().handState() != WeaponLoadoutSnapshot.HandState.WEAPON) {
+            lines.add(Component.translatable("screen.maplesadventure.weapon." +
+                    (v.held().handState() == WeaponLoadoutSnapshot.HandState.EMPTY ? "empty_hand" : "no_weapon")));
+            return List.copyOf(lines);
+        }
         lines.add(Component.translatable("screen.maplesadventure.weapon.infusion",v.held().infusion().displayName()));
         if(v.held().weapon()) lines.addAll(WeaponAttackText.lines(v.attack()));
         lines.addAll(dev.maplesadventure.progression.status.client.StatusText.lines(v.statuses()));

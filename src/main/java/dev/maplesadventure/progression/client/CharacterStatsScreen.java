@@ -77,7 +77,7 @@ public final class CharacterStatsScreen extends Screen {
             var school = hoveredSchool;
             List<Component> lines = new ArrayList<>();
             lines.add(school.displayName());
-            lines.add(Component.translatable(school.implementationState().translationKey()));
+            CharacterStatFormatting.implementationHint(school.implementationState()).ifPresent(lines::add);
             lines.add(Component.translatable("screen.maplesadventure.spell.progression", schoolPercent(school.progressionBonus())));
             lines.add(Component.translatable("screen.maplesadventure.spell.weights",
                     schoolPercent(school.profile().intelligenceWeight()), schoolPercent(school.profile().faithWeight()),
@@ -96,7 +96,9 @@ public final class CharacterStatsScreen extends Screen {
         CharacterStatValue value = preview.value(stat);
         ArrayList<Component> lines = new ArrayList<>();
         lines.add(Component.translatable(stat.translationKey()));
-        lines.add(Component.translatable(value.implementation().translationKey()));
+        var handDescription = CharacterStatFormatting.handDescription(preview, stat);
+        handDescription.ifPresent(lines::add);
+        if (handDescription.isEmpty()) CharacterStatFormatting.implementationHint(value.implementation()).ifPresent(lines::add);
         if(stat.section()==CharacterStatSection.RESISTANCE) lines.add(Component.translatable(stat.translationKey()+".description"));
         if (stat.section()==CharacterStatSection.DEFENSE || stat.section()==CharacterStatSection.ELEMENTAL)
             lines.add(Component.translatable("screen.maplesadventure.character_stats.build_defense_layer"));
@@ -219,7 +221,7 @@ public final class CharacterStatsScreen extends Screen {
         @Override public Component getNarration() {
             return Component.translatable("screen.maplesadventure.character_stats.narration",
                     Component.translatable(stat.translationKey()),
-                    CharacterStatFormatting.comparison(stat, current.value(stat), preview.value(stat)));
+                    CharacterStatFormatting.comparison(stat, current, preview));
         }
         @Override public void render(GuiGraphics graphics, int index, int top, int left, int width, int height,
                                      int mouseX, int mouseY, boolean hovered, float partialTick) {
@@ -230,7 +232,7 @@ public final class CharacterStatsScreen extends Screen {
             CharacterStatValue after = preview.value(stat);
             graphics.drawString(font, Component.translatable(stat.translationKey()), left + 10, top + 5,
                     after.available() ? TEXT : MUTED, false);
-            Component value = CharacterStatFormatting.comparison(stat, current.value(stat), after);
+            Component value = CharacterStatFormatting.comparison(stat, current, preview);
             int right = left + width - 10;
             graphics.drawString(font, value, right - font.width(value), top + 5,
                     after.implementation() == StatImplementationState.UNAVAILABLE ? MUTED

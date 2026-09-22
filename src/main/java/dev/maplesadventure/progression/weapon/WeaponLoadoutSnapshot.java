@@ -10,6 +10,8 @@ import net.minecraft.network.chat.Component;
 import java.util.*;
 /** Only canonical item IDs/profiles, no inventory or ItemStack NBT. */
 public record WeaponLoadoutSnapshot(Held mainHand,Held offHand,double penalty) {
+    /** Read-only equipment context, derived from the existing wire fields, not implementation state. */
+    public enum HandState { EMPTY, NON_WEAPON, WEAPON }
     public record Held(ResourceLocation item,WeaponRequirementProfile profile,WeaponScalingProfile scaling,double baseAttack,boolean weapon,
                        WeaponDamageProfile damage,WeaponInfusionView infusion,dev.maplesadventure.progression.status.WeaponStatusProfile statuses) {
         public Held(ResourceLocation item,WeaponRequirementProfile profile,WeaponScalingProfile scaling,double baseAttack,boolean weapon,WeaponDamageProfile damage,WeaponInfusionView infusion) { this(item,profile,scaling,baseAttack,weapon,damage,infusion,dev.maplesadventure.progression.status.WeaponStatusProfile.EMPTY); }
@@ -20,6 +22,10 @@ public record WeaponLoadoutSnapshot(Held mainHand,Held offHand,double penalty) {
             if(!Double.isFinite(baseAttack)||baseAttack<0||baseAttack>10000) throw new IllegalArgumentException("Weapon base bounds");
         }
         public Component name() { var type=BuiltInRegistries.ITEM.get(item); return type==null?Component.empty():type.getDescription(); }
+        public HandState handState() {
+            if (ResourceLocation.withDefaultNamespace("air").equals(item)) return HandState.EMPTY;
+            return weapon ? HandState.WEAPON : HandState.NON_WEAPON;
+        }
     }
     public record View(boolean offhand,Held held,PlayerAttributeState attributes,WeaponRequirementResult result) {
         public dev.maplesadventure.progression.status.StatusBuildupSnapshot statuses() { return held.statuses().evaluate(attributes.get(dev.maplesadventure.progression.Attribute.ARCANE),held.scaling().arcane(),1); }

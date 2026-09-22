@@ -90,9 +90,9 @@ public final class LevelUpScreen extends Screen {
         var attributes = baseline.attributes();
         var thresholds = dev.maplesadventure.progression.status.client.ClientStatusState.thresholds();
         baselineStats = CharacterStatCalculator.calculate(attributes.state(),attributes.runtimeResources(),attributes.equipLoad(),attributes.spellSchools(),thresholds)
-                .withWeapons(attributes.weapons().evaluate(attributes.state()));
+                .withWeapons(attributes.weapons(), attributes.state());
         previewStats = CharacterStatCalculator.calculate(preview.state(),attributes.runtimeResources(),attributes.equipLoad(),attributes.spellSchools(),thresholds)
-                .withWeapons(attributes.weapons().evaluate(preview.state()));
+                .withWeapons(attributes.weapons(), preview.state());
         compactStats = StatPreviewPriority.select(baselineStats, previewStats, 7);
         for (Attribute attribute : Attribute.values()) {
             if (!plus.containsKey(attribute)) continue;
@@ -349,6 +349,7 @@ public final class LevelUpScreen extends Screen {
 
     private boolean drawWeaponRequirementPreview(GuiGraphics g, LevelUpLayout.Box box) {
         for (var after : previewStats.weapons()) {
+            if (after.held().handState() != dev.maplesadventure.progression.weapon.WeaponLoadoutSnapshot.HandState.WEAPON) continue;
             var before=baselineStats.weapons().stream().filter(v->v.offhand()==after.offhand() && v.held().item().equals(after.held().item())).findFirst().orElse(after);
             boolean requirementsChanged=!before.result().missingAttributes().equals(after.result().missingAttributes());
             boolean attackChanged=after.held().weapon() && Math.abs(before.attack().attackRating()-after.attack().attackRating())>1e-7;
@@ -454,7 +455,7 @@ public final class LevelUpScreen extends Screen {
             return base.copy().append("\n").append(text("diminishing_returns"));
         if (attribute == Attribute.INTELLIGENCE || attribute == Attribute.FAITH || attribute == Attribute.ARCANE)
             return base.copy().append("\n").append(Component.translatable("screen.maplesadventure.spell.rating_hint"));
-        return base.copy().append("\n").append(text("design_only"));
+        return base;
     }
     private void drawFeedback(GuiGraphics g) {
         Component status = pending ? text("pending") : feedback;

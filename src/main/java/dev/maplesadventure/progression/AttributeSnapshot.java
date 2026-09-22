@@ -48,6 +48,6 @@ public record AttributeSnapshot(PlayerAttributeState state, int level, double ma
     /** Complete reusable view; Screens never scan a player or duplicate derived formulas. */
     public dev.maplesadventure.progression.stats.CharacterStatsSnapshot characterStats() {
         return dev.maplesadventure.progression.stats.CharacterStatsService.preview(state, runtimeResources, equipLoad, spellSchools)
-                .withWeapons(weapons.evaluate(state));
+                .withWeapons(weapons, state);
     }
 }
