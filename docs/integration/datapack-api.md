@@ -80,6 +80,41 @@ New attacks use current definitions. Already launched weapon projectiles retain 
 snapshot; this API does not replace it. Entity profile references retain their stable IDs across
 saves and reloads. Never serialize enum ordinals as a public ID.
 
-Other shipped datapack systems (weapons, infusions, status definitions and spell schools) remain
-implemented internally, but this document only promises the defense/correction schema above.
-Do not assume an undocumented field or expose an internal parser as a new public contract.
+## Weapon and armor rules
+
+The following are public schema v1. All paths have the form
+`data/<namespace>/maplesadventure/<directory>/<path>.json`. Rules reject unknown fields and
+bad bounds per file. Except `weapon_infusions`, a rule selects exactly one `item` or `tag`, an
+optional integer `priority` (default 0), and domain-specific fields. Exact item beats tag;
+within a selector group priority descends, then file ID sorts lexically. At most 4096 rules per
+directory load. Successful reload recompiles item lookups after tags are available; no JSON
+parse or tag scan occurs per hit. Compiled rules change new weapon attacks and current armor
+defense immediately. Already launched projectiles keep their launch snapshot.
+
+| Directory | Fields and validation |
+|---|---|
+| `weapon_requirements` | `requirements` object with strength/dexterity/intelligence/faith/arcane integer 0–99; `priority` -10000..10000; `disabled` boolean suppresses lower-priority/tag/integration fallback for this rule. |
+| `weapon_scaling` | `scaling` object with the same five keys, finite coefficients 0–1.5; optional `max_bonus` finite 0–2 (default 1.15), `priority` -10000..10000, `disabled`. Coefficients are numbers, not letter grades. |
+| `weapon_damage_profiles` | `components` array 1–8, unique `channel` per component, finite `base_ratio` 0–2, sum (0,2]. A component's optional `scaling` object overrides inherited weapon scaling; `{}` means no scaling. `max_bonus` requires explicit `scaling`. `priority` -10000..10000; `disabled` reverts to automatic archetype damage. |
+| `weapon_status_buildup` | Optional `statuses` object, up to seven status keys; optional `weight_class` = throwing/normal/great/colossal; `priority` integer -1000000..1000000. Each status accepts `base_buildup` 0–1000, `arcane_scaling` 0–2, `arcane_policy` none/explicit/follow_weapon_arcane. Frostbite, Scarlet Rot and Death Blight forbid ARC scaling. No `disabled` field in this schema; an empty `statuses` rule shadows a tag rule. |
+| `weapon_infusion_eligibility` | Optional `infusible` boolean (default true), optional `allowed` array of at most 32 unique infusion IDs, `priority` -10000..10000. `infusible:false` leaves only normal. Empty `allowed` on an infusible rule uses all currently allowed non-special definitions. Special frenzied/rot/blight require explicit eligibility. Unknown IDs are discarded at compile time. |
+| `armor_profiles` | `channels` object with nine finite nonnegative values 0–1000 and/or `resistances` object with immunity/robustness/focus/vitality values 0–1000. `priority` integer -10000..10000; `disabled:true` exact rule blocks tag inheritance. Four equipped slots sum to at most 4000 per field. Empty non-disabled profile is rejected. |
+
+Damage channels are physical, slash, strike, pierce, magic, fire, lightning, ice, holy.
+`physical` is standard physical and does not mean slash+strike+pierce. Status keys are bleed,
+poison, scarlet_rot, frostbite, sleep, madness, death_blight. Each channel of one weapon hit
+passes its own defense pressure calculation, but the game performs one final damage event.
+
+`weapon_infusions` is also public schema v1. Its **file ID is the infusion ID**, with no
+item/tag selector or priority. Up to 32 definitions. Fields: `display` translation key (at
+most 128 characters), `icon` resource ID (at most 256), `base_multiplier` finite (0,2],
+`physical_scaling` keyed by the five weapon attributes with optional `multiply` 0–2,
+`minimum`/`maximum` 0–1.5, `element` (null or object with `channel`, `physical_ratio`,
+`element_ratio`, `scaling`, optional `max_bonus`), and `statuses` using the status component
+grammar above. `future_buildup` remains readable for old packs but is deprecated; new packs
+should define `statuses`. Custom infusion IDs exist only after a definition loads and an item
+is eligible; a custom ID is not automatically applied to all weapons.
+
+The official [Holy Blade and Holy Knight examples](examples/datapack/data/example/maplesadventure/)
+use these exact parsers. The example IDs require `examplemod` items to be present for runtime
+resolution. Spell-school and status-effect definitions remain internal schemas.

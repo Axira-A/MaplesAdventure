@@ -53,7 +53,8 @@ public final class AttributePayloads {
                     || !Double.isFinite(stamina)) throw new DecoderException("Invalid attribute snapshot");
             return new Snapshot(new AttributeSnapshot(state, level, health, mana, stamina, cost, runtime, equipLoad,
                     dev.maplesadventure.progression.spell.SpellSchoolSnapshotCodec.read(buffer),
-                    dev.maplesadventure.progression.weapon.WeaponLoadoutSnapshot.read(buffer)));
+                    dev.maplesadventure.progression.weapon.WeaponLoadoutSnapshot.read(buffer),
+                    dev.maplesadventure.progression.armor.ArmorEquipmentSnapshot.read(buffer)));
         }, (buffer, payload) -> {
             AttributeSnapshot snapshot = payload.snapshot;
             buffer.writeVarInt(snapshot.state().dataVersion());
@@ -73,6 +74,7 @@ public final class AttributePayloads {
             writeEncumbrancePolicy(buffer, snapshot.equipLoad().policy());
             dev.maplesadventure.progression.spell.SpellSchoolSnapshotCodec.write(buffer, snapshot.spellSchools());
             snapshot.weapons().write(buffer);
+            snapshot.armor().write(buffer);
         });
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }

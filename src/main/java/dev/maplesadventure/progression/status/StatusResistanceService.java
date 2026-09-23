@@ -4,7 +4,8 @@ import net.minecraft.world.entity.player.Player;
 public final class StatusResistanceService {
     public static StatusResistance resolve(LivingEntity target,StatusEffectType type) {
         if(target instanceof net.minecraft.server.level.ServerPlayer player) return new StatusResistance(PlayerStatusResistanceCalculator.calculate(
-                dev.maplesadventure.progression.PlayerAttributeService.state(player)).value(type.resistanceType()),false,1);
+                dev.maplesadventure.progression.PlayerAttributeService.state(player),
+                dev.maplesadventure.progression.armor.ArmorEquipmentService.snapshot(player)).value(type.resistanceType()),false,1);
         var profile=dev.maplesadventure.progression.defense.EntityDefenseService.resolve(target).profile();
         var base=profile.statusResistances().getOrDefault(type,StatusResistance.DEFAULT);
         boolean primaryBoss=target.getExistingData(dev.maplesadventure.multiplayer.phase.mob.ModPhaseAttachments.ENCOUNTER_MOB)

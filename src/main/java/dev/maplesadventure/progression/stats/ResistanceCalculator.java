@@ -6,7 +6,12 @@ import java.util.Map;
 final class ResistanceCalculator {
     static void calculate(dev.maplesadventure.progression.PlayerAttributeState attributes,
                           Map<CharacterStat, CharacterStatValue> target) {
-        dev.maplesadventure.progression.status.PlayerStatusResistanceCalculator.calculate(attributes).values().forEach((type,value)-> {
+        calculate(attributes, dev.maplesadventure.progression.armor.ArmorEquipmentSnapshot.EMPTY, target);
+    }
+    static void calculate(dev.maplesadventure.progression.PlayerAttributeState attributes,
+                          dev.maplesadventure.progression.armor.ArmorEquipmentSnapshot armor,
+                          Map<CharacterStat, CharacterStatValue> target) {
+        dev.maplesadventure.progression.status.PlayerStatusResistanceCalculator.calculate(attributes, armor).values().forEach((type,value)-> {
             CharacterStat stat=switch(type) {
                 case IMMUNITY -> CharacterStat.IMMUNITY;
                 case ROBUSTNESS -> CharacterStat.ROBUSTNESS;

@@ -3,10 +3,14 @@ package dev.maplesadventure.progression.stats;
 import dev.maplesadventure.progression.Attribute;
 import dev.maplesadventure.progression.PlayerAttributeState;
 import java.util.Map;
+import dev.maplesadventure.progression.armor.ArmorEquipmentSnapshot;
 
 /** Sole pure build-defense formula for runtime and preview. Vanilla armor is not an input. */
 public final class DefenseCalculator {
     static void calculate(PlayerAttributeState a, Map<CharacterStat, CharacterStatValue> target) {
+        calculate(a, ArmorEquipmentSnapshot.EMPTY, target);
+    }
+    static void calculate(PlayerAttributeState a, ArmorEquipmentSnapshot armor, Map<CharacterStat, CharacterStatValue> target) {
         double vig = points(a, Attribute.VIGOR), end = points(a, Attribute.ENDURANCE);
         double str = points(a, Attribute.STRENGTH), dex = points(a, Attribute.DEXTERITY);
         double mind = points(a, Attribute.MIND), intelligence = points(a, Attribute.INTELLIGENCE);
@@ -21,6 +25,11 @@ public final class DefenseCalculator {
         put(target, CharacterStat.LIGHTNING_DEFENSE, 10, intelligence * .25 + dex * .10);
         put(target, CharacterStat.ICE_DEFENSE, 10, intelligence * .25 + end * .10);
         put(target, CharacterStat.HOLY_DEFENSE, 10, faith * .35);
+        for (var type : DamageDefenseType.values()) {
+            var old = target.get(type.stat()).breakdown();
+            target.put(type.stat(), CharacterStatValue.active(new StatBreakdown(old.base(), old.attribute(),
+                    armor.channel(type.channel()), old.effect())));
+        }
     }
 
     private static double points(PlayerAttributeState attributes, Attribute attribute) {
@@ -33,8 +42,11 @@ public final class DefenseCalculator {
     }
 
     public static dev.maplesadventure.progression.defense.PlayerDefenseSnapshot snapshot(PlayerAttributeState attributes) {
+        return snapshot(attributes, ArmorEquipmentSnapshot.EMPTY);
+    }
+    public static dev.maplesadventure.progression.defense.PlayerDefenseSnapshot snapshot(PlayerAttributeState attributes, ArmorEquipmentSnapshot armor) {
         var stats = new java.util.EnumMap<CharacterStat, CharacterStatValue>(CharacterStat.class);
-        calculate(attributes, stats);
+        calculate(attributes, armor, stats);
         var channels = new java.util.EnumMap<dev.maplesadventure.progression.weapon.WeaponDamageChannel, StatBreakdown>(dev.maplesadventure.progression.weapon.WeaponDamageChannel.class);
         for (var type : DamageDefenseType.values()) channels.put(type.channel(), stats.get(type.stat()).breakdown());
         return new dev.maplesadventure.progression.defense.PlayerDefenseSnapshot(channels);

@@ -6,7 +6,16 @@ public record AttributeSnapshot(PlayerAttributeState state, int level, double ma
                                 dev.maplesadventure.progression.runtime.RuntimeResourceSnapshot runtimeResources,
                                 dev.maplesadventure.progression.encumbrance.EquipLoadRuntimeSnapshot equipLoad,
                                 dev.maplesadventure.progression.spell.SpellSchoolScalingSnapshot spellSchools,
-                                dev.maplesadventure.progression.weapon.WeaponLoadoutSnapshot weapons) {
+                                dev.maplesadventure.progression.weapon.WeaponLoadoutSnapshot weapons,
+                                dev.maplesadventure.progression.armor.ArmorEquipmentSnapshot armor) {
+    public AttributeSnapshot(PlayerAttributeState state, int level, double health, double mana, double stamina,
+            long cost, dev.maplesadventure.progression.runtime.RuntimeResourceSnapshot runtime,
+            dev.maplesadventure.progression.encumbrance.EquipLoadRuntimeSnapshot equipLoad,
+            dev.maplesadventure.progression.spell.SpellSchoolScalingSnapshot schools,
+            dev.maplesadventure.progression.weapon.WeaponLoadoutSnapshot weapons) {
+        this(state, level, health, mana, stamina, cost, runtime, equipLoad, schools, weapons,
+                dev.maplesadventure.progression.armor.ArmorEquipmentSnapshot.EMPTY);
+    }
     public AttributeSnapshot(PlayerAttributeState state, int level, double health, double mana, double stamina,
             long cost, dev.maplesadventure.progression.runtime.RuntimeResourceSnapshot runtime,
             dev.maplesadventure.progression.encumbrance.EquipLoadRuntimeSnapshot equipLoad,
@@ -42,12 +51,13 @@ public record AttributeSnapshot(PlayerAttributeState state, int level, double ma
                 stats.value(dev.maplesadventure.progression.stats.CharacterStat.MAX_STAMINA).value(),
                 AttributeProgression.costForNextLevel(AttributeProgression.level(state)), runtime, equipLoad,
                 dev.maplesadventure.progression.spell.SpellScalingRuntimeService.snapshot(player),
-                dev.maplesadventure.progression.weapon.WeaponLoadoutSnapshot.of(player));
+                dev.maplesadventure.progression.weapon.WeaponLoadoutSnapshot.of(player),
+                dev.maplesadventure.progression.armor.ArmorEquipmentService.snapshot(player));
     }
 
     /** Complete reusable view; Screens never scan a player or duplicate derived formulas. */
     public dev.maplesadventure.progression.stats.CharacterStatsSnapshot characterStats() {
-        return dev.maplesadventure.progression.stats.CharacterStatsService.preview(state, runtimeResources, equipLoad, spellSchools)
+        return dev.maplesadventure.progression.stats.CharacterStatsService.preview(state, runtimeResources, equipLoad, spellSchools, armor)
                 .withWeapons(weapons, state);
     }
 }

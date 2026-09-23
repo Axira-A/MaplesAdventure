@@ -18,11 +18,13 @@ public final class WeaponRequirementEvents {
         e.addListener(new dev.maplesadventure.progression.status.StatusResistanceCorrections());
         e.addListener(new dev.maplesadventure.progression.status.StatusMotionRules());
         e.addListener(new dev.maplesadventure.progression.status.WeaponStatusRules());
+        e.addListener(new dev.maplesadventure.progression.armor.ArmorProfileRules());
     }
-    @SubscribeEvent public void start(ServerStartedEvent e) { WeaponRequirementService.compile(); EntityDefenseService.compile(); dev.maplesadventure.progression.status.WeaponStatusRules.compile(); }
+    @SubscribeEvent public void start(ServerStartedEvent e) { WeaponRequirementService.compile(); EntityDefenseService.compile(); dev.maplesadventure.progression.status.WeaponStatusRules.compile(); dev.maplesadventure.progression.armor.ArmorProfileService.compile(); }
     @SubscribeEvent public void stop(ServerStoppedEvent e) {
         WeaponRequirementService.clear(); WeaponInfusionRegistry.reset();
         EntityDefenseService.clear(); EntityDefenseRegistry.clear(); LastWeaponDamageResolution.clear();
+        dev.maplesadventure.progression.armor.ArmorProfileService.clear();
     }
     @SubscribeEvent public void join(EntityJoinLevelEvent e) {
         if(e.getLevel().isClientSide() || e.loadedFromDisk()) return;

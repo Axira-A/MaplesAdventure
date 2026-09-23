@@ -26,6 +26,7 @@ public final class WeaponRegressionMod {
         StatusRegression.register();
         PlayerDefenseRegression.register();
         PublicApiRegression.register();
+        EquipmentRegression.register();
         NeoForge.EVENT_BUS.addListener(this::commands);
         NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.tick.ServerTickEvent.Post e)->{
             var jobs=List.copyOf(pending); pending.clear(); jobs.forEach(Runnable::run);

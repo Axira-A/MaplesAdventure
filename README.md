@@ -66,7 +66,9 @@ Attachments, networking or caches.
 - [Status and events](docs/integration/status-api.md)
 - [Defense snapshots/profile assignment](docs/integration/defense-api.md)
 - [Typed damage descriptions](docs/integration/typed-damage-api.md)
-- [Defense datapack schema](docs/integration/datapack-api.md)
+- [Weapon Integration API](docs/integration/weapon-api.md)
+- [Armor Integration API](docs/integration/armor-api.md)
+- [Public datapack schemas](docs/integration/datapack-api.md)
 - [Compilable Java and loadable datapack examples](docs/integration/examples/)
 
 Public API v1 is a compatibility contract. Calls are server-thread operations; notifications and

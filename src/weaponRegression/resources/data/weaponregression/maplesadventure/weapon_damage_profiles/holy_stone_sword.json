@@ -1,0 +1,1 @@
+{"item":"minecraft:stone_sword","components":[{"channel":"physical","base_ratio":0.65,"scaling":{"strength":0.35,"dexterity":0.20}},{"channel":"holy","base_ratio":0.35,"scaling":{"faith":0.80}}]}

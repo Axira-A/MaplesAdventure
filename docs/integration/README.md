@@ -5,8 +5,12 @@ Third-party integrations MUST prefer `dev.maplesadventure.api.*` and documented 
 - [Status API and events](status-api.md)
 - [Defense API](defense-api.md)
 - [Typed damage providers](typed-damage-api.md)
+- [Weapon Integration API](weapon-api.md)
+- [Armor Integration API](armor-api.md)
 - [Datapack schema](datapack-api.md)
 - [Compilable integration example](examples/BossIntegrationExample.java)
+- [Compilable weapon example](examples/WeaponIntegrationExample.java)
+- [Compilable armor example](examples/ArmorIntegrationExample.java)
 - [Example datapack](examples/datapack/)
 
 ## Dependency setup

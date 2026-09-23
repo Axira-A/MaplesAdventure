@@ -89,7 +89,10 @@ public final class EncumbranceRuntimeService {
         for (UUID id : Set.copyOf(PENDING_EQUIPMENT)) {
             PENDING_EQUIPMENT.remove(id);
             ServerPlayer player = server.getPlayerList().getPlayer(id);
-            if (player != null && !player.isRemoved()) refreshAndSync(player);
+            if (player != null && !player.isRemoved()) {
+                refreshAndSync(player);
+                dev.maplesadventure.progression.status.StatusNetwork.sync(player);
+            }
         }
         for (UUID id : Set.copyOf(PENDING_DODGE)) {
             ServerPlayer player = server.getPlayerList().getPlayer(id);

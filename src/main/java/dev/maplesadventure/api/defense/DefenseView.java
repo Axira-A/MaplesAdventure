@@ -21,7 +21,8 @@ import dev.maplesadventure.api.status.*;
  */
 public record DefenseView(Map<MaplesDamageChannel, Channel> channels, Map<MaplesStatusType, StatusView> statuses,
         Optional<ResourceLocation> profile, boolean unknownProfile, double pressure) {
-    /** Immutable biological/material defense, independent of vanilla armor and absorption hearts.
+    /** Immutable effective defense. Player defense includes configured Maples armor profile contributions,
+     * independently of vanilla armor and absorption hearts.
      *
      * @param defense defense value
      * @param absorption fractional absorption, not absorption hearts */

@@ -12,13 +12,15 @@ public final class CharacterStatsService {
         return CharacterStatCalculator.calculate(PlayerAttributeService.state(player),
                 DerivedStatRuntimeService.snapshot(player),
                 dev.maplesadventure.progression.encumbrance.EncumbranceRuntimeService.snapshot(player),
-                dev.maplesadventure.progression.spell.SpellScalingRuntimeService.snapshot(player),thresholds(player));
+                dev.maplesadventure.progression.spell.SpellScalingRuntimeService.snapshot(player),
+                dev.maplesadventure.progression.armor.ArmorEquipmentService.snapshot(player));
     }
 
     public static CharacterStatsSnapshot preview(ServerPlayer player, PlayerAttributeState previewAttributes) {
         return CharacterStatCalculator.calculate(previewAttributes, DerivedStatRuntimeService.snapshot(player),
                 dev.maplesadventure.progression.encumbrance.EncumbranceRuntimeService.snapshot(player),
-                dev.maplesadventure.progression.spell.SpellScalingRuntimeService.snapshot(player),thresholds(player));
+                dev.maplesadventure.progression.spell.SpellScalingRuntimeService.snapshot(player),
+                dev.maplesadventure.progression.armor.ArmorEquipmentService.snapshot(player));
     }
 
     /** Pure shared preview used after a server-authored attribute snapshot reaches the client. */
@@ -48,5 +50,11 @@ public final class CharacterStatsService {
             dev.maplesadventure.progression.encumbrance.EquipLoadRuntimeSnapshot equipLoad,
             dev.maplesadventure.progression.spell.SpellSchoolScalingSnapshot spellSchools) {
         return CharacterStatCalculator.calculate(attributes, runtime, equipLoad, spellSchools);
+    }
+    public static CharacterStatsSnapshot preview(PlayerAttributeState attributes, RuntimeResourceSnapshot runtime,
+            dev.maplesadventure.progression.encumbrance.EquipLoadRuntimeSnapshot equipLoad,
+            dev.maplesadventure.progression.spell.SpellSchoolScalingSnapshot spellSchools,
+            dev.maplesadventure.progression.armor.ArmorEquipmentSnapshot armor) {
+        return CharacterStatCalculator.calculate(attributes, runtime, equipLoad, spellSchools, armor);
     }
 }
