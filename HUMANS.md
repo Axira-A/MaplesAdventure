@@ -151,22 +151,44 @@ Bug reports, audits, testing results, and API feedback are welcome during this s
 
 ## License and third-party work
 
-The original MaplesAdventure project code and project-owned material are distributed under the repository's **MIT License**, unless a file explicitly states otherwise.
+MaplesAdventure uses **split licensing**.
 
-Third-party work does not become MIT simply because it appears near MIT-licensed code.
+Unless a file explicitly states otherwise, original MaplesAdventure **source code** is distributed
+under the repository's [MIT License](LICENSE). Project-owned **models, textures, animations, icons,
+UI artwork, and other visual/artistic assets are separately protected and are not automatically
+covered by MIT**.
 
-Dependencies, upstream projects, referenced implementations, imported assets, adapted material, and other external work remain subject to their own licenses and attribution requirements.
+The public repository being cloneable does not turn protected artwork into a reusable asset
+library. Copying an asset as part of building or contributing to MaplesAdventure is different from
+extracting that asset for use in an independent mod or project.
+
+Third-party work does not become MIT or project-owned simply because it appears near
+MIT-licensed code. Dependencies, upstream projects, referenced implementations, imported assets,
+adapted material, and other external work remain subject to their own licenses and attribution
+requirements.
 
 See:
 
 - [`LICENSE`](LICENSE)
+- [`ASSET_LICENSE.md`](ASSET_LICENSE.md)
 - [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)
 
 when determining what may be reused and under what terms.
 
-When in doubt, preserve attribution.
+When in doubt, preserve attribution and do not assume visual assets are reusable.
 
-Removing history, renaming a file, porting code to another loader, or passing it through an automated tool does not make the original author disappear.
+Removing history, renaming a file, porting code to another loader, or passing it through an
+automated tool does not make the original author disappear.
+
+---
+
+## Models and visual art
+
+**Ai_myh — Models & Visual Art / 模型及美术创作者**
+
+Ai_myh is a credited creator of models and visual art for MaplesAdventure. Visual contributions
+remain subject to the project's asset license and the applicable contributor/commission agreement;
+they are not made MIT merely because the source code is MIT.
 
 ---
 

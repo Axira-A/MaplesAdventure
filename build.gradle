@@ -300,7 +300,13 @@ publishing {
                 name = mod_name
                 description = 'Souls-like adventure, combat and server-authoritative integration API for NeoForge.'
                 url = 'https://github.com/Axira-A/MaplesAdventure'
-                licenses { license { name = 'MIT License'; url = 'https://opensource.org/license/mit' } }
+                licenses {
+                    license {
+                        name = 'MIT License (source code only; visual assets excluded)'
+                        url = 'https://github.com/Axira-A/MaplesAdventure/blob/main/ASSET_LICENSE.md'
+                        distribution = 'repo'
+                    }
+                }
                 developers { developer { id = 'Axira'; name = 'Axira' } }
                 scm { url = 'https://github.com/Axira-A/MaplesAdventure' }
             }

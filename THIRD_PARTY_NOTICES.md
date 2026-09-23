@@ -1,9 +1,23 @@
 # Third-party notices
 
-MaplesAdventure's MIT license covers project-owned material, not Minecraft, NeoForge, dependency
-JARs or third-party assets. Dependencies must be obtained separately under their own licenses.
-The build does not shade or bundle these mods. Local inspection/testing is not redistribution
-permission. See [ASSET_LICENSE.md](ASSET_LICENSE.md).
+MaplesAdventure's root MIT license applies to the project's MIT-licensed source code; it does not
+automatically license project-owned visual/artistic assets. Models, textures, animations, icons,
+UI artwork and other protected visual material are governed by
+[ASSET_LICENSE.md](ASSET_LICENSE.md).
+
+Minecraft, NeoForge, dependency JARs, externally sourced assets and other third-party material
+remain under their own licenses and rights holders. Dependencies must be obtained separately under
+their own licenses. The build does not shade or bundle these mods. Local inspection/testing is not
+redistribution permission.
+
+## Project visual contributors
+
+**Ai_myh — Models & Visual Art / 模型及美术创作者**
+
+Ai_myh is credited as a MaplesAdventure model and visual-art creator. This is project contributor
+credit, not a claim that the contributor's work is MIT-licensed. Rights in individual contributed
+or commissioned works remain subject to the applicable creator agreement and the asset policy
+above.
 
 ## Current integrations
 

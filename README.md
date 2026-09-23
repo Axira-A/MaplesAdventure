@@ -105,8 +105,20 @@ Reproducible server fixtures are source-only and opt-in:
 `playerdefenseregression`, `defenseregression run`.
 Fixtures never ship in the mod. The compiled integration example is included in `check`.
 
+## Credits
+
+- **MaplesAdventure Team** — engineering, design, maintenance and integration work.
+- **Ai_myh — Models & Visual Art / 模型及美术创作者**.
+
 ## License
 
-[MIT License](LICENSE), copyright (c) 2026 Axira. Original project code and assets may be reused
-in independent mods under MIT; see [asset reuse](ASSET_LICENSE.md).
+MaplesAdventure uses split licensing. Unless a file explicitly states otherwise, the **source
+code** is licensed under the [MIT License](LICENSE), copyright (c) 2026 Axira.
+
+Project-owned **models, textures, animations, icons, UI artwork and other visual/artistic assets
+are not licensed under MIT**. They may not be extracted, copied, adapted, or reused in an
+independent mod or other independent project without explicit permission from the applicable
+rights holder. Complete official MaplesAdventure distributions may be redistributed under the
+conditions in [ASSET_LICENSE.md](ASSET_LICENSE.md).
+
 Third-party content retains its own terms: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
