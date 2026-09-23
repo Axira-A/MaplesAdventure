@@ -513,5 +513,17 @@
   "death.attack.maplesadventure.frostbite": "%1$s succumbed to frostbite",
   "death.attack.maplesadventure.frostbite.player": "%1$s succumbed to frostbite",
   "status.maplesadventure.buildup": "%1$s buildup  %2$s",
-  "status.maplesadventure.preview": "%1$s buildup  %2$s → %3$s"
+  "status.maplesadventure.preview": "%1$s buildup  %2$s → %3$s",
+  "block.maplesadventure.bonfire": "Unnamed Bonfire",
+  "screen.maplesadventure.bonfire": "Bonfire",
+  "screen.maplesadventure.bonfire.rest": "Rest",
+  "screen.maplesadventure.bonfire.level_up": "Level Up",
+  "screen.maplesadventure.bonfire.leave": "Leave",
+  "message.maplesadventure.bonfire.activated": "Bonfire activated: %s",
+  "message.maplesadventure.bonfire.denied": "You cannot use this bonfire now",
+  "command.maplesadventure.bonfire.named": "Bonfire name updated",
+  "command.maplesadventure.bonfire.invalid_feature": "Unknown bonfire feature",
+  "command.maplesadventure.bonfire.feature_set": "Bonfire feature %s set to %s",
+  "command.maplesadventure.bonfire.reset_player": "Reset bonfire progress for %s",
+  "command.maplesadventure.bonfire.missing": "No loaded MaplesAdventure bonfire at that position"
 }

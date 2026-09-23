@@ -1,5 +1,7 @@
 # MaplesAdventure visual asset notice
 
+> Language: [简体中文](ASSET_NOTICE.zh-CN.md) | **English**
+
 The repository's MIT license applies to source code, not automatically to MaplesAdventure visual
 or artistic assets.
 
@@ -12,9 +14,13 @@ the applicable rights holder.
 Copying these resources as technically necessary to build, run, test, or contribute to
 MaplesAdventure itself does not grant a separate reuse license. Redistribution of the complete
 official MaplesAdventure mod/package is permitted only under the conditions described in the
-repository root [ASSET_LICENSE.md](../../../../ASSET_LICENSE.md).
+repository root [ASSET_LICENSE.md](../../../../../ASSET_LICENSE.md).
 
-**Ai_myh — Models & Visual Art / 模型及美术创作者**
+**Ai_myh — Art & Models**
+
+The three `animmodels/animations/bonfire_*.json` player-rest clips were created with Codex-assisted
+procedural animation work for this project, using Epic Fight's biped rig format for compatibility.
+They are not attributed to Ai_myh, and no third-party animation clip is bundled as a reference.
 
 Third-party assets, if any, remain governed by their own licenses and are not relicensed by this
 notice.

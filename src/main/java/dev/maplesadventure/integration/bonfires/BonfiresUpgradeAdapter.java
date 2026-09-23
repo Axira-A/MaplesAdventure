@@ -14,7 +14,7 @@ public final class BonfiresUpgradeAdapter {
 
     public static synchronized void register() {
         if (registered || !ModList.get().isLoaded("bonfires")) return;
-        UpgradeAccessRegistry.register(UpgradeAccessType.BONFIRE, BonfiresUpgradeAdapter::validate);
+        BonfireUpgradeSourceRegistry.register(SOURCE, BonfiresUpgradeAdapter::validate);
         registered = true;
     }
 

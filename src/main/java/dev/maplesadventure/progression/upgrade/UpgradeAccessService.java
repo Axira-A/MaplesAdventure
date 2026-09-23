@@ -120,6 +120,12 @@ public final class UpgradeAccessService {
         var session = SESSIONS.get(player.getUUID());
         if (session != null && session.nonce().equals(nonce)) close(player);
     }
+    /** Close only the authorization issued by a particular source, leaving admin/legacy access untouched. */
+    public static void closeForSource(ServerPlayer player, ResourceLocation sourceKey, UUID sourceId) {
+        var session = SESSIONS.get(player.getUUID());
+        if (session != null && session.context.sourceKey().equals(sourceKey)
+                && session.context.sourceId().equals(sourceId)) close(player);
+    }
     public static void close(ServerPlayer player) { close(player, BatchUpgradeStatus.INVALID_SESSION); }
     private static void close(ServerPlayer player, BatchUpgradeStatus reason) {
         var session = SESSIONS.remove(player.getUUID());

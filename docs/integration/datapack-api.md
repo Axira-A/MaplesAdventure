@@ -1,5 +1,7 @@
 # Datapack integration schema
 
+> Language: [简体中文](datapack-api.zh-CN.md) | **English**
+
 These fields match the shipped parsers. Unknown fields and invalid numeric bounds reject the
 affected definition with a server log message. Reload uses Minecraft datapacks and compiled
 lookup tables; no JSON parsing is performed per hit. Do not modify internal Attachments/NBT.

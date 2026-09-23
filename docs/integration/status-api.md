@@ -1,5 +1,7 @@
 # Status API
 
+> Language: [简体中文](status-api.zh-CN.md) | **English**
+
 `MaplesStatusApi` delegates to the existing status pipeline; it has no parallel state.
 `MaplesStatusType` provides BLEED, POISON, SCARLET_ROT, FROSTBITE, SLEEP, MADNESS,
 DEATH_BLIGHT. IDs are `maplesadventure:<lowercase_name>`; `find(id)` returns empty for unknown IDs.

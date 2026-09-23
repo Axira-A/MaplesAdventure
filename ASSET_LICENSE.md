@@ -1,5 +1,7 @@
 # Source code and visual asset licensing
 
+> Language: [简体中文](ASSET_LICENSE.zh-CN.md) | **English**. This English text is authoritative.
+
 MaplesAdventure uses **split licensing**. The repository's source code is open under MIT, while
 visual and artistic assets are separately protected. A file-specific license or notice always
 takes precedence for that file.
@@ -83,7 +85,7 @@ infringement under applicable law.
 
 ## Models and visual art credit
 
-**Ai_myh — Models & Visual Art / 模型及美术创作者**
+**Ai_myh — Art & Models**
 
 Ai_myh is a credited model and visual-art creator for MaplesAdventure. This credit does not place
 Ai_myh's work under MIT. Copyright ownership and any project-specific rights in individual works

@@ -48,6 +48,7 @@ public final class MaplesAdventureClient {
         InteractionRegistry.getInstance().register(new MessageInteractionProvider());
         InteractionRegistry.getInstance().register(new SummonSignInteractionProvider());
         InteractionRegistry.getInstance().register(new FogGateInteractionProvider());
+        InteractionRegistry.getInstance().register(new dev.maplesadventure.client.bonfire.BonfireInteractionProvider());
         modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         modBus.addListener(MaplesAdventureClient::registerKeyMappings);
         modBus.addListener(MaplesAdventureClient::registerGuiLayers);
@@ -57,6 +58,8 @@ public final class MaplesAdventureClient {
         NeoForge.EVENT_BUS.addListener(EchoWorldRenderer::render);
         NeoForge.EVENT_BUS.addListener(SummonSignWorldRenderer::render);
         NeoForge.EVENT_BUS.addListener(InvasionRuneWorldRenderer::render);
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent.LoggingOut event) ->
+                dev.maplesadventure.client.bonfire.BonfireClient.clear());
         PhaseClientEvents.register();
         PhaseSensoryEvents.register();
         EchoClientEvents.register();

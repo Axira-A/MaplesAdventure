@@ -1,5 +1,7 @@
 # Third-party notices
 
+> Language: [简体中文](THIRD_PARTY_NOTICES.zh-CN.md) | **English**
+
 MaplesAdventure's root MIT license applies to the project's MIT-licensed source code; it does not
 automatically license project-owned visual/artistic assets. Models, textures, animations, icons,
 UI artwork and other protected visual material are governed by
@@ -12,7 +14,7 @@ redistribution permission.
 
 ## Project visual contributors
 
-**Ai_myh — Models & Visual Art / 模型及美术创作者**
+**Ai_myh — Art & Models**
 
 Ai_myh is credited as a MaplesAdventure model and visual-art creator. This is project contributor
 credit, not a claim that the contributor's work is MIT-licensed. Rights in individual contributed
@@ -27,7 +29,7 @@ above.
 | Epic Fight | Compile-only API; optional runtime integration for stamina, skill/dodge ownership, weapon facts, status motion, echo animation and sensory filtering. Includes optional Mixins targeting Epic Fight classes. |
 | Iron's Spells 'n Spellbooks | Compile-only API; optional mana, school scaling/affinity integration and optional school-power accessor Mixin. |
 | EpicFight-Nightfall | Optional runtime integration through Epic Fight registry IDs and mod ID efn; no hard Nightfall class dependency. |
-| Bonfires | Optional runtime reflection/accessor and targeted Mixins for successful rest/light hooks and authorized menu access. Not merely a generic block tag; the integration uses its actual block/screen behavior. |
+| Bonfires | Legacy optional compatibility through runtime reflection/accessor and targeted Mixins for successful rest/light hooks and authorized menu access. The built-in `maplesadventure:bonfire` does not use Bonfires models, textures or Spiral Sword activation assets. |
 | Presence Footsteps | Optional runtime source-aware sound integration with a targeted optional Mixin. |
 | Subtle Effects | Optional runtime source-aware entity/packet VFX integration with targeted optional Mixins. |
 | Better Lock On | Independent optional compatibility-test runtime. No compile-only API or copied target-management system; Phase target rules remain MaplesAdventure's responsibility. |

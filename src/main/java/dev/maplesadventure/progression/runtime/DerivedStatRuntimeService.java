@@ -26,6 +26,13 @@ public final class DerivedStatRuntimeService {
                 DerivedStatIntegrationRegistry.inspect(DerivedRuntimeResource.STAMINA, player, state));
     }
 
+    /** Bonfire success only: never changes maximums or invents unavailable mod resources. */
+    public static void restoreToMaximum(ServerPlayer player) {
+        player.setHealth(player.getMaxHealth());
+        DerivedStatIntegrationRegistry.restoreCurrentRatio(DerivedRuntimeResource.MANA, player, 1.0D);
+        DerivedStatIntegrationRegistry.restoreCurrentRatio(DerivedRuntimeResource.STAMINA, player, 1.0D);
+    }
+
     public static void clearTransientState() { DerivedStatIntegrationRegistry.clearFailures(); }
 
     public static void captureLogoutCheckpoint(ServerPlayer player) {

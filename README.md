@@ -1,124 +1,66 @@
 # MaplesAdventure
 
-A Souls-inspired adventure and RPG combat framework for shared Minecraft worlds. Map makers
-define encounters and bosses; players build attributes, manage equipment and interact through
-contextual world targets. Server-authoritative phase relationships support solo exploration,
-cooperation, duels and opt-in invasion without making the client a gameplay authority.
+> 语言：**简体中文** | [English](README.en.md)
 
-## Requirements
+MaplesAdventure 是面向 Minecraft 共享世界的类魂冒险与 RPG 战斗框架。地图作者布置固定 Encounter 与 Boss；玩家培养属性、管理装备，并通过世界目标交互。服务端权威的相位系统支持独行、协作、决斗与主动入侵。
 
-- Minecraft **1.21.1**
-- NeoForge **21.1.219 or compatible 21.1.x**
-- **Java 21**
+## 运行要求
 
-Install the mod on both server and clients with matching versions/protocol. Optional integrations
-are not bundled. Their absence must not prevent the core from loading.
+- Minecraft **1.21.1**、NeoForge **21.1.219 或兼容的 21.1.x**、Java **21**。
+- 服务端与客户端安装相同版本和协议。第三方整合均为可选，不随本 Mod 打包。
 
-## Combat, attributes and defense
+## 战斗、属性与防御
 
-Eight RPG attributes, derived capabilities, exact-XP upgrades, equipment load and automatic dodge
-selection. Weapon requirements, scaling, multi-channel attack rating, infusions, enemy defense
-profiles and player defense share a single damage-resolution pipeline. Projectile weapon data is
-frozen at launch. Damage channels are standard physical, slash, strike, pierce, magic, fire,
-lightning, ice and holy; a multi-channel hit is still one Minecraft hit.
+八项 RPG 属性、派生资源、精确 XP 升级、装备负重与自动闪避。武器需求、补正、多通道攻击力、质变、敌人与玩家防御及异常状态都由服务端裁定。投射物发射时冻结武器快照；多通道攻击仍只触发一次 Minecraft 命中。伤害通道包括标准物理、斩击、打击、突刺、魔法、火焰、雷电、冰霜和神圣。
 
-Epic Fight can supply stamina, skills, animation and dodge integration. Nightfall dodge skills
-are selected when available. Iron's Spells can supply mana and spell-school integration.
-These remain optional; see [third-party notices](THIRD_PARTY_NOTICES.md).
+Epic Fight 可提供精力、技能、动画与闪避整合；安装 Nightfall 时可选择相应闪避技能。Iron's Spells 可提供魔力和法术学派整合。这些都是可选依赖，详见[第三方声明](THIRD_PARTY_NOTICES.zh-CN.md)。
 
-## Status ailments
+## 异常状态
 
-Bleed, Poison, Scarlet Rot, Frostbite, Sleep, Madness and Death Blight use server-owned buildup,
-resistance, eligibility and repeat-proc correction. Immunity, Robustness, Focus and Vitality
-provide the defensive views. ARC status scaling is independent of weapon attack scaling.
-HUD bars and trigger notices display server state; client input cannot force a proc.
+出血、中毒、猩红腐败、冻伤、睡眠、癫狂与死亡枯萎使用服务端持有的积累、抗性、资格判定与重复触发修正。免疫、健壮、理智与活力构成防御视图。感应属性对异常积累的补正独立于武器攻击补正。HUD 和触发提示显示服务端状态，客户端输入不能强制触发异常。
 
-## Multiplayer phase and encounters
+## 多人相位与固定 Encounter
 
-Solo phases, gold cooperation, red invasion/duel sessions, safe foreign-player returns,
-phase-bound enemies and loot, historical player echoes and sensory isolation. Fixed encounters
-support per-phase attempts, boss primary/child lineage, locked co-op scaling, phase boss bars
-and fog gates. Map authors remain responsible for enclosed room geometry.
+独立相位、金色协作、红灵入侵/决斗、安全返回、相位敌人和掉落、历史玩家残影及感知隔离都运行在同一共享世界。固定 Encounter 支持逐相位 Boss Attempt、实体血缘、锁定人数倍率、相位 BossBar 和雾门。Boss 房间几何封闭仍由地图作者负责；复杂第三方 Boss 需要明确适配，不能假定自动兼容。
 
-These are shared-world systems, not separate dimension copies. Complex third-party boss
-replacement/effect semantics require explicit adapters; automatic support for every boss mod
-is not claimed.
+## 篝火与交互
 
-## Interaction
+MaplesAdventure 已拥有**内置 Bonfire Core**。管理员可命名和配置篝火；激活记录逐玩家独立。第一次交互仅激活，之后才打开休息菜单。成功休息会设置该玩家的最后休息点、恢复可用 HP/魔力/精力，并对所属相位执行一次 Encounter Reset。仅管理员开启 `LEVEL_UP` 后，玩家休息时才出现升级入口。死亡时优先在有效的最后休息篝火附近复活；失效则回退至 Vanilla 规则。
 
-Rebindable defaults:
+篝火方块当前仍引用 Vanilla 占位模型，未使用 Bonfires 美术。三段 Epic Fight 坐下动画尚未交付。外部 Bonfires Mod 仅保留为**旧版可选兼容**，不是内置篝火的前置。详见[篝火说明](docs/bonfire.zh-CN.md)。
 
-- **L**: Multiplayer Hub — messages, helper signs, duelist signs and invasion search.
-- **F**: interact with the selected nearby world target.
-- **Y**: cycle nearby targets.
+默认可重新绑定的按键：**L** 打开联机菜单，**F** 与当前世界目标交互，**Y** 切换附近目标。F 可能与 Vanilla 副手切换冲突，请按需要在控制设置中调整。结构化留言、召唤符、雾门、容器等复用世界交互流程。Lost Soul 仍保存和回收未消费 XP。
 
-F may conflict with vanilla offhand swap; configure controls as appropriate. Structured messages,
-summon signs, fog gates, containers and supported blocks reuse contextual interaction.
-Lost Souls preserve unspent XP through the established death/recovery flow. Optional Bonfires
-integration connects authorized upgrade access and successful rest, without replacing its JAR.
+## 公共 API 与数据包
 
-## Public API and datapacks
+第三方整合应使用 **`dev.maplesadventure.api.*`**，不要依赖内部 Attachment、网络或缓存。公共 API v1 是兼容性契约；调用在服务端线程执行，Provider 与通知为只读。
 
-Third-party integrations should use **`dev.maplesadventure.api.*`**, not internal progression,
-Attachments, networking or caches.
+- [整合入门](docs/integration/README.zh-CN.md)
+- [异常状态与事件](docs/integration/status-api.zh-CN.md)
+- [防御快照](docs/integration/defense-api.zh-CN.md)
+- [类型伤害](docs/integration/typed-damage-api.zh-CN.md)
+- [武器 API](docs/integration/weapon-api.zh-CN.md)
+- [护甲 API](docs/integration/armor-api.zh-CN.md)
+- [数据包格式](docs/integration/datapack-api.zh-CN.md)
+- [可编译示例](docs/integration/examples/)
 
-- [Integration setup](docs/integration/README.md)
-- [Status and events](docs/integration/status-api.md)
-- [Defense snapshots/profile assignment](docs/integration/defense-api.md)
-- [Typed damage descriptions](docs/integration/typed-damage-api.md)
-- [Weapon Integration API](docs/integration/weapon-api.md)
-- [Armor Integration API](docs/integration/armor-api.md)
-- [Public datapack schemas](docs/integration/datapack-api.md)
-- [Compilable Java and loadable datapack examples](docs/integration/examples/)
+## 构建与开发
 
-Public API v1 is a compatibility contract. Calls are server-thread operations; notifications and
-providers are read-only. No hosted Maven repository is currently advertised.
-
-## Build and development
-
-The source includes compile-only adapters for **Epic Fight 21.17.3.1** and **Iron's Spells
-3.16.3**. Obtain their Minecraft 1.21.1 NeoForge JARs from their legitimate distributions.
-Provide `epicFightJar` and `ironsSpellsJar` through Gradle `-P` properties, or an ignored
-`local-development.properties` file. Values are paths to locally obtained dependency files.
-Do not commit these files or credentials. They are compile-only, not runtime requirements for
-the base mod and not bundled into its distribution.
+源码包含 Epic Fight 21.17.3.1 与 Iron's Spells 3.16.3 的仅编译期适配。请从合法发行渠道取得本地 JAR，通过 Gradle 属性 `epicFightJar`、`ironsSpellsJar` 或被忽略的 `local-development.properties` 指定路径。不要提交第三方二进制或凭据；核心 Mod 运行时不强制依赖它们。
 
 ```sh
 ./gradlew clean test
 ./gradlew clean build
-./gradlew publishToMavenLocal
+./gradlew javadoc
 ```
 
-Windows: use `gradlew.bat`. Build creates mod, sources and API Javadoc JARs in `build/libs`.
-See [integration setup](docs/integration/README.md) for local Maven and composite dependencies.
-The wrapper JAR is tracked; third-party binaries and generated output are not.
+Windows 请使用 `gradlew.bat`。构建结果位于 `build/libs`，包括 Mod、源码与 API Javadoc JAR。开发任务包括 `runClient`、`runServer`；可选运行配置见 `build.gradle`。整合示例编译已纳入 `check`。
 
-Development runs: `runClient`, `runServer`. Optional `-PwithEpicFight=true` and
-`-PwithIronsSpells=true` enable runtime testing; Iron's also requires configured `ironsLibJar`,
-`curiosJar`, `geckoLibJar`, and `playerAnimatorJar`. Other optional profiles and property names
-are declared in `build.gradle`. A local repository cache may be supplied with
-`localDependencyRepository`; no private cache location is assumed.
+## 开发人员
 
-Reproducible server fixtures are source-only and opt-in:
-`./gradlew runServer -PweaponRegression=true`. Use a disposable test world and operator commands
-`apiregression`, `statusregression run`, `statusregression extended`,
-`playerdefenseregression`, `defenseregression run`.
-Fixtures never ship in the mod. The compiled integration example is included in `check`.
+- **Axira** — 程序与策划
+- **Ai_myh** — 美术与模型
 
-## Credits
+## 许可
 
-- **MaplesAdventure Team** — engineering, design, maintenance and integration work.
-- **Ai_myh — Models & Visual Art / 模型及美术创作者**.
-
-## License
-
-MaplesAdventure uses split licensing. Unless a file explicitly states otherwise, the **source
-code** is licensed under the [MIT License](LICENSE), copyright (c) 2026 Axira.
-
-Project-owned **models, textures, animations, icons, UI artwork and other visual/artistic assets
-are not licensed under MIT**. They may not be extracted, copied, adapted, or reused in an
-independent mod or other independent project without explicit permission from the applicable
-rights holder. Complete official MaplesAdventure distributions may be redistributed under the
-conditions in [ASSET_LICENSE.md](ASSET_LICENSE.md).
-
-Third-party content retains its own terms: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+源代码遵循 [MIT License](LICENSE)，版权 (c) 2026 Axira。项目自有的视觉与美术资产另行保护，**不适用 MIT**，详见[美术资产许可](ASSET_LICENSE.zh-CN.md)。第三方材料遵循各自条款，详见[第三方声明](THIRD_PARTY_NOTICES.zh-CN.md)。

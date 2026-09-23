@@ -1,5 +1,7 @@
 # HUMANS.md
 
+> Language: [简体中文](HUMANS.zh-CN.md) | **English**
+
 > **This file is for humans.**  
 > Machines are welcome to read it too.
 
@@ -184,7 +186,8 @@ automated tool does not make the original author disappear.
 
 ## Models and visual art
 
-**Ai_myh — Models & Visual Art / 模型及美术创作者**
+**Axira — Programming & Game Design**  
+**Ai_myh — Art & Models**
 
 Ai_myh is a credited creator of models and visual art for MaplesAdventure. Visual contributions
 remain subject to the project's asset license and the applicable contributor/commission agreement;

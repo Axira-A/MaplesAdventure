@@ -1,5 +1,7 @@
 # Typed damage API
 
+> Language: [简体中文](typed-damage-api.zh-CN.md) | **English**
+
 Register `MaplesTypedDamageApi.register(id, priority, provider)` during common setup's
 `enqueueWork`. The callback accepts the existing DamageSource and returns
 `Optional<TypedDamage>`. Return empty for a source you do not own.

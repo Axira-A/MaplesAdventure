@@ -18,6 +18,10 @@ public final class ProgressionAttachments {
                     .copyOnDeath()
                     .build());
 
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<dev.maplesadventure.bonfire.PlayerBonfireState>> PLAYER_BONFIRES =
+            TYPES.register("player_bonfires", () -> AttachmentType.serializable(dev.maplesadventure.bonfire.PlayerBonfireState::new)
+                    .copyOnDeath().build());
+
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<PlayerResourceCheckpoint>> RESOURCE_CHECKPOINT =
             TYPES.register("resource_checkpoint", () -> AttachmentType.serializable(PlayerResourceCheckpoint::new)
                     .build());

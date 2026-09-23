@@ -1,6 +1,8 @@
 package dev.maplesadventure.registry;
 
 import dev.maplesadventure.MaplesAdventure;
+import dev.maplesadventure.bonfire.BonfireBlock;
+import dev.maplesadventure.bonfire.BonfireBlockEntity;
 import dev.maplesadventure.multiplayer.encounter.fog.BossFogGateBlock;
 import dev.maplesadventure.multiplayer.encounter.fog.BossFogGateBlockEntity;
 import net.minecraft.core.registries.Registries;
@@ -22,6 +24,12 @@ public final class ModBlocks {
 
     public static final DeferredBlock<BossFogGateBlock> BOSS_FOG_GATE = BLOCKS.register(
             "boss_fog_gate", BossFogGateBlock::new);
+    public static final DeferredBlock<BonfireBlock> BONFIRE = BLOCKS.register("bonfire", BonfireBlock::new);
+    public static final DeferredItem<BlockItem> BONFIRE_ITEM = ITEMS.register(
+            "bonfire", () -> new BlockItem(BONFIRE.get(), new Item.Properties()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BonfireBlockEntity>> BONFIRE_ENTITY =
+            BLOCK_ENTITIES.register("bonfire", () -> BlockEntityType.Builder.of(
+                    BonfireBlockEntity::new, BONFIRE.get()).build(null));
     public static final DeferredItem<BlockItem> BOSS_FOG_GATE_ITEM = ITEMS.register(
             "boss_fog_gate", () -> new BlockItem(BOSS_FOG_GATE.get(), new Item.Properties()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BossFogGateBlockEntity>> BOSS_FOG_GATE_ENTITY =

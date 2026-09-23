@@ -1,5 +1,7 @@
 # Integration API v1
 
+> Language: [简体中文](README.zh-CN.md) | **English**
+
 Third-party integrations MUST prefer `dev.maplesadventure.api.*` and documented datapack interfaces.
 
 - [Status API and events](status-api.md)

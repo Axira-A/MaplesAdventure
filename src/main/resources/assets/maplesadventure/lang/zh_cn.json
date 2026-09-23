@@ -513,5 +513,17 @@
   "death.attack.maplesadventure.frostbite": "%1$s 死于冻伤",
   "death.attack.maplesadventure.frostbite.player": "%1$s 死于冻伤",
   "status.maplesadventure.buildup": "%1$s积累  %2$s",
-  "status.maplesadventure.preview": "%1$s积累  %2$s → %3$s"
+  "status.maplesadventure.preview": "%1$s积累  %2$s → %3$s",
+  "block.maplesadventure.bonfire": "未命名篝火",
+  "screen.maplesadventure.bonfire": "篝火",
+  "screen.maplesadventure.bonfire.rest": "休息",
+  "screen.maplesadventure.bonfire.level_up": "升级",
+  "screen.maplesadventure.bonfire.leave": "离开",
+  "message.maplesadventure.bonfire.activated": "已激活篝火：%s",
+  "message.maplesadventure.bonfire.denied": "当前无法使用此篝火",
+  "command.maplesadventure.bonfire.named": "篝火名称已更新",
+  "command.maplesadventure.bonfire.invalid_feature": "未知篝火功能",
+  "command.maplesadventure.bonfire.feature_set": "篝火功能 %s 已设为 %s",
+  "command.maplesadventure.bonfire.reset_player": "已重置 %s 的篝火进度",
+  "command.maplesadventure.bonfire.missing": "该位置没有已加载的 MaplesAdventure 篝火"
 }

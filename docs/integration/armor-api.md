@@ -1,5 +1,7 @@
 # Armor Integration API v1
 
+> Language: [简体中文](armor-api.zh-CN.md) | **English**
+
 MaplesAdventure armor profiles add fixed equipment contributions to its nine damage-defense channels and four status-resistance families. Minecraft's armor points, armor toughness, durability, enchantments and native damage reduction remain separate. The profile does not grant percentage absorption or ailment immunity, and it has no attribute scaling. An unprofiled diamond or netherite chestplate contributes **zero Maples equipment defense** while retaining its normal Minecraft armor behavior.
 
 Channels are `physical`, `slash`, `strike`, `pierce`, `magic`, `fire`, `lightning`, `ice`, `holy`. Standard physical does not raise the other three physical channels. Resistance families are `immunity` (Poison, Scarlet Rot), `robustness` (Bleed, Frostbite), `focus` (Sleep, Madness), and `vitality` (Death Blight). These values add to the `equipment` part of the existing player breakdown; they are defense pressure and status thresholds, not percentages. A player can have both Vanilla armor mitigation and Maples channel defense.

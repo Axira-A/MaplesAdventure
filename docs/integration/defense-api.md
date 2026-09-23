@@ -1,5 +1,7 @@
 # Defense API
 
+> Language: [简体中文](defense-api.zh-CN.md) | **English**
+
 `MaplesDefenseApi.query(entity)` returns an Optional detached DefenseView:
 
 - all nine channels with `defense` and fractional `absorption`;

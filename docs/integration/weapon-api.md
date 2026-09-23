@@ -1,5 +1,7 @@
 # Weapon Integration API v1
 
+> Language: [简体中文](weapon-api.zh-CN.md) | **English**
+
 Content mods register their own Minecraft `Item`, attack damage/speed modifiers, models, textures and animations. MaplesAdventure reads the stack's MAINHAND attack-damage modifiers as base attack; there is no second base-attack registry.
 
 Five weapon attributes (`STRENGTH`, `DEXTERITY`, `INTELLIGENCE`, `FAITH`, `ARCANE`) drive requirements and numerical scaling. Use the [public datapack schemas](datapack-api.md) for static definitions. `MaplesWeaponApi.query(stack)` gives a detached, resolved view after the current infusion. `evaluate(player, stack)` uses current server attributes and configuration for requirement deficits, per-channel nominal attack rating, and status buildup at motion value 1. Both calls require the logical server thread after registry compilation. An empty result means invalid context or no resolved weapon; it does not mean zero attack power. Neither method grants client authority.

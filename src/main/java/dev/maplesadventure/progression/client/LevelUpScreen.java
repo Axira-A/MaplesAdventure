@@ -164,6 +164,8 @@ public final class LevelUpScreen extends Screen {
     @Override public void onClose() {
         if (pending && minecraft.player != null && minecraft.level != null
                 && minecraft.level.dimension().location().equals(baseline.access().sourceDimension())) return;
+        if (baseline.access().sourceKey().equals(dev.maplesadventure.bonfire.BonfireSessionService.UPGRADE_SOURCE)
+                && dev.maplesadventure.client.bonfire.BonfireClient.resume()) return;
         super.onClose();
     }
     @Override public void removed() {

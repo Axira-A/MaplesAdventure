@@ -1,5 +1,7 @@
 # MaplesAdventure contributor constraints
 
+> Language: [简体中文](AGENTS.zh-CN.md) | **English**
+
 - Target Minecraft 1.21.1, NeoForge 21.1.x (currently 21.1.219), Java 21.
 - Gameplay is server-authoritative. Client packets express intent, never trusted state.
 - Third-party integrations MUST prefer `dev.maplesadventure.api.*` and documented datapack interfaces.
@@ -23,3 +25,6 @@
 - Keep tests and reproducible fixture source. Do not commit logs, local dependency binaries,
   decompiled sources, test worlds, screenshots, calibration dumps or task-verification narratives.
 - Retain MIT project licensing and third-party rights notices. Never infer third-party asset ownership.
+- User-facing repository Markdown documentation is bilingual. When changing an English document,
+  update its matching Simplified Chinese document in the same change, and vice versa.
+  `README.md` is the Simplified Chinese landing page; `README.en.md` is its English counterpart.
