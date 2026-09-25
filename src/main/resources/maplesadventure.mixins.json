@@ -20,6 +20,7 @@
     ,"EpicFightDodgeSlotOwnershipMixin"
     ,"EncumbranceSprintMixin"
     ,"IronsSchoolPowerAccessor"
+    ,"IronsFractionalManaRegenMixin"
     ,"EpicFightWeaponRequirementMixin"
     ,"ProjectileWeaponRequirementMixin"
     ,"StatusMobControlMixin"

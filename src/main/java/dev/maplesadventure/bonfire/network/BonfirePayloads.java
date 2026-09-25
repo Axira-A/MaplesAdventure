@@ -34,26 +34,60 @@ public final class BonfirePayloads {
         });
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
-    public enum ActionType { LEVEL_UP, LEAVE }
-    public record Action(UUID nonce, ActionType action) implements CustomPacketPayload {
+    public enum ActionType { SELECT_FEATURE, LEAVE }
+    public record Action(UUID nonce, ActionType action, ResourceLocation featureId) implements CustomPacketPayload {
+        public Action {
+            java.util.Objects.requireNonNull(nonce);
+            java.util.Objects.requireNonNull(action);
+            if (action == ActionType.SELECT_FEATURE && (featureId == null || featureId.toString().length() > 128))
+                throw new IllegalArgumentException("Missing or oversized feature ID");
+            if (action == ActionType.LEAVE && featureId != null)
+                throw new IllegalArgumentException("Leave has no feature ID");
+        }
         public static final Type<Action> TYPE = BonfirePayloads.type("bonfire_action");
         public static final StreamCodec<RegistryFriendlyByteBuf, Action> CODEC = codec(
-                b -> new Action(b.readUUID(), b.readEnum(ActionType.class)),
-                (b, p) -> { b.writeUUID(p.nonce); b.writeEnum(p.action); });
+                b -> {
+                    UUID nonce = b.readUUID();
+                    ActionType action = b.readEnum(ActionType.class);
+                    return new Action(nonce, action, action == ActionType.SELECT_FEATURE ? ResourceLocation.parse(b.readUtf(128)) : null);
+                },
+                (b, p) -> { b.writeUUID(p.nonce); b.writeEnum(p.action);
+                    if (p.action == ActionType.SELECT_FEATURE) b.writeUtf(p.featureId.toString(), 128); });
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
-    public record View(UUID nonce, BonfireSessionState state, String name, boolean canLevelUp,
+    public record MenuEntry(ResourceLocation featureId, String translationKey, int order) {
+        public MenuEntry {
+            java.util.Objects.requireNonNull(featureId);
+            java.util.Objects.requireNonNull(translationKey);
+            if (featureId.toString().length() > 128 || translationKey.isBlank() || translationKey.length() > 256)
+                throw new IllegalArgumentException("Invalid bonfire menu entry");
+        }
+    }
+    public record View(UUID nonce, BonfireSessionState state, String name, java.util.List<MenuEntry> actions,
                        int transitionTicks, int commitTick, int fadeInTick,
                        net.minecraft.core.BlockPos bonfirePos) implements CustomPacketPayload {
+        public View {
+            actions = java.util.List.copyOf(actions);
+            if (actions.size() > 64 || actions.stream().map(MenuEntry::featureId).distinct().count() != actions.size())
+                throw new IllegalArgumentException("Invalid bonfire menu action count");
+        }
         public static final Type<View> TYPE = BonfirePayloads.type("bonfire_view");
         public static final StreamCodec<RegistryFriendlyByteBuf, View> CODEC = codec(b -> {
             UUID nonce = b.readUUID();
             BonfireSessionState state = b.readEnum(BonfireSessionState.class);
             String name = b.readUtf(64);
-            return new View(nonce, state, name, b.readBoolean(),
+            int count = b.readVarInt();
+            if (count < 0 || count > 64) throw new IllegalArgumentException("Invalid bonfire menu count");
+            var actions = new java.util.ArrayList<MenuEntry>(count);
+            for (int i = 0; i < count; i++) actions.add(new MenuEntry(ResourceLocation.parse(b.readUtf(128)), b.readUtf(256), b.readInt()));
+            return new View(nonce, state, name, actions,
                     b.readVarInt(), b.readVarInt(), b.readVarInt(), b.readBlockPos());
         }, (b, p) -> { b.writeUUID(p.nonce); b.writeEnum(p.state); b.writeUtf(p.name, 64);
-            b.writeBoolean(p.canLevelUp); b.writeVarInt(p.transitionTicks);
+            b.writeVarInt(p.actions.size());
+            for (var entry : p.actions) {
+                b.writeUtf(entry.featureId.toString(), 128); b.writeUtf(entry.translationKey, 256); b.writeInt(entry.order);
+            }
+            b.writeVarInt(p.transitionTicks);
             b.writeVarInt(p.commitTick); b.writeVarInt(p.fadeInTick); b.writeBlockPos(p.bonfirePos); });
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }

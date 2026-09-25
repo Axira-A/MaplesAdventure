@@ -15,6 +15,9 @@ import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 public final class BonfireEvents {
+    @SubscribeEvent public void onStarting(net.neoforged.neoforge.event.server.ServerAboutToStartEvent event) {
+        BonfireApiBridge.freeze();
+    }
     public static void register() { NeoForge.EVENT_BUS.register(new BonfireEvents()); }
     @SubscribeEvent public void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) BonfireStateService.sync(player);

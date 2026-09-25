@@ -27,10 +27,12 @@ public final class DerivedStatRuntimeService {
     }
 
     /** Bonfire success only: never changes maximums or invents unavailable mod resources. */
-    public static void restoreToMaximum(ServerPlayer player) {
+    public static ResourceRestoreResult restoreToMaximum(ServerPlayer player) {
+        double before = player.getHealth();
         player.setHealth(player.getMaxHealth());
-        DerivedStatIntegrationRegistry.restoreCurrentRatio(DerivedRuntimeResource.MANA, player, 1.0D);
-        DerivedStatIntegrationRegistry.restoreCurrentRatio(DerivedRuntimeResource.STAMINA, player, 1.0D);
+        return new ResourceRestoreResult(ResourceRestoreResult.Value.measured(before, player.getHealth(), player.getMaxHealth()),
+                DerivedStatIntegrationRegistry.restoreMaximum(DerivedRuntimeResource.MANA, player),
+                DerivedStatIntegrationRegistry.restoreMaximum(DerivedRuntimeResource.STAMINA, player));
     }
 
     public static void clearTransientState() { DerivedStatIntegrationRegistry.clearFailures(); }

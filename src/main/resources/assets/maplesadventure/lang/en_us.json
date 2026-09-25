@@ -525,7 +525,11 @@
   "message.maplesadventure.bonfire.activated": "Bonfire activated: %s",
   "message.maplesadventure.bonfire.denied": "You cannot use this bonfire now",
   "command.maplesadventure.bonfire.named": "Bonfire name updated",
-  "command.maplesadventure.bonfire.invalid_feature": "Unknown bonfire feature",
+  "screen.maplesadventure.bonfire.flask_allocation": "Flask Allocation",
+  "screen.maplesadventure.bonfire.spell_memory": "Spell Memory",
+  "screen.maplesadventure.bonfire.reinforce": "Reinforce",
+  "screen.maplesadventure.bonfire.warp": "Warp",
+  "command.maplesadventure.bonfire.invalid_feature": "Invalid bonfire feature ID",
   "command.maplesadventure.bonfire.feature_set": "Bonfire feature %s set to %s",
   "command.maplesadventure.bonfire.reset_player": "Reset bonfire progress for %s",
   "command.maplesadventure.bonfire.missing": "No loaded MaplesAdventure bonfire at that position"

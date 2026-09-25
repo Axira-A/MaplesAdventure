@@ -9,6 +9,8 @@ Third-party integrations MUST prefer `dev.maplesadventure.api.*` and documented 
 - [Typed damage providers](typed-damage-api.md)
 - [Weapon Integration API](weapon-api.md)
 - [Armor Integration API](armor-api.md)
+- [Built-in Bonfire API](bonfire-api.md)
+- [Compilable bonfire example](examples/BonfireIntegrationExample.java)
 - [Datapack schema](datapack-api.md)
 - [Compilable integration example](examples/BossIntegrationExample.java)
 - [Compilable weapon example](examples/WeaponIntegrationExample.java)

@@ -75,19 +75,21 @@ public final class BonfireSessionService {
         view(session);
     }
 
-    public static void action(ServerPlayer player, UUID nonce, BonfirePayloads.ActionType action) {
+    public static void action(ServerPlayer player, UUID nonce, BonfirePayloads.ActionType action, ResourceLocation featureId) {
+        BonfireApiBridge.checkThread(player.server);
         Session session = SESSIONS.get(player.getUUID());
-        if (session == null || !session.nonce.equals(nonce) || !valid(session)) {
+        if (session == null || session.player != player || !session.nonce.equals(nonce) || !valid(session)) {
             if (session != null) close(player);
             return;
         }
         switch (action) {
-            case LEVEL_UP -> {
+            case SELECT_FEATURE -> {
                 if (session.state != BonfireSessionState.RESTING) return;
                 BonfireBlockEntity bonfire = BonfireStateService.resolve(player.serverLevel(), session.ref.pos());
-                if (bonfire == null || !bonfire.hasFeature(BonfireFeature.LEVEL_UP)) return;
-                UpgradeAccessService.authorizeAndOpen(player, UpgradeAccessType.BONFIRE,
-                        session.ref.dimension(), session.ref.pos(), UPGRADE_SOURCE, session.ref.generation());
+                if (bonfire == null || featureId == null) return;
+                var context = BonfireApiBridge.context(player, bonfire);
+                if (!BonfireApiBridge.REGISTRY.execute(featureId, bonfire.features(), context))
+                    player.displayClientMessage(Component.translatable("message.maplesadventure.bonfire.denied"), true);
             }
             case LEAVE -> {
                 if (session.state == BonfireSessionState.RESTING) {
@@ -110,6 +112,25 @@ public final class BonfireSessionService {
                 && context.sourcePosition().equals(session.ref.pos())
                 && context.sourceId().equals(session.ref.generation())
                 && BonfireStateService.resolve(player.serverLevel(), session.ref.pos()).hasFeature(BonfireFeature.LEVEL_UP);
+    }
+
+    /** Only the transition owner may commit rest; consumes the permit before addon callbacks run. */
+    static boolean claimRest(ServerPlayer player, BonfireRef ref) {
+        BonfireApiBridge.checkThread(player.server);
+        Session session = SESSIONS.get(player.getUUID());
+        if (session == null || session.player != player || !session.ref.equals(ref)
+                || session.state != BonfireSessionState.SITTING_DOWN || !session.restCommitted
+                || session.restExecuted || !valid(session)) return false;
+        session.restExecuted = true;
+        return true;
+    }
+
+    static java.util.Optional<dev.maplesadventure.api.bonfire.MaplesBonfireContext> restingContext(ServerPlayer player) {
+        Session session = SESSIONS.get(player.getUUID());
+        if (session == null || session.player != player || session.state != BonfireSessionState.RESTING
+                || !valid(session)) return java.util.Optional.empty();
+        return java.util.Optional.of(BonfireApiBridge.context(player,
+                BonfireStateService.resolve(player.serverLevel(), session.ref.pos())));
     }
 
     private static boolean valid(Session session) {
@@ -138,6 +159,11 @@ public final class BonfireSessionService {
                     BonfireBlockEntity bonfire = BonfireStateService.resolve(session.player.serverLevel(), session.ref.pos());
                     if (bonfire == null || !BonfireRestService.rest(session.player, bonfire)) {
                         close(session.player);
+                        continue;
+                    }
+                    // A participant may safely close the session or teleport the player; never resurrect its UI.
+                    if (SESSIONS.get(session.player.getUUID()) != session || !valid(session)) {
+                        if (SESSIONS.get(session.player.getUUID()) == session) close(session.player);
                         continue;
                     }
                 }
@@ -173,7 +199,10 @@ public final class BonfireSessionService {
         BonfireBlockEntity bonfire = BonfireStateService.resolve(session.player.serverLevel(), session.ref.pos());
         if (bonfire == null) { close(session.player); return; }
         PacketDistributor.sendToPlayer(session.player, new BonfirePayloads.View(session.nonce, session.state,
-                bonfire.displayName(), session.state == BonfireSessionState.RESTING && bonfire.hasFeature(BonfireFeature.LEVEL_UP),
+                bonfire.displayName(), session.state == BonfireSessionState.RESTING
+                        ? BonfireApiBridge.REGISTRY.available(bonfire.features(), BonfireApiBridge.context(session.player, bonfire))
+                            .stream().map(f -> new BonfirePayloads.MenuEntry(f.id(), f.translationKey(), f.order())).toList()
+                        : List.of(),
                 session.transitionTicks, session.commitTick, session.fadeInTick, session.ref.pos()));
     }
     private static final class Session {
@@ -188,6 +217,7 @@ public final class BonfireSessionService {
         final int commitTick;
         final int fadeInTick;
         boolean restCommitted;
+        boolean restExecuted;
         Session(ServerPlayer player, BonfireRef ref, BonfireSessionState state,
                 int transitionTicks, int commitTick, int fadeInTick) {
             this.player = player; this.ref = ref; this.state = state;

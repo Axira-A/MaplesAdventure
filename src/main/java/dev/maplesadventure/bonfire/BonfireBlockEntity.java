@@ -1,7 +1,8 @@
 package dev.maplesadventure.bonfire;
 
 import dev.maplesadventure.registry.ModBlocks;
-import java.util.EnumSet;
+import java.util.LinkedHashSet;
+import net.minecraft.resources.ResourceLocation;
 import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
@@ -18,20 +19,28 @@ import net.minecraft.world.level.block.state.BlockState;
 public final class BonfireBlockEntity extends BlockEntity {
     private UUID generation = UUID.randomUUID();
     private String displayName = "";
-    private final EnumSet<BonfireFeature> features = EnumSet.noneOf(BonfireFeature.class);
+    private final Set<ResourceLocation> features = new LinkedHashSet<>();
 
     public BonfireBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlocks.BONFIRE_ENTITY.get(), pos, state);
     }
     public UUID generation() { return generation; }
     public String displayName() { return displayName; }
-    public Set<BonfireFeature> features() { return Set.copyOf(features); }
-    public boolean hasFeature(BonfireFeature feature) { return features.contains(feature); }
+    public Set<ResourceLocation> features() { return Set.copyOf(features); }
+    public boolean hasFeature(BonfireFeature feature) { return hasFeature(BonfireFeatureIds.parse(feature.id())); }
+    public boolean hasFeature(ResourceLocation feature) { return features.contains(feature); }
     public void setDisplayName(String name) {
         displayName = name == null ? "" : name.strip().substring(0, Math.min(64, name.strip().length()));
         setChanged();
     }
     public void setFeature(BonfireFeature feature, boolean enabled) {
+        setFeature(BonfireFeatureIds.parse(feature.id()), enabled);
+    }
+    public void setFeature(ResourceLocation feature, boolean enabled) {
+        if (feature == null || BonfireFeatureIds.parse(feature.toString()) == null)
+            throw new IllegalArgumentException("Invalid feature ID");
+        if (enabled && !features.contains(feature) && features.size() >= BonfireFeatureIds.MAX_FEATURES)
+            throw new IllegalArgumentException("Too many bonfire features");
         if (enabled) features.add(feature); else features.remove(feature);
         setChanged();
     }
@@ -49,9 +58,8 @@ public final class BonfireBlockEntity extends BlockEntity {
         super.saveAdditional(tag, registries);
         tag.putUUID("Generation", generation);
         tag.putString("DisplayName", displayName);
-        ListTag list = new ListTag();
-        for (BonfireFeature feature : features) list.add(StringTag.valueOf(feature.id()));
-        tag.put("Features", list);
+        tag.putInt("FeatureDataVersion", 2);
+        tag.put("Features", BonfireFeatureIds.save(features));
     }
     @Override protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
@@ -59,6 +67,6 @@ public final class BonfireBlockEntity extends BlockEntity {
         String name = tag.getString("DisplayName");
         displayName = name.substring(0, Math.min(64, name.length()));
         features.clear();
-        for (Tag value : tag.getList("Features", Tag.TAG_STRING)) BonfireFeature.byId(value.getAsString()).ifPresent(features::add);
+        features.addAll(BonfireFeatureIds.load(tag.getList("Features", Tag.TAG_STRING)));
     }
 }

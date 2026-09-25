@@ -33,9 +33,9 @@ public final class BonfireScreen extends Screen {
         entries.clear();
         if (view.state() != BonfireSessionState.RESTING) return;
         int rowY = panelY + 34;
-        if (view.canLevelUp()) {
-            addEntry(rowY, Component.translatable("screen.maplesadventure.bonfire.level_up"),
-                    () -> BonfireClient.request(BonfirePayloads.ActionType.LEVEL_UP));
+        for (var action : view.actions()) {
+            addEntry(rowY, Component.translatable(action.translationKey()),
+                    () -> BonfireClient.requestFeature(action.featureId()));
             rowY += 26;
         }
         addEntry(rowY, Component.translatable("screen.maplesadventure.bonfire.leave"), this::onClose);

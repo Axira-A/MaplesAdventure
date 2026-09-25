@@ -75,7 +75,13 @@ public final class EncounterSavedData extends SavedData {
     public Map<PhaseEncounterKey, PhaseEncounterState> runtimeSnapshot() { return Map.copyOf(runtime); }
     public long generation(PhaseId phaseId) { return phaseGenerations.getOrDefault(phaseId, 0L); }
     public long incrementGeneration(PhaseId phaseId) {
-        long next = generation(phaseId) == Long.MAX_VALUE ? 1L : generation(phaseId) + 1L;
+        // Per-encounter admin resets can advance beyond the phase counter. Never reuse that
+        // generation on a later bonfire reset: unloaded old entities must remain invalid.
+        long latest = generation(phaseId);
+        for (var entry : runtime.entrySet()) {
+            if (entry.getKey().phaseId().equals(phaseId)) latest = Math.max(latest, entry.getValue().generation());
+        }
+        long next = latest == Long.MAX_VALUE ? 1L : latest + 1L;
         phaseGenerations.put(phaseId, next);
         setDirty();
         return next;

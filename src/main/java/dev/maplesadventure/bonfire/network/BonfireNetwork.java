@@ -13,7 +13,7 @@ public final class BonfireNetwork {
             if (FMLEnvironment.dist == Dist.CLIENT) BonfireClient.progress(p);
         });
         r.playToServer(BonfirePayloads.Action.TYPE, BonfirePayloads.Action.CODEC, (p, c) -> {
-            if (c.player() instanceof ServerPlayer player) BonfireSessionService.action(player, p.nonce(), p.action());
+            if (c.player() instanceof ServerPlayer player) BonfireSessionService.action(player, p.nonce(), p.action(), p.featureId());
         });
         r.playToClient(BonfirePayloads.View.TYPE, BonfirePayloads.View.CODEC, (p, c) -> {
             if (FMLEnvironment.dist == Dist.CLIENT) BonfireClient.view(p);

@@ -21,7 +21,12 @@ public final class BonfireRespawnResolver {
         if (level == null || !level.getWorldBorder().isWithinBounds(ref.pos())) return Optional.empty();
         // A single short destination-chunk access is allowed for respawn. No persistent ticket/force-load is created.
         level.getChunkAt(ref.pos());
-        if (!BonfireStateService.matches(level, ref)) return Optional.empty();
+        if (!BonfireStateService.matches(level, ref)) {
+            var progress = BonfireStateService.state(player);
+            progress.clearLastRested(ref);
+            player.setData(dev.maplesadventure.progression.ProgressionAttachments.PLAYER_BONFIRES, progress);
+            return Optional.empty();
+        }
         for (int radius = 1; radius <= 3; radius++) {
             for (int dy : new int[]{0, 1, -1, 2, -2}) {
                 for (int dx = -radius; dx <= radius; dx++) for (int dz = -radius; dz <= radius; dz++) {
@@ -38,9 +43,11 @@ public final class BonfireRespawnResolver {
     }
     private static boolean safe(ServerLevel level, ServerPlayer player, BlockPos feet) {
         BlockPos floor = feet.below();
+        var box = player.getDimensions(Pose.STANDING).makeBoundingBox(Vec3.atBottomCenterOf(feet));
         return level.getBlockState(floor).isFaceSturdy(level, floor, Direction.UP)
+                && level.getWorldBorder().isWithinBounds(box)
                 && level.getFluidState(feet).isEmpty() && level.getFluidState(feet.above()).isEmpty()
-                && level.noCollision(player.getDimensions(Pose.STANDING).makeBoundingBox(Vec3.atBottomCenterOf(feet)));
+                && level.noCollision(box);
     }
     private BonfireRespawnResolver() {}
 }

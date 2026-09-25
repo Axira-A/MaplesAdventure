@@ -49,7 +49,8 @@ public final class BonfireCommands {
         if (entity == null) return missing(source);
         source.sendSuccess(() -> Component.literal("Bonfire " + entity.ref().dimension() + " " + pos.toShortString()
                 + " generation=" + entity.generation() + " name=" + entity.displayName()
-                + " features=" + entity.features()), false);
+                + " features=" + entity.features().stream().sorted(java.util.Comparator.comparing(Object::toString))
+                .map(id -> id + (BonfireApiBridge.registered(id) ? " [registered]" : " [unregistered]")).toList()), false);
         return 1;
     }
     private static int name(CommandSourceStack source, BlockPos pos, String name) {
@@ -63,14 +64,18 @@ public final class BonfireCommands {
     private static int feature(CommandSourceStack source, BlockPos pos, String id, boolean enabled) {
         BonfireBlockEntity entity = find(source, pos);
         if (entity == null) return missing(source);
-        BonfireFeature feature = BonfireFeature.byId(id).orElse(null);
+        var feature = BonfireFeatureIds.parse(id);
         if (feature == null) {
             source.sendFailure(Component.translatable("command.maplesadventure.bonfire.invalid_feature"));
             return 0;
         }
-        entity.setFeature(feature, enabled);
+        try { entity.setFeature(feature, enabled); }
+        catch (IllegalArgumentException invalid) {
+            source.sendFailure(Component.literal(invalid.getMessage()));
+            return 0;
+        }
         sync(source, pos);
-        source.sendSuccess(() -> Component.translatable("command.maplesadventure.bonfire.feature_set", feature.id(), enabled), true);
+        source.sendSuccess(() -> Component.translatable("command.maplesadventure.bonfire.feature_set", feature.toString(), enabled), true);
         return 1;
     }
     private static int reset(CommandSourceStack source, ServerPlayer player) {

@@ -25,6 +25,8 @@ Epic Fight 可提供精力、技能、动画与闪避整合；安装 Nightfall �
 
 ## 篝火与交互
 
+篝火菜单采用服务端权威 Feature 注册机制；升级复用现有授权链，其他未实现功能不会显示空按钮。扩展接口见[内置篝火 API v1](docs/integration/bonfire-api.zh-CN.md)。
+
 MaplesAdventure 已拥有**内置 Bonfire Core**。管理员可命名和配置篝火；激活记录逐玩家独立。第一次交互播放激活动作并只激活自己的篝火；再次交互直接坐下，黑屏阶段完成休息与所属相位的一次 Encounter Reset，随后显示左侧休息菜单。成功休息会设置最后休息点、恢复可用 HP/魔力/精力。仅管理员开启 `LEVEL_UP` 后菜单才出现升级入口。死亡时优先在有效的最后休息篝火附近复活；失效则回退至 Vanilla 规则。
 
 篝火方块当前仍引用 Vanilla 占位模型，未使用 Bonfires 美术。Epic Fight 可选时提供激活、坐下、坐姿循环、起身四段动作；缺少 Epic Fight 时休息与黑屏过渡仍正常工作。外部 Bonfires Mod 仅保留为**旧版可选兼容**，不是内置篝火的前置。详见[篝火说明](docs/bonfire.zh-CN.md)。

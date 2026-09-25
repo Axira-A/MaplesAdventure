@@ -30,6 +30,10 @@ public final class PlayerBonfireState implements INBTSerializable<CompoundTag> {
         return true;
     }
     public void reset() { activated.clear(); lastRested = null; }
+    /** Only forget a confirmed stale placement, never a temporarily obstructed spawn point. */
+    public void clearLastRested(BonfireRef expected) {
+        if (lastRested != null && lastRested.ref().equals(expected)) lastRested = null;
+    }
 
     @Override public CompoundTag serializeNBT(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();

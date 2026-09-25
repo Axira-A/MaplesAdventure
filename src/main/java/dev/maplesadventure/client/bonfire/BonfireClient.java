@@ -53,7 +53,11 @@ public final class BonfireClient {
                 packet.name().isBlank() ? Component.translatable("block.maplesadventure.bonfire") : packet.name()), true);
     }
     public static void request(BonfirePayloads.ActionType action) {
-        if (current != null) PacketDistributor.sendToServer(new BonfirePayloads.Action(current.nonce(), action));
+        if (current != null) PacketDistributor.sendToServer(new BonfirePayloads.Action(current.nonce(), action, null));
+    }
+    public static void requestFeature(net.minecraft.resources.ResourceLocation featureId) {
+        if (current != null) PacketDistributor.sendToServer(new BonfirePayloads.Action(
+                current.nonce(), BonfirePayloads.ActionType.SELECT_FEATURE, featureId));
     }
     public static boolean resting() { return current != null && current.state() == BonfireSessionState.RESTING; }
     /** Keep inputs blocked after closing the menu until the server acknowledges the completed stand-up. */

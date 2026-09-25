@@ -525,7 +525,11 @@
   "message.maplesadventure.bonfire.activated": "已激活篝火：%s",
   "message.maplesadventure.bonfire.denied": "当前无法使用此篝火",
   "command.maplesadventure.bonfire.named": "篝火名称已更新",
-  "command.maplesadventure.bonfire.invalid_feature": "未知篝火功能",
+  "screen.maplesadventure.bonfire.flask_allocation": "分配原素瓶",
+  "screen.maplesadventure.bonfire.spell_memory": "记忆法术",
+  "screen.maplesadventure.bonfire.reinforce": "强化",
+  "screen.maplesadventure.bonfire.warp": "传送",
+  "command.maplesadventure.bonfire.invalid_feature": "无效的篝火功能 ID",
   "command.maplesadventure.bonfire.feature_set": "篝火功能 %s 已设为 %s",
   "command.maplesadventure.bonfire.reset_player": "已重置 %s 的篝火进度",
   "command.maplesadventure.bonfire.missing": "该位置没有已加载的 MaplesAdventure 篝火"

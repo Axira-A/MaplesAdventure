@@ -9,6 +9,8 @@
 - [Typed damage provider](typed-damage-api.zh-CN.md)
 - [Weapon Integration API](weapon-api.zh-CN.md)
 - [Armor Integration API](armor-api.zh-CN.md)
+- [内置篝火 API](bonfire-api.zh-CN.md)
+- [篝火可编译示例](examples/BonfireIntegrationExample.java)
 - [数据包 Schema](datapack-api.zh-CN.md)
 - [可编译的 Boss 示例](examples/BossIntegrationExample.java)
 - [武器示例](examples/WeaponIntegrationExample.java)

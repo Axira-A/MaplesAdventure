@@ -20,6 +20,10 @@ public final class EpicFightStaminaAdapter implements DerivedStatRuntimeAdapter 
     private static final double EPIC_FIGHT_BASELINE = 15.0D;
 
     @Override public DerivedRuntimeResource resource() { return DerivedRuntimeResource.STAMINA; }
+    @Override public OptionalDouble currentValue(ServerPlayer player) {
+        var patch = EpicFightCapabilities.getServerPlayerPatch(player);
+        return patch == null ? OptionalDouble.empty() : OptionalDouble.of(patch.getStamina());
+    }
 
     @Override
     public RuntimeResourceValue refresh(ServerPlayer player, PlayerAttributeState state, DerivedStatRefreshReason reason) {

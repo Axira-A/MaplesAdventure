@@ -26,7 +26,11 @@ MaplesAdventure 自带 `maplesadventure:bonfire`，不依赖外部 Bonfires Mod�
 
 再次使用已激活篝火直接进入 `SITTING_DOWN`，不再出现“休息”按钮。先开始坐下动作，稍后客户端才开始黑色淡出/淡入。安装 Epic Fight 时第 14 tick（未安装时第 10 tick），服务端重新验证会话并在全黑阶段只提交一次休息：更新 `lastRested`、恢复生命值及可用魔力/精力，并重置所属相位的 Encounter。全黑停留至第 20 tick（未安装时第 16 tick），比此前延长 0.2 秒；第 28 tick（未安装时第 24 tick）画面恢复清晰，可看到坐下的后半段；第 43 tick（未安装时第 24 tick）进入 `RESTING`，左侧菜单用 320 ms 淡入。只有该篝火启用 `LEVEL_UP` 才显示**升级**。选择**离开**立即禁用菜单，在起身同时用 320 ms 淡出；服务端完成 33 tick 起身过渡（未安装时 8 tick）才解除移动锁。动画过渡计时包含片段时长及额外的 0.12 秒混合时间。当前没有 Flask、法术记忆、强化或传送玩法。
 
-客户端动作包仅携带 nonce 与 `LEVEL_UP` 或 `LEAVE`；客户端不能决定何时休息成功。每次动作和服务端计时均重查放置代数、维度、距离、生存/旁观、角色、Boss 战与敌对会话。SOLO/HOST 可使用篝火；COOPERATOR/INVADER 不得在外世界激活、休息或升级。动画及淡入淡出完成信号都不是 Gameplay 权威。
+客户端动作包仅携带 nonce 与 `SELECT_FEATURE + featureId` 或 `LEAVE`；客户端不能决定何时休息成功。每次动作和服务端计时均重查放置代数、维度、距离、生存/旁观、角色、Boss 战与敌对会话；执行功能还要重查注册、当前配置和可用性。SOLO/HOST 可使用篝火；COOPERATOR/INVADER 不得在外世界激活、休息或升级。动画及淡入淡出完成信号都不是 Gameplay 权威。
+
+功能现以最多 64 个完整命名空间 ID 持久化，每个最多 128 字符。旧简写迁移至 `maplesadventure:`；暂时卸载的 addon 的合法 ID 仍保留。服务端按“已配置、已注册、可用”筛选菜单，以 order、ID 字典序排序。升级已有处理器；Flask/法术记忆/强化/传送仅预留，未实现时不显示。新增菜单行复用原有样式与淡入淡出，见[篝火 API](integration/bonfire-api.zh-CN.md)。
+
+复活时确认篝火删除或被新代数替换才清除 lastRested；临时堵住安全位置则保留并仅本次回退 Vanilla，边界检查覆盖玩家站立包围盒。Rest 通过 BonfirePhaseResetService 的内置 encounters participant 调用原 EncounterResetService 一次，不影响其他 Phase、共享 Mob 或 Debug prototype。
 
 激活、坐下、休息、起身期间由篝火持有玩家姿态。拦截移动输入、服务端移动包、实体位移/推动、伤害与击退，不修改 `noPhysics` 或永久无敌标记。外部明确传送会使会话失效，而不是把玩家强拉回去。离开时不能因视觉菜单提前关闭而提前解除移动锁。
 

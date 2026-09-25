@@ -103,6 +103,28 @@ public final class DerivedStatIntegrationRegistry {
     }
 
     static synchronized void clearFailures() { FAILED.clear(); }
+    static ResourceRestoreResult.Value restoreMaximum(DerivedRuntimeResource resource, ServerPlayer player) {
+        initialize();
+        if (FAILED.contains(resource)) return ResourceRestoreResult.Value.failed();
+        var adapter = ADAPTERS.get(resource);
+        if (adapter == null) return ResourceRestoreResult.Value.unavailable();
+        try {
+            var state = dev.maplesadventure.progression.PlayerAttributeService.state(player);
+            double maximum = adapter.inspect(player, state).runtimeValue();
+            var before = adapter.currentValue(player);
+            if (before.isEmpty()) throw new IllegalStateException("Resource current value unavailable");
+            adapter.restoreCurrentRatio(player, 1.0);
+            var after = adapter.currentValue(player);
+            if (after.isEmpty()) throw new IllegalStateException("Resource restore could not be verified");
+            var result = ResourceRestoreResult.Value.measured(before.getAsDouble(), after.getAsDouble(), maximum);
+            if (result.status() == ResourceRestoreResult.Status.FAILED)
+                MaplesAdventure.LOGGER.warn("Bonfire {} restore incomplete for {}: {}", resource, player.getUUID(), result);
+            return result;
+        } catch (RuntimeException | LinkageError failure) {
+            MaplesAdventure.LOGGER.warn("Could not restore {} to runtime maximum for {}", resource, player.getUUID(), failure);
+            return ResourceRestoreResult.Value.failed();
+        }
+    }
     static boolean consumeExact(DerivedRuntimeResource resource,ServerPlayer player,double amount) {
         initialize(); var adapter=ADAPTERS.get(resource);
         if(adapter==null||FAILED.contains(resource)) return false;
