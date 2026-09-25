@@ -20,8 +20,13 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public final class BonfireSessionService {
     public static final ResourceLocation UPGRADE_SOURCE = ResourceLocation.fromNamespaceAndPath("maplesadventure", "bonfire");
     private static final Map<UUID, Session> SESSIONS = new HashMap<>();
-    private static final int SIT_TICKS = 36;
-    private static final int STAND_TICKS = 30;
+    // Include Epic Fight's 0.12 s blend-in; do not cut off the end of an authored clip.
+    private static final int ANIMATED_ACTIVATE_TICKS = 39;
+    private static final int FALLBACK_ACTIVATE_TICKS = 10;
+    private static final int ANIMATED_SIT_TICKS = 43;
+    private static final int FALLBACK_SIT_TICKS = 24;
+    private static final int ANIMATED_STAND_TICKS = 33;
+    private static final int FALLBACK_STAND_TICKS = 8;
     private static boolean upgradeRegistered;
 
     public static synchronized void registerUpgradeSource() {
@@ -31,23 +36,42 @@ public final class BonfireSessionService {
     }
 
     public static void interact(ServerPlayer player, BlockPos pos) {
-        if (!BonfireAccessPolicy.allows(player)) {
+        if (!BonfireAccessPolicy.allows(player) || !player.onGround() || player.isPassenger()) {
             player.displayClientMessage(Component.translatable("message.maplesadventure.bonfire.denied"), true);
             return;
         }
         BonfireBlockEntity bonfire = BonfireStateService.resolve(player.serverLevel(), pos);
         if (bonfire == null || !BonfireStateService.closeEnough(player, pos)) return;
+        Session existing = SESSIONS.get(player.getUUID());
+        if (existing != null) {
+            if (valid(existing)) return;
+            close(player);
+        }
         BonfireRef ref = bonfire.ref();
         PlayerBonfireState state = BonfireStateService.state(player);
         if (!state.isActivated(ref)) {
             if (!state.activate(ref)) return;
             player.setData(dev.maplesadventure.progression.ProgressionAttachments.PLAYER_BONFIRES, state);
+            BonfireStateService.sync(player);
+            Session session = new Session(player, ref, BonfireSessionState.ACTIVATING,
+                    BonfireAnimationIntegration.available() ? ANIMATED_ACTIVATE_TICKS : FALLBACK_ACTIVATE_TICKS,
+                    0, 0);
+            SESSIONS.put(player.getUUID(), session);
+            BonfirePoseLock.stopMotion(player);
+            player.stopUsingItem();
+            BonfireAnimationIntegration.play(player, session.state);
             PacketDistributor.sendToPlayer(player, new BonfirePayloads.Activated(bonfire.displayName()));
+            view(session);
             return;
         }
-        close(player);
-        Session session = new Session(player, ref, UUID.randomUUID(), player.server.getTickCount());
+        boolean animated = BonfireAnimationIntegration.available();
+        Session session = new Session(player, ref, BonfireSessionState.SITTING_DOWN,
+                animated ? ANIMATED_SIT_TICKS : FALLBACK_SIT_TICKS,
+                animated ? 14 : 10, animated ? 20 : 16);
         SESSIONS.put(player.getUUID(), session);
+        BonfirePoseLock.stopMotion(player);
+        player.stopUsingItem();
+        BonfireAnimationIntegration.play(player, session.state);
         view(session);
     }
 
@@ -58,15 +82,6 @@ public final class BonfireSessionService {
             return;
         }
         switch (action) {
-            case REST -> {
-                if (session.state != BonfireSessionState.OPEN_STANDING) return;
-                BonfireBlockEntity bonfire = BonfireStateService.resolve(player.serverLevel(), session.ref.pos());
-                if (bonfire == null || !BonfireRestService.rest(player, bonfire)) { close(player); return; }
-                session.state = BonfireSessionState.SITTING_DOWN;
-                session.stateSince = player.server.getTickCount();
-                BonfireAnimationIntegration.play(player, session.state);
-                view(session);
-            }
             case LEVEL_UP -> {
                 if (session.state != BonfireSessionState.RESTING) return;
                 BonfireBlockEntity bonfire = BonfireStateService.resolve(player.serverLevel(), session.ref.pos());
@@ -75,10 +90,11 @@ public final class BonfireSessionService {
                         session.ref.dimension(), session.ref.pos(), UPGRADE_SOURCE, session.ref.generation());
             }
             case LEAVE -> {
-                if (session.state == BonfireSessionState.OPEN_STANDING) close(player);
-                else if (session.state == BonfireSessionState.RESTING) {
+                if (session.state == BonfireSessionState.RESTING) {
                     session.state = BonfireSessionState.STANDING_UP;
                     session.stateSince = player.server.getTickCount();
+                    session.transitionTicks = BonfireAnimationIntegration.available()
+                            ? ANIMATED_STAND_TICKS : FALLBACK_STAND_TICKS;
                     BonfireAnimationIntegration.play(player, session.state);
                     view(session);
                 }
@@ -101,6 +117,9 @@ public final class BonfireSessionService {
         return player.connection != null && !player.hasDisconnected()
                 && player.server.getTickCount() - session.openedAt <= 20L * 180L
                 && BonfireAccessPolicy.allows(player)
+                && !player.isPassenger()
+                // Explicit external teleport ends pose ownership instead of dragging the player back.
+                && player.position().distanceToSqr(session.anchor) < 0.0025
                 && BonfireStateService.closeEnough(player, session.ref.pos())
                 && BonfireStateService.matches(player.serverLevel(), session.ref);
     }
@@ -109,17 +128,39 @@ public final class BonfireSessionService {
         for (Session session : List.copyOf(SESSIONS.values())) {
             if (!valid(session)) { close(session.player); continue; }
             long elapsed = server.getTickCount() - session.stateSince;
-            if (session.state == BonfireSessionState.SITTING_DOWN && elapsed >= SIT_TICKS) {
-                session.state = BonfireSessionState.RESTING;
-                session.stateSince = server.getTickCount();
-                BonfireAnimationIntegration.play(session.player, session.state);
-                view(session);
-            } else if (session.state == BonfireSessionState.STANDING_UP && elapsed >= STAND_TICKS) close(session.player);
+            if (session.state == BonfireSessionState.ACTIVATING && elapsed >= session.transitionTicks) {
+                close(session.player);
+            } else if (session.state == BonfireSessionState.SITTING_DOWN) {
+                if (BonfireTransitionMath.shouldCommit(session.state, elapsed,
+                        session.commitTick, session.restCommitted)) {
+                    // Claim the one-shot transition before invoking hooks that can re-enter this service.
+                    session.restCommitted = true;
+                    BonfireBlockEntity bonfire = BonfireStateService.resolve(session.player.serverLevel(), session.ref.pos());
+                    if (bonfire == null || !BonfireRestService.rest(session.player, bonfire)) {
+                        close(session.player);
+                        continue;
+                    }
+                }
+                if (elapsed >= session.transitionTicks) {
+                    session.state = BonfireSessionState.RESTING;
+                    session.stateSince = server.getTickCount();
+                    BonfireAnimationIntegration.play(session.player, session.state);
+                    view(session);
+                }
+            } else if (session.state == BonfireSessionState.STANDING_UP && elapsed >= session.transitionTicks) {
+                close(session.player);
+            }
         }
+    }
+
+    /** Server-side combat/interaction lock while the bonfire owns the player's pose. */
+    public static boolean isBusy(ServerPlayer player) {
+        return SESSIONS.containsKey(player.getUUID());
     }
 
     public static void close(ServerPlayer player) {
         Session session = SESSIONS.remove(player.getUUID());
+        if (session != null) BonfirePoseLock.stopMotion(player);
         if (session != null && !player.hasDisconnected()) BonfireAnimationIntegration.stop(player);
         if (session != null && !player.hasDisconnected()) {
             UpgradeAccessService.closeForSource(player, UPGRADE_SOURCE, session.ref.generation());
@@ -132,18 +173,30 @@ public final class BonfireSessionService {
         BonfireBlockEntity bonfire = BonfireStateService.resolve(session.player.serverLevel(), session.ref.pos());
         if (bonfire == null) { close(session.player); return; }
         PacketDistributor.sendToPlayer(session.player, new BonfirePayloads.View(session.nonce, session.state,
-                bonfire.displayName(), session.state == BonfireSessionState.RESTING && bonfire.hasFeature(BonfireFeature.LEVEL_UP)));
+                bonfire.displayName(), session.state == BonfireSessionState.RESTING && bonfire.hasFeature(BonfireFeature.LEVEL_UP),
+                session.transitionTicks, session.commitTick, session.fadeInTick, session.ref.pos()));
     }
     private static final class Session {
         final ServerPlayer player;
         final BonfireRef ref;
-        final UUID nonce;
+        final UUID nonce = UUID.randomUUID();
         final long openedAt;
-        BonfireSessionState state = BonfireSessionState.OPEN_STANDING;
+        final net.minecraft.world.phys.Vec3 anchor;
+        BonfireSessionState state;
         long stateSince;
-        Session(ServerPlayer player, BonfireRef ref, UUID nonce, long openedAt) {
-            this.player = player; this.ref = ref; this.nonce = nonce; this.openedAt = openedAt;
+        int transitionTicks;
+        final int commitTick;
+        final int fadeInTick;
+        boolean restCommitted;
+        Session(ServerPlayer player, BonfireRef ref, BonfireSessionState state,
+                int transitionTicks, int commitTick, int fadeInTick) {
+            this.player = player; this.ref = ref; this.state = state;
+            this.anchor = player.position();
+            this.openedAt = player.server.getTickCount();
             this.stateSince = openedAt;
+            this.transitionTicks = transitionTicks;
+            this.commitTick = commitTick;
+            this.fadeInTick = fadeInTick;
         }
     }
     private BonfireSessionService() {}

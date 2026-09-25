@@ -8,6 +8,6 @@
 
 **Ai_myh — 美术与模型**
 
-`animmodels/animations/bonfire_*.json` 的三段玩家休息动画为本项目使用 Codex 辅助程序化制作的资源，采用 Epic Fight biped 骨架格式实现兼容。它们不署名给 Ai_myh，也未将第三方动画参考片段打包进成品。
+`animmodels/animations/bonfire_*.json` 的四段玩家激活／休息动画使用 Blender 辅助制作，基于兼容 Epic Fight 的 biped 骨架。它们不署名给 Ai_myh，也未将第三方动画参考片段打包进成品。
 
 如有第三方资产，其授权仍由各自许可决定，本声明不会对其重新授权。

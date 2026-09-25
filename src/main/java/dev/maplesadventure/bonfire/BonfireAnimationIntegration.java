@@ -35,6 +35,8 @@ public final class BonfireAnimationIntegration {
         catch (RuntimeException | LinkageError error) { warn(error); }
     }
 
+    public static boolean available() { return adapter != null; }
+
     public static void stop(ServerPlayer player) {
         if (adapter == null) return;
         try { adapter.stop(player); }

@@ -56,7 +56,7 @@ Rebindable defaults:
 
 F may conflict with vanilla offhand swap; configure controls as appropriate. Structured messages,
 summon signs, fog gates, containers and supported blocks reuse contextual interaction.
-Lost Souls preserve unspent XP through the established death/recovery flow. MaplesAdventure now has a built-in, player-local Bonfire Core: first interaction activates, later Rest sets a respawn point, restores available resources and resets encounters once. Level-up is available only where enabled. Bonfires remains legacy optional compatibility; see [bonfire documentation](docs/bonfire.md). The built-in block uses a Vanilla placeholder model; planned Epic Fight sit animations are not yet shipped.
+Lost Souls preserve unspent XP through the established death/recovery flow. MaplesAdventure now has a built-in, player-local Bonfire Core: first interaction plays an activation action and activates that player's bonfire; the next interaction automatically begins sitting. During the black fade, the server commits rest once, sets the respawn point, restores available resources and resets that phase's encounters. A narrow left-side menu then opens with level-up (where enabled) and leave. Epic Fight optionally supplies activation, sit-down, seated-idle and stand-up animations; without it, the shorter fade and gameplay still work. The built-in block uses a Vanilla placeholder model. Bonfires remains legacy optional compatibility; see [bonfire documentation](docs/bonfire.md).
 
 ## Public API and datapacks
 

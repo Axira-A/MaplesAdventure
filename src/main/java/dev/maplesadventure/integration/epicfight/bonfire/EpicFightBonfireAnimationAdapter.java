@@ -6,16 +6,15 @@ import dev.maplesadventure.bonfire.BonfireSessionState;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import yesman.epicfight.api.animation.AnimationManager;
-import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.gameasset.Animations;
-import yesman.epicfight.gameasset.Armatures;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 /** Epic Fight 21.17.3.1 biped assets; loaded only when the optional mod is installed. */
 public final class EpicFightBonfireAnimationAdapter implements BonfireAnimationIntegration.Adapter {
-    private static AnimationManager.AnimationAccessor<StaticAnimation> sitDown;
-    private static AnimationManager.AnimationAccessor<StaticAnimation> sitIdle;
-    private static AnimationManager.AnimationAccessor<StaticAnimation> standUp;
+    private static AnimationManager.AnimationAccessor<BonfirePoseAnimation> activate;
+    private static AnimationManager.AnimationAccessor<BonfirePoseAnimation> sitDown;
+    private static AnimationManager.AnimationAccessor<BonfirePoseAnimation> sitIdle;
+    private static AnimationManager.AnimationAccessor<BonfirePoseAnimation> standUp;
 
     @Override public void register(IEventBus modBus) {
         modBus.addListener(this::registerAnimations);
@@ -23,20 +22,23 @@ public final class EpicFightBonfireAnimationAdapter implements BonfireAnimationI
 
     private void registerAnimations(AnimationManager.AnimationRegistryEvent event) {
         event.newBuilder("maplesadventure", builder -> {
+            activate = builder.nextAccessor("bonfire_activate",
+                    accessor -> new BonfirePoseAnimation(false, accessor));
             sitDown = builder.nextAccessor("bonfire_sit_down",
-                    accessor -> new StaticAnimation(0.12F, false, accessor, Armatures.BIPED));
+                    accessor -> new BonfirePoseAnimation(false, accessor));
             sitIdle = builder.nextAccessor("bonfire_sit_idle",
-                    accessor -> new StaticAnimation(0.12F, true, accessor, Armatures.BIPED));
+                    accessor -> new BonfirePoseAnimation(true, accessor));
             standUp = builder.nextAccessor("bonfire_stand_up",
-                    accessor -> new StaticAnimation(0.12F, false, accessor, Armatures.BIPED));
+                    accessor -> new BonfirePoseAnimation(false, accessor));
         });
-        MaplesAdventure.LOGGER.info("Registered three optional Epic Fight bonfire animations");
+        MaplesAdventure.LOGGER.info("Registered four optional Epic Fight bonfire animations");
     }
 
     @Override public void play(ServerPlayer player, BonfireSessionState state) {
         var patch = EpicFightCapabilities.getPlayerPatch(player);
         if (patch == null) return;
         var animation = switch (state) {
+            case ACTIVATING -> activate;
             case SITTING_DOWN -> sitDown;
             case RESTING -> sitIdle;
             case STANDING_UP -> standUp;

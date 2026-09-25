@@ -23,9 +23,14 @@ public final class BonfireInteractionProvider implements InteractionTargetProvid
                 && level.getBlockState(block.pos()).is(ModBlocks.BONFIRE.get());
     }
     @Override public Component getDisplayName(ClientLevel level, LocalPlayer player, InteractionTarget target) {
-        if (target instanceof BlockInteractionTarget block && level.getBlockEntity(block.pos()) instanceof BonfireBlockEntity entity
-                && !entity.displayName().isBlank()) return Component.literal(entity.displayName());
-        return Component.translatable("block.maplesadventure.bonfire");
+        boolean activated = target instanceof BlockInteractionTarget block
+                && level.getBlockEntity(block.pos()) instanceof BonfireBlockEntity entity
+                && BonfireClient.isActivated(entity.ref());
+        return Component.translatable(activated ? "interaction.maplesadventure.bonfire.rest"
+                : "interaction.maplesadventure.bonfire.activate");
+    }
+    @Override public Component getPrompt(Component keyName, Component displayName, boolean showTargetName) {
+        return Component.translatable("interaction.maplesadventure.bonfire.prompt", keyName, displayName);
     }
     @Override public InteractionPriority getPriority(ClientLevel level, LocalPlayer player, InteractionTarget target) {
         return InteractionPriority.HIGH;

@@ -31,6 +31,7 @@ public final class BonfireBlock extends BaseEntityBlock {
                                                           Player player, BlockHitResult hit) {
         if (!level.isClientSide && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer)
             BonfireSessionService.interact(serverPlayer, pos);
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        // Consume on BOTH sides without the vanilla hand swing (also used by F interaction).
+        return InteractionResult.CONSUME;
     }
 }

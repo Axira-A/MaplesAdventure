@@ -8,6 +8,10 @@ import net.minecraft.server.level.ServerPlayer;
 /** Resolves a loaded block at an exact location; never force-loads for interaction. */
 public final class BonfireStateService {
     public static PlayerBonfireState state(ServerPlayer player) { return player.getData(ProgressionAttachments.PLAYER_BONFIRES); }
+    public static void sync(ServerPlayer player) {
+        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+                new dev.maplesadventure.bonfire.network.BonfirePayloads.Progress(java.util.List.copyOf(state(player).activated())));
+    }
     public static BonfireBlockEntity resolve(ServerLevel level, BlockPos pos) {
         return level.hasChunk(pos.getX() >> 4, pos.getZ() >> 4)
                 && level.getBlockEntity(pos) instanceof BonfireBlockEntity entity ? entity : null;

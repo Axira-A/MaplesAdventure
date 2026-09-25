@@ -4,6 +4,7 @@
   "package": "dev.maplesadventure.mixin.client",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "BonfireCameraMixin",
     "EntityRenderDispatcherPhaseMixin",
     "GameRendererPhasePickingMixin",
     "ClientLevelPhaseSensoryMixin",

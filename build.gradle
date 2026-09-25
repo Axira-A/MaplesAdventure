@@ -146,6 +146,8 @@ dependencies {
         throw new GradleException("Epic Fight compile-only API JAR not found: ${epicFightJar}")
     }
     compileOnly files(epicFightJar)
+    // Optional at runtime; the public camera plugin is discovered only by Shoulder Surfing itself.
+    if (shoulderSurfingJar?.exists()) compileOnly files(shoulderSurfingJar)
 
     if (!ironsSpellsJar?.exists()) {
         throw new GradleException("Iron's Spells compile-only API JAR not found: ${ironsSpellsJar}")

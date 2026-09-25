@@ -9,6 +9,9 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public final class BonfireNetwork {
     public static void register(PayloadRegistrar r) {
+        r.playToClient(BonfirePayloads.Progress.TYPE, BonfirePayloads.Progress.CODEC, (p, c) -> {
+            if (FMLEnvironment.dist == Dist.CLIENT) BonfireClient.progress(p);
+        });
         r.playToServer(BonfirePayloads.Action.TYPE, BonfirePayloads.Action.CODEC, (p, c) -> {
             if (c.player() instanceof ServerPlayer player) BonfireSessionService.action(player, p.nonce(), p.action());
         });

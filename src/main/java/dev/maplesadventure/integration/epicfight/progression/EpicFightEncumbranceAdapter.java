@@ -130,6 +130,8 @@ public final class EpicFightEncumbranceAdapter implements EncumbranceCombatAdapt
     }
 
     private void onCastSkill(SkillCastEvent event) {
+        if (event.getPlayerPatch().getOriginal() instanceof ServerPlayer bonfirePlayer
+                && dev.maplesadventure.bonfire.BonfireSessionService.isBusy(bonfirePlayer)) { event.cancel(); return; }
         if(dev.maplesadventure.progression.status.StatusControlLockService.locked(event.getPlayerPatch().getOriginal())) { event.cancel(); return; }
         if (event.getSkillContainer().getSlot() != SkillSlots.DODGE) return;
         if (!(event.getPlayerPatch().getOriginal() instanceof ServerPlayer player)) return;

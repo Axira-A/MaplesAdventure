@@ -14,7 +14,8 @@ abstract class StatusPlayerMovementMixin {
     @Shadow public ServerPlayer player;
     @Inject(method="handleMovePlayer",at=@At(value="FIELD",target="Lnet/minecraft/server/level/ServerPlayer;wonGame:Z"),cancellable=true)
     private void maplesadventure$lockedMovement(ServerboundMovePlayerPacket packet,CallbackInfo ci) {
-        if(!StatusControlLockService.locked(player)) return;
+        if(!StatusControlLockService.locked(player)
+                && !dev.maplesadventure.bonfire.BonfirePoseLock.locked(player)) return;
         if(packet.hasPosition()&&player.position().distanceToSqr(packet.getX(player.getX()),packet.getY(player.getY()),packet.getZ(player.getZ()))>0.0001)
             player.connection.teleport(player.getX(),player.getY(),player.getZ(),player.getYRot(),player.getXRot());
         ci.cancel();

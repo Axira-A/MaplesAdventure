@@ -18,8 +18,8 @@ repository root [ASSET_LICENSE.md](../../../../../ASSET_LICENSE.md).
 
 **Ai_myh — Art & Models**
 
-The three `animmodels/animations/bonfire_*.json` player-rest clips were created with Codex-assisted
-procedural animation work for this project, using Epic Fight's biped rig format for compatibility.
+The four `animmodels/animations/bonfire_*.json` player activation/rest clips were authored with
+Blender-assisted animation work for this project, using an Epic Fight-compatible biped rig.
 They are not attributed to Ai_myh, and no third-party animation clip is bundled as a reference.
 
 Third-party assets, if any, remain governed by their own licenses and are not relicensed by this

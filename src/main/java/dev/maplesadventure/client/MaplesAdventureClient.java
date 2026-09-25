@@ -54,6 +54,8 @@ public final class MaplesAdventureClient {
         modBus.addListener(MaplesAdventureClient::registerGuiLayers);
         modBus.addListener(MaplesAdventureClient::registerEntityRenderers);
         NeoForge.EVENT_BUS.addListener(MaplesAdventureClient::onClientTick);
+        NeoForge.EVENT_BUS.addListener(dev.maplesadventure.client.bonfire.BonfireClient::onMovement);
+        NeoForge.EVENT_BUS.addListener(dev.maplesadventure.client.bonfire.BonfireClient::onInteraction);
         NeoForge.EVENT_BUS.addListener(MessageWorldRenderer::render);
         NeoForge.EVENT_BUS.addListener(EchoWorldRenderer::render);
         NeoForge.EVENT_BUS.addListener(SummonSignWorldRenderer::render);
@@ -96,6 +98,11 @@ public final class MaplesAdventureClient {
                 ResourceLocation.fromNamespaceAndPath(MaplesAdventure.MOD_ID, "interaction_marker"),
                 ResourceLocation.fromNamespaceAndPath(MaplesAdventure.MOD_ID, "interaction_prompt"),
                 new InteractionHud()
+        );
+        event.registerAbove(
+                ResourceLocation.fromNamespaceAndPath(MaplesAdventure.MOD_ID, "interaction_prompt"),
+                ResourceLocation.fromNamespaceAndPath(MaplesAdventure.MOD_ID, "bonfire_fade"),
+                dev.maplesadventure.client.bonfire.BonfireFadeOverlay::render
         );
     }
 

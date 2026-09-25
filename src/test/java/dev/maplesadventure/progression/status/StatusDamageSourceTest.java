@@ -12,8 +12,8 @@ class StatusDamageSourceTest {
         }
         String impact=Files.readString(root.resolve("no_impact.json"));assertTrue(impact.contains("poison"));assertTrue(impact.contains("scarlet_rot"));
     }
-    @Test void protocol21IsRequiredAndNotOptional() throws Exception {
+    @Test void protocol24IsRequiredAndNotOptional() throws Exception {
         String source=Files.readString(Path.of("src/main/java/dev/maplesadventure/network/MessageNetwork.java"));
-        assertTrue(source.contains("PROTOCOL_VERSION = \"21\"")); assertFalse(source.contains(".optional()"));
+        assertTrue(source.contains("PROTOCOL_VERSION = \"24\"")); assertFalse(source.contains(".optional()"));
     }
 }

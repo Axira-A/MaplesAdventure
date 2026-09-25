@@ -76,6 +76,7 @@ public final class BonfireCommands {
     private static int reset(CommandSourceStack source, ServerPlayer player) {
         player.setData(dev.maplesadventure.progression.ProgressionAttachments.PLAYER_BONFIRES, new PlayerBonfireState());
         BonfireSessionService.close(player);
+        BonfireStateService.sync(player);
         source.sendSuccess(() -> Component.translatable("command.maplesadventure.bonfire.reset_player", player.getName()), true);
         return 1;
     }

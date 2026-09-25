@@ -4,6 +4,7 @@
   "package": "dev.maplesadventure.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "BonfirePoseLockMixin",
     "LivingEntityPhaseCollisionMixin",
     "ProjectileUtilPhaseMixin",
     "TargetingConditionsPhaseMixin",
