@@ -140,8 +140,13 @@ def subtleEffectsJar = dependencyJar('subtleEffectsJar')
 def fzzyConfigJar = dependencyJar('fzzyConfigJar')
 def kotlinForForgeJar = dependencyJar('kotlinForForgeJar')
 def presenceFootstepsJar = dependencyJar('presenceFootstepsJar')
+def soulsCombatHudJar = dependencyJar('soulsCombatHudJar')
 
 dependencies {
+    if (providers.gradleProperty('withSoulsCombatHud').map(String::toBoolean).getOrElse(false)) {
+        if (!soulsCombatHudJar?.exists()) throw new GradleException('Set soulsCombatHudJar to the optional HUD test JAR')
+        localRuntime files(soulsCombatHudJar)
+    }
     if (!epicFightJar?.exists()) {
         throw new GradleException("Epic Fight compile-only API JAR not found: ${epicFightJar}")
     }

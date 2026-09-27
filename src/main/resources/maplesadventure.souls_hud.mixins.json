@@ -1,0 +1,13 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "dev.maplesadventure.mixin.client",
+  "plugin": "dev.maplesadventure.integration.soulscombathud.SoulsHudMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "SoulsFlaskSelectionMixin",
+    "SoulsFlaskHudMixin",
+    "SoulsFlaskUseMixin"
+  ],
+  "injectors": { "defaultRequire": 0 }
+}

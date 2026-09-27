@@ -68,6 +68,20 @@ Liquid model faces use alpha 120/255; metal stays opaque. Glow uses additive gol
 
 Bonfire-origin Level Up, Allocation and Reinforcement share `BonfireSubscreenTransition`: a transparent offscreen page composite slides left 24 GUI pixels while fading in, and right while fading out, over 320ms. Inputs are gated during transition; exit switches screens only once after completion. No world blur, rest/reset, camera or player-animation changes occur. Non-Bonfire upgrade entrances retain their own presentation. Future child pages can reuse the same transition without taking ownership of gameplay authorization.
 
+## Optional Souls Combat HUD integration
+
+The client adapter targets `souls_combat_hud` **1.3.1 NeoForge**. Its nine-slot consumable selector recognizes crimson and, only with mana support, ashen flasks. Explicit Souls HUD consumable/auto-use blacklists remain authoritative. Ordinary inventory slots are not searched. No third-party JAR, configuration, item registration, save format or network protocol is changed.
+
+The standalone Flask HUD is suppressed only when the supported adapter is available. The selected consumable (not the held weapon) determines the counter. `remaining / allocated` sits 3 HUD-local pixels to the **left** of the main frame, with its bottom 1 pixel above the frame bottom. Names retain their normal location and fade; all preview rows remain in their original positions. Geometry inherits the actual HUD transform. An impossible custom layout suppresses the counter rather than painting over or moving another element; F1 or a disabled equipment/consumable HUD hides it. Missing/unsupported HUD integrations retain the standalone display and report incompatibility once.
+
+Quick-use sends one ordinary item-use intent and waits for existing authoritative Flask snapshots, including an explicit rejection snapshot. Repeated use requests are suppressed while waiting/drinking. Finish, rejection and interruption restore the previous hotbar slot only while the adapter still owns the selected slot; manual slot changes, death, disconnect or dimension changes revoke ownership. The response-wait safety timeout is 100 client ticks. No charge or recovery is predicted, and the 14-tick commit / six-step recovery remains server-owned.
+
+Key bindings remain owned by Souls Combat HUD. Its default `G` quick-use key can conflict with Curios' inventory key; rebind one in Minecraft Controls if both are installed. The adapter does not change either mod's bindings or bypass Souls HUD's Epic Fight held-item switching lock.
+
+For isolated integration runs, use `-PwithSoulsCombatHud=true -PsoulsCombatHudJar=<local JAR>` and NeoForge `21.1.244` (the HUD's requirement). This does not raise MaplesAdventure's declared minimum. Optional mixins are client-only; neither dedicated servers nor installations without the HUD link its classes.
+
+The three hooks have their own optional Mixin configuration. Its early gate checks the HUD version and all injection signatures from bytecode without loading its classes; missing or incompatible targets skip all three hooks. The client then verifies markers and reflective APIs before enabling the adapter, warning once and retaining the standalone display on failure. Unrelated Phase/Bonfire mixins are not gated by this compatibility check.
+
 ## Development checks
 
 OP-only `/ma flask status [player]`, `refill`, `reset`, `set_capacity <4–14>`, `set_potency <0–12>`, `set_allocation <crimson> <ashen>`. Execute as a selected player for mutation commands. These are not survival upgrade entrances.

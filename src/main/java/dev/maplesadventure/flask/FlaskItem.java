@@ -22,6 +22,7 @@ public final class FlaskItem extends Item {
         ItemStack stack = player.getItemInHand(hand);
         if (player instanceof ServerPlayer server) {
             if (!FlaskUseController.start(server, kind, hand)) {
+                FlaskService.sync(server); // Explicit authoritative rejection for pending quick-use clients.
                 server.displayClientMessage(net.minecraft.network.chat.Component.translatable("message.maplesadventure.flask.unavailable"), true);
                 return InteractionResultHolder.fail(stack);
             }

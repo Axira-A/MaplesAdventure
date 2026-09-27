@@ -4,6 +4,7 @@ import dev.maplesadventure.api.flask.*;
 import dev.maplesadventure.flask.*;
 import dev.maplesadventure.progression.ProgressionAttachments;
 import dev.maplesadventure.client.bonfire.BonfireClient;
+import dev.maplesadventure.integration.soulscombathud.SoulsFlaskClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.DeltaTracker;
@@ -22,6 +23,7 @@ public final class FlaskClient {
     private static FlaskPayloads.Snapshot snapshot;
     public static FlaskSnapshot state() { return snapshot == null ? FlaskState.initial(false) : snapshot.state(); }
     public static boolean mana() { return snapshot != null && snapshot.mana(); }
+    public static boolean hasSnapshot() { return snapshot != null; }
     public static void register(IEventBus bus) {
         NeoForge.EVENT_BUS.register(new FlaskClient());
         bus.addListener(FlaskVisuals::registerModels);
@@ -33,6 +35,7 @@ public final class FlaskClient {
             }, FlaskItems.CRIMSON.get(), FlaskItems.ASHEN.get());
         });
         bus.addListener((net.neoforged.fml.event.lifecycle.FMLClientSetupEvent e) -> e.enqueueWork(() -> {
+            SoulsFlaskClient.initialize();
             for(var item:java.util.List.of(FlaskItems.CRIMSON.get(),FlaskItems.ASHEN.get())) {
                 ItemProperties.register(item,ResourceLocation.parse("maplesadventure:flask_fill"),(stack,level,entity,seed)->
                         entity != null && entity != Minecraft.getInstance().player ? 1
@@ -55,6 +58,7 @@ public final class FlaskClient {
             var kind=FlaskKind.values()[payload.usingKind()-1];
             for(var hand:InteractionHand.values()) if(p.getItemInHand(hand).getItem() instanceof FlaskItem item && item.kind()==kind) {p.startUsingItem(hand);break;}
         } else if(payload.usingKind()==0 && was) p.stopUsingItem();
+        SoulsFlaskClient.snapshot(payload.usingKind());
     }
     public static void menu(FlaskPayloads.Menu payload) {
         var mc=Minecraft.getInstance();
@@ -67,7 +71,7 @@ public final class FlaskClient {
         if(payload.replyTo() != null && mc.screen instanceof FlaskScreen screen) screen.accept(payload);
         else mc.setScreen(new FlaskScreen(payload));
     }
-    @SubscribeEvent public void logout(ClientPlayerNetworkEvent.LoggingOut e) { snapshot=null; }
+    @SubscribeEvent public void logout(ClientPlayerNetworkEvent.LoggingOut e) { snapshot=null; SoulsFlaskClient.reset(); }
     @SubscribeEvent public void input(InputEvent.InteractionKeyMappingTriggered e) {
         var p=Minecraft.getInstance().player;
         if(p!=null && FlaskApi.isUsingFlask(p)) {e.setCanceled(true);e.setSwingHand(false);}
@@ -84,6 +88,7 @@ public final class FlaskClient {
     }
     private static void renderHud(GuiGraphics g,DeltaTracker delta) {
         var mc=Minecraft.getInstance(); if(mc.player==null || mc.options.hideGui || snapshot==null)return;
+        if(SoulsFlaskClient.available())return;
         boolean red=false,blue=false;
         for(int i=0;i<9;i++) { ItemStack stack=mc.player.getInventory().getItem(i); red|=stack.is(FlaskItems.CRIMSON.get());blue|=stack.is(FlaskItems.ASHEN.get()); }
         red|=mc.player.getOffhandItem().is(FlaskItems.CRIMSON.get());blue|=mc.player.getOffhandItem().is(FlaskItems.ASHEN.get());

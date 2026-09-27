@@ -16,6 +16,9 @@ config="maplesadventure.mixins.json"
 [[mixins]]
 config="maplesadventure.client.mixins.json"
 
+[[mixins]]
+config="maplesadventure.souls_hud.mixins.json"
+
 [[dependencies.${mod_id}]]
 modId="neoforge"
 type="required"
