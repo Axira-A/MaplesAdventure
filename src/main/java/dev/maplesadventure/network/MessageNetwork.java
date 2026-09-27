@@ -16,7 +16,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public final class MessageNetwork {
-    private static final String PROTOCOL_VERSION = "25";
+    private static final String PROTOCOL_VERSION = "27";
 
     public static void register(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar(PROTOCOL_VERSION);
@@ -52,6 +52,7 @@ public final class MessageNetwork {
         dev.maplesadventure.progression.weapon.WeaponRequirementNetwork.register(registrar);
         dev.maplesadventure.progression.network.UpgradeNetwork.register(registrar);
         dev.maplesadventure.bonfire.network.BonfireNetwork.register(registrar);
+        dev.maplesadventure.flask.FlaskNetwork.register(registrar);
     }
 
     private static void runClient(Runnable action) {

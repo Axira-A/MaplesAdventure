@@ -10,6 +10,7 @@ Third-party integrations MUST prefer `dev.maplesadventure.api.*` and documented 
 - [Weapon Integration API](weapon-api.md)
 - [Armor Integration API](armor-api.md)
 - [Built-in Bonfire API](bonfire-api.md)
+- [Flask Core and API](flask-api.md)
 - [Compilable bonfire example](examples/BonfireIntegrationExample.java)
 - [Datapack schema](datapack-api.md)
 - [Compilable integration example](examples/BossIntegrationExample.java)

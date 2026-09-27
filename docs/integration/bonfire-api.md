@@ -29,9 +29,9 @@ A row appears only when **configured AND registered AND available**. The server 
 
 ### Built-in IDs and persistence
 
-`MaplesBonfireFeatures` exposes `LEVEL_UP`, `FLASK_ALLOCATION`, `SPELL_MEMORY`, `REINFORCE`, `WARP`, respectively `maplesadventure:level_up`, `flask_allocation`, `spell_memory`, `reinforce`, `warp`.
+`MaplesBonfireFeatures` exposes `LEVEL_UP`, `FLASK_ALLOCATION`, `FLASK_UPGRADE`, `SPELL_MEMORY`, `REINFORCE`, `WARP`, respectively `maplesadventure:level_up`, `flask_allocation`, `flask_upgrade`, `spell_memory`, `reinforce`, `warp`.
 
-Only Level Up has a built-in handler now; it delegates to the existing UpgradeAccessService and source-dispatched BONFIRE validator. Closing Level Up resumes the seated menu without another rest/reset. Flask, spell memory, reinforcement and warp are reserved IDs, **not implemented gameplay**. Registering a future handler exposes an already-configured ID without changing BonfireScreen or adding a packet type.
+Level Up delegates to the existing UpgradeAccessService and source-dispatched BONFIRE validator. Closing it resumes the seated menu without another rest/reset. [Flask Core](flask-api.md) also registers allocation (only with Iron's Spells) and one Reinforce Flasks entrance. Its next page contains two distinct actions: charge capacity and restoration amount. Spell memory, general equipment reinforcement and warp remain reserved IDs, **not implemented gameplay**. Registering a future handler exposes an already-configured ID without changing BonfireScreen or adding a packet type.
 
 Block configuration stores `FeatureDataVersion=2` and up to 64 complete resource IDs (128 characters each). Legacy unnamespaced entries migrate to `maplesadventure:<id>`. Valid unknown addon IDs survive load/save even while the addon is absent. Invalid/oversized input is discarded with a warning.
 
@@ -49,13 +49,15 @@ HP uses actual `getMaxHealth()`. Optional mana/stamina adapters use their runtim
 
 Iron's 3.16.3 truncates MAX_MANA to an integer in natural regeneration. The optional `IronsFractionalManaRegenMixin` only skips that regeneration call when mana already equals its finite, positive, fractional runtime maximum. It prevents a full `137.5` pool being reduced to `137`; expenditure, partial regeneration and integer pools retain Iron's behavior. It does not patch the third-party JAR.
 
-Listen for non-cancellable `MaplesBonfireRestCompletedEvent` on `NeoForge.EVENT_BUS`. Its immutable context describes a committed rest; it cannot veto or repeat it. Optional resource failures are possible. Listener failures are caught at each event-post boundary; NeoForge dispatch itself does not promise subsequent listeners run after a throwing listener. Use individually isolated reset participants for reset work. Future flask refill can subscribe here; no flask refill exists yet.
+Listen for non-cancellable `MaplesBonfireRestCompletedEvent` on `NeoForge.EVENT_BUS`. Its immutable context describes a committed rest; it cannot veto or repeat it. Optional resource failures are possible. Listener failures are caught at each event-post boundary; NeoForge dispatch itself does not promise subsequent listeners run after a throwing listener. Use individually isolated reset participants for reset work. Flask Core subscribes here to refill charges; opening or confirming a Flask feature never repeats rest/reset.
 
 ## Respawn and wire bounds
 
 Player attachment format remains version 1, copy-on-death, with activation and lastRested separate. Respawn revalidates exact generation and searches safe standing space. Confirmed removed/replaced placements clear lastRested; temporarily blocked space or unavailable dimensions preserve it and fall back to Vanilla. No permanent chunk ticket is installed.
 
-Protocol **25** replaces canLevelUp with at most 64 menu entries and SELECT_FEATURE/LEAVE intent. One 4096-reference progress body is 180226 bytes for minecraft:overworld, 630786 bytes at the 128-character dimension-ID bound, below the 1 MiB clientbound limit including modest packet-ID overhead. No per-tick menu/progress broadcast is introduced.
+`MaplesBonfireRespawnEvent` is emitted after arrival at the validated bonfire respawn destination. Flask Core refills there, not during generic Clone or Vanilla fallback respawn.
+
+Protocol **25** introduced at most 64 menu entries and SELECT_FEATURE/LEAVE intent in place of canLevelUp; current protocol **27** adds Flask action selection and correlated replies. One 4096-reference progress body is 180226 bytes for minecraft:overworld, 630786 bytes at the 128-character dimension-ID bound, below the 1 MiB clientbound limit including modest packet-ID overhead. No per-tick menu/progress broadcast is introduced.
 
 See [compilable example](examples/BonfireIntegrationExample.java). `compileIntegrationExamplesJava` is part of `check`.
 

@@ -1,0 +1,47 @@
+{
+  "parent": "maplesadventure:item/flask/ashen_1",
+  "overrides": [
+    {
+      "predicate": {
+        "maplesadventure:flask_fill": 1
+      },
+      "model": "maplesadventure:item/flask/ashen_1"
+    },
+    {
+      "predicate": {
+        "maplesadventure:flask_fill": 2
+      },
+      "model": "maplesadventure:item/flask/ashen_2"
+    },
+    {
+      "predicate": {
+        "maplesadventure:flask_fill": 3
+      },
+      "model": "maplesadventure:item/flask/ashen_3"
+    },
+    {
+      "predicate": {
+        "maplesadventure:flask_fill": 4
+      },
+      "model": "maplesadventure:item/flask/ashen_4"
+    },
+    {
+      "predicate": {
+        "maplesadventure:flask_fill": 5
+      },
+      "model": "maplesadventure:item/flask/ashen_5"
+    },
+    {
+      "predicate": {
+        "maplesadventure:flask_fill": 6
+      },
+      "model": "maplesadventure:item/flask/ashen_6"
+    },
+    {
+      "predicate": {
+        "maplesadventure:flask_fill": 7
+      },
+      "model": "maplesadventure:item/flask/ashen_7"
+    }
+  ]
+}

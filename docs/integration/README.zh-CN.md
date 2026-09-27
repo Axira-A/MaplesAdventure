@@ -10,6 +10,7 @@
 - [Weapon Integration API](weapon-api.zh-CN.md)
 - [Armor Integration API](armor-api.zh-CN.md)
 - [内置篝火 API](bonfire-api.zh-CN.md)
+- [Flask Core 与 API](flask-api.zh-CN.md)
 - [篝火可编译示例](examples/BonfireIntegrationExample.java)
 - [数据包 Schema](datapack-api.zh-CN.md)
 - [可编译的 Boss 示例](examples/BossIntegrationExample.java)

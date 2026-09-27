@@ -15,7 +15,12 @@ public final class BonfireFeatureIds {
     public static ResourceLocation parse(String raw) {
         if (raw == null || raw.isBlank() || raw.length() > MAX_ID_LENGTH) return null;
         String qualified = raw.contains(":") ? raw : "maplesadventure:" + raw;
-        return qualified.length() <= MAX_ID_LENGTH ? ResourceLocation.tryParse(qualified) : null;
+        ResourceLocation id = qualified.length() <= MAX_ID_LENGTH ? ResourceLocation.tryParse(qualified) : null;
+        // Previous Flask builds exposed two top-level upgrades. Preserve old maps/commands as aliases.
+        if (id != null && id.getNamespace().equals("maplesadventure")
+                && (id.getPath().equals("flask_capacity") || id.getPath().equals("flask_potency")))
+            return dev.maplesadventure.api.bonfire.MaplesBonfireFeatures.FLASK_UPGRADE;
+        return id;
     }
     public static Set<ResourceLocation> load(ListTag tags) {
         Set<ResourceLocation> result = new LinkedHashSet<>();

@@ -44,6 +44,7 @@ public final class MaplesAdventureClient {
     );
 
     public static void initialize(IEventBus modBus, ModContainer modContainer) {
+        dev.maplesadventure.client.flask.FlaskClient.register(modBus);
         InteractionRegistry.getInstance().register(new LostSoulInteractionProvider());
         InteractionRegistry.getInstance().register(new MessageInteractionProvider());
         InteractionRegistry.getInstance().register(new SummonSignInteractionProvider());

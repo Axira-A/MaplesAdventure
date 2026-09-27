@@ -18,7 +18,7 @@ final class BonfireMenuEntry extends AbstractButton {
     @Override public void onPress() { if (active) action.run(); }
 
     @Override protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        boolean selected = isHoveredOrFocused();
+        boolean selected = isFocused();
         graphics.fill(getX(), getY(), getRight(), getBottom(), tint(selected ? 0xB04B3D2A : 0x7417100C));
         if (selected) graphics.fill(getX(), getY(), getX() + 2, getBottom(), tint(0xFFE1BA76));
         graphics.drawString(Minecraft.getInstance().font, getMessage(), getX() + 12,

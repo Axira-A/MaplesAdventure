@@ -1,0 +1,16 @@
+{
+  "loader": "neoforge:separate_transforms",
+  "gui_light": "front",
+  "textures": {
+    "particle": "minecraft:block/gold_block"
+  },
+  "base": {
+    "parent": "maplesadventure:item/flask/crimson_body_4"
+  },
+  "perspectives": {
+    "gui": {
+      "parent": "minecraft:builtin/entity",
+      "gui_light": "front"
+    }
+  }
+}

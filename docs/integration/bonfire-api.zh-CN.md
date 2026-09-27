@@ -29,9 +29,9 @@ Handler 提供稳定 `id`、有长度限制的 `translationKey`、`order`、无�
 
 ### 内置 ID 与存储
 
-`MaplesBonfireFeatures` 提供 `LEVEL_UP`、`FLASK_ALLOCATION`、`SPELL_MEMORY`、`REINFORCE`、`WARP`，均为 `maplesadventure:` 命名空间下对应的小写 ID。
+`MaplesBonfireFeatures` 提供 `LEVEL_UP`、`FLASK_ALLOCATION`、`FLASK_UPGRADE`、`SPELL_MEMORY`、`REINFORCE`、`WARP`，均为 `maplesadventure:` 命名空间下对应的小写 ID。
 
-本轮仅升级有内置 Handler，继续调用现有 UpgradeAccessService 和按来源分发的 BONFIRE validator。退出升级返回坐姿菜单，不重复休息/Reset。Flask、法术记忆、强化、传送只是预留 ID，**尚无玩法实现**。以后注册 Handler 后，已配置的功能自动出现，无需再改 BonfireScreen 或新增包类型。
+属性升级继续调用现有 UpgradeAccessService 和按来源分发的 BONFIRE validator，退出后返回坐姿菜单，不重复休息/Reset。[Flask Core](flask-api.zh-CN.md) 还注册了分配次数（仅安装 Iron's Spells 时）及单一“强化原素瓶”入口，下一级页面分别操作次数与单次恢复量。法术记忆、通用装备强化、传送仍只是预留 ID，**尚无玩法实现**。以后注册 Handler 后，已配置的功能自动出现，无需再改 BonfireScreen 或新增包类型。
 
 方块配置使用 `FeatureDataVersion=2`，最多 64 个完整资源 ID，每个最多 128 字符。旧无命名空间值迁移为 `maplesadventure:<id>`。合法但未安装的 addon ID 在读写时保留；非法/超限输入丢弃并警告。
 
@@ -49,13 +49,15 @@ HP 使用真实 `getMaxHealth()`，可选魔力/精力使用包含外部 modifie
 
 Iron's 3.16.3 的自然恢复将 MAX_MANA 截为整数。可选 `IronsFractionalManaRegenMixin` 仅在魔力已等于有限、正数、带小数的运行时上限时跳过该次自然恢复，防止满值 `137.5` 被削为 `137`。耗蓝、部分恢复和整数上限继续使用 Iron's 原行为，不修改第三方 JAR。
 
-在 `NeoForge.EVENT_BUS` 监听不可取消的 `MaplesBonfireRestCompletedEvent`，不可变 context 表示休息已提交，不能否决或重复提交。可选资源仍可能恢复失败。每次 event post 外层隔离异常；NeoForge 本身不保证某监听器抛错后继续其余监听器。需要逐回调隔离的 Reset 工作应注册 participant。以后 Flask refill 可监听完成事件，本轮不实现 refill。
+在 `NeoForge.EVENT_BUS` 监听不可取消的 `MaplesBonfireRestCompletedEvent`，不可变 context 表示休息已提交，不能否决或重复提交。可选资源仍可能恢复失败。每次 event post 外层隔离异常；NeoForge 本身不保证某监听器抛错后继续其余监听器。需要逐回调隔离的 Reset 工作应注册 participant。Flask Core 在此补满次数；打开或确认 Flask 功能不会再次执行休息/Reset。
 
 ## 复活与网络边界
 
 玩家 Attachment 仍为版本 1，死亡复制，激活与 lastRested 分离。复活重新验证代数并搜索安全站立空间。确认删除/替换时清除 lastRested；暂时堵住或维度不可用则保留记录并回退 Vanilla。不创建永久 Chunk ticket。
 
-协议 **25**：canLevelUp 替换为最多 64 条菜单项，客户端发送 SELECT_FEATURE/LEAVE 意图。4096 个激活引用正文在 minecraft:overworld 时为 180226 字节，维度 ID 达 128 字符上限时为 630786 字节，连同少量包 ID 开销仍低于客户端接收的 1 MiB 上限。不新增逐 Tick 菜单或进度广播。
+`MaplesBonfireRespawnEvent` 在玩家到达验证通过的篝火复活位置后发出。Flask Core 在此补满，不在普通 Clone 或退回 Vanilla 的复活路径补满。
+
+协议 **25** 将 canLevelUp 替换为最多 64 条菜单项，客户端发送 SELECT_FEATURE/LEAVE 意图；当前协议 **27** 包含 Flask 动作选择与关联响应。4096 个激活引用正文在 minecraft:overworld 时为 180226 字节，维度 ID 达 128 字符上限时为 630786 字节，连同少量包 ID 开销仍低于客户端接收的 1 MiB 上限。不新增逐 Tick 菜单或进度广播。
 
 参见[可编译示例](examples/BonfireIntegrationExample.java)。`compileIntegrationExamplesJava` 已属于 `check`。
 

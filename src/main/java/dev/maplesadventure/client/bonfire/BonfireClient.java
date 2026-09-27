@@ -32,7 +32,8 @@ public final class BonfireClient {
             fadeStartedNanos = System.nanoTime();
         } else if (view.state() == BonfireSessionState.RESTING) {
             fading = null;
-            if (!(mc.screen instanceof dev.maplesadventure.progression.client.LevelUpScreen))
+            if (!(mc.screen instanceof dev.maplesadventure.progression.client.LevelUpScreen)
+                    && !(mc.screen instanceof dev.maplesadventure.client.flask.FlaskScreen))
                 mc.setScreen(new BonfireScreen(view));
         } else if (view.state() == BonfireSessionState.STANDING_UP && mc.screen instanceof BonfireScreen screen) {
             screen.beginLeaving();

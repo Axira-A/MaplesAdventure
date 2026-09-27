@@ -4,6 +4,7 @@ import dev.maplesadventure.progression.*;
 import dev.maplesadventure.progression.stats.*;
 import dev.maplesadventure.progression.network.UpgradePayloads;
 import dev.maplesadventure.progression.upgrade.UpgradeView;
+import dev.maplesadventure.client.bonfire.BonfireSubscreenTransition;
 import java.util.EnumMap;
 import java.util.UUID;
 import net.minecraft.client.gui.GuiGraphics;
@@ -37,10 +38,13 @@ public final class LevelUpScreen extends Screen {
     private boolean pending, invalid;
     private boolean navigatingToStats;
     private Component feedback = Component.empty();
+    private final BonfireSubscreenTransition transition;
 
     public LevelUpScreen(UpgradeView baseline) {
         super(Component.translatable("screen.maplesadventure.level_up"));
         this.baseline = baseline;
+        transition = baseline.access().type() == dev.maplesadventure.progression.upgrade.UpgradeAccessType.BONFIRE
+                ? new BonfireSubscreenTransition() : null;
     }
     public UUID nonce() { return baseline.nonce(); }
 
@@ -78,7 +82,7 @@ public final class LevelUpScreen extends Screen {
     }
 
     private void adjust(Attribute attribute, int amount) {
-        if (pending || invalid) return;
+        if (pending || invalid || !interactive()) return;
         selected = attribute;
         draft.adjust(attribute, amount, baseline.attributes().state(), baseline.hardCap());
         feedback = Component.empty();
@@ -109,7 +113,7 @@ public final class LevelUpScreen extends Screen {
         if (cancel != null) cancel.active = !pending;
     }
     private void submit() {
-        if (confirm == null || !confirm.active) return;
+        if (confirm == null || !confirm.active || !interactive()) return;
         pending = true;
         recalculate();
         PacketDistributor.sendToServer(new UpgradePayloads.Submit(nonce(), baseline.revision(), draft.deltas()));
@@ -128,6 +132,7 @@ public final class LevelUpScreen extends Screen {
     }
 
     @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (!interactive()) return true;
         if (button == 0 && layout != null && layout.derived().contains(mouseX, mouseY)) {
             navigatingToStats = true;
             minecraft.setScreen(new CharacterStatsScreen(this, baselineStats, previewStats));
@@ -143,6 +148,10 @@ public final class LevelUpScreen extends Screen {
         if (row >= 0 && row < Attribute.values().length) selected = Attribute.values()[row];
     }
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (!interactive()) {
+            if (keyCode == GLFW.GLFW_KEY_ESCAPE) onClose();
+            return true;
+        }
         if (keyCode == GLFW.GLFW_KEY_UP || keyCode == GLFW.GLFW_KEY_DOWN) {
             int direction = keyCode == GLFW.GLFW_KEY_UP ? -1 : 1;
             selected = Attribute.values()[Math.floorMod(selected.ordinal() + direction, Attribute.values().length)];
@@ -159,16 +168,26 @@ public final class LevelUpScreen extends Screen {
     }
     @Override public void tick() {
         if (minecraft.player == null || minecraft.level == null
-                || !minecraft.level.dimension().location().equals(baseline.access().sourceDimension())) onClose();
+                || !minecraft.level.dimension().location().equals(baseline.access().sourceDimension())) {
+            minecraft.setScreen(null); return;
+        }
+        if (baseline.access().sourceKey().equals(dev.maplesadventure.bonfire.BonfireSessionService.UPGRADE_SOURCE)
+                && !dev.maplesadventure.client.bonfire.BonfireClient.resting()) { minecraft.setScreen(null); return; }
+        if (transition != null) transition.tick();
     }
     @Override public void onClose() {
         if (pending && minecraft.player != null && minecraft.level != null
                 && minecraft.level.dimension().location().equals(baseline.access().sourceDimension())) return;
+        if (transition != null) transition.exit(this::finishClose);
+        else finishClose();
+    }
+    private void finishClose() {
         if (baseline.access().sourceKey().equals(dev.maplesadventure.bonfire.BonfireSessionService.UPGRADE_SOURCE)
                 && dev.maplesadventure.client.bonfire.BonfireClient.resume()) return;
         super.onClose();
     }
     @Override public void removed() {
+        if (transition != null) transition.close();
         if (navigatingToStats) {
             navigatingToStats = false;
             return;
@@ -177,8 +196,18 @@ public final class LevelUpScreen extends Screen {
         UpgradeClient.close(nonce());
     }
     @Override public boolean isPauseScreen() { return false; }
+    private boolean interactive() { return transition == null || transition.interactive(); }
+    @Override public void renderBackground(GuiGraphics g, int mx, int my, float partial) {
+        // A Bonfire child page must never invoke Screen's world blur.
+        if (transition == null) super.renderBackground(g, mx, my, partial);
+    }
 
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        if (transition == null) renderPage(g, mouseX, mouseY, partialTick);
+        else transition.render(g, () -> renderPage(g, interactive() ? mouseX : -10000,
+                interactive() ? mouseY : -10000, partialTick));
+    }
+    private void renderPage(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         renderBackground(g, mouseX, mouseY, partialTick);
         g.fill(0, 0, width, height, 0x65000000);
         drawPanel(g, layout.panel(), PANEL, GOLD);

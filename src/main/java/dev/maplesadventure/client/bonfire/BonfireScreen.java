@@ -39,7 +39,7 @@ public final class BonfireScreen extends Screen {
             rowY += 26;
         }
         addEntry(rowY, Component.translatable("screen.maplesadventure.bonfire.leave"), this::onClose);
-        if (!entries.isEmpty()) setFocused(entries.getFirst());
+        // Opening the menu must not leave its first action permanently selected.
     }
 
     private void addEntry(int y, Component text, Runnable action) {
@@ -81,10 +81,20 @@ public final class BonfireScreen extends Screen {
             if (entries.isEmpty()) return true;
             int index = entries.indexOf(getFocused());
             int direction = keyCode == GLFW.GLFW_KEY_UP || keyCode == GLFW.GLFW_KEY_W ? -1 : 1;
-            setFocused(entries.get(Math.floorMod(index + direction, entries.size())));
+            int next = index < 0 ? (direction > 0 ? 0 : entries.size() - 1)
+                    : Math.floorMod(index + direction, entries.size());
+            setFocused(entries.get(next));
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override public void mouseMoved(double mouseX, double mouseY) {
+        super.mouseMoved(mouseX, mouseY);
+        if (leaving) return;
+        // Mouse and keyboard share one selection, rather than painting hover + stale focus.
+        setFocused(entries.stream().filter(entry -> entry.active && entry.isMouseOver(mouseX, mouseY))
+                .findFirst().orElse(null));
     }
 
     @Override public void onClose() {

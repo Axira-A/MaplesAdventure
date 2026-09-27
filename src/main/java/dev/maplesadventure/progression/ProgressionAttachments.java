@@ -13,6 +13,11 @@ public final class ProgressionAttachments {
     private static final DeferredRegister<AttachmentType<?>> TYPES =
             DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, MaplesAdventure.MOD_ID);
 
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<dev.maplesadventure.flask.FlaskState>> FLASK =
+            TYPES.register("player_flasks", () -> AttachmentType.serializable(() -> new dev.maplesadventure.flask.FlaskState()).copyOnDeath().build());
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Boolean>> FLASK_USING =
+            TYPES.register("flask_using", () -> AttachmentType.builder(() -> false).build());
+
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<PlayerAttributeState>> PLAYER_ATTRIBUTES =
             TYPES.register("player_attributes", () -> AttachmentType.serializable(PlayerAttributeState::new)
                     .copyOnDeath()

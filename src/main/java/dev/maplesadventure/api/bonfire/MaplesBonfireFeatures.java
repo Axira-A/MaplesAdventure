@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class MaplesBonfireFeatures {
     public static final ResourceLocation LEVEL_UP = id("level_up");
     public static final ResourceLocation FLASK_ALLOCATION = id("flask_allocation");
+    public static final ResourceLocation FLASK_UPGRADE = id("flask_upgrade");
     public static final ResourceLocation SPELL_MEMORY = id("spell_memory");
     public static final ResourceLocation REINFORCE = id("reinforce");
     public static final ResourceLocation WARP = id("warp");

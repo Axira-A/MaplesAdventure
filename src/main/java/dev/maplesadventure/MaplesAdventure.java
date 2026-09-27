@@ -53,6 +53,8 @@ public final class MaplesAdventure {
         ModBlocks.register(modEventBus);
         ModPhaseAttachments.register(modEventBus);
         ProgressionAttachments.register(modEventBus);
+        dev.maplesadventure.flask.FlaskItems.register(modEventBus);
+        dev.maplesadventure.flask.FlaskLifecycleEvents.register();
         dev.maplesadventure.bonfire.BonfireSessionService.registerUpgradeSource();
         dev.maplesadventure.bonfire.BonfireAnimationIntegration.register(modEventBus);
         dev.maplesadventure.bonfire.BonfireEvents.register();

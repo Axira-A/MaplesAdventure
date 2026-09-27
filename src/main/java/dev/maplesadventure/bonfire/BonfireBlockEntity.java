@@ -23,12 +23,16 @@ public final class BonfireBlockEntity extends BlockEntity {
 
     public BonfireBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlocks.BONFIRE_ENTITY.get(), pos, state);
+        features.add(dev.maplesadventure.api.bonfire.MaplesBonfireFeatures.FLASK_ALLOCATION);
+        features.add(dev.maplesadventure.api.bonfire.MaplesBonfireFeatures.FLASK_UPGRADE);
     }
     public UUID generation() { return generation; }
     public String displayName() { return displayName; }
     public Set<ResourceLocation> features() { return Set.copyOf(features); }
     public boolean hasFeature(BonfireFeature feature) { return hasFeature(BonfireFeatureIds.parse(feature.id())); }
-    public boolean hasFeature(ResourceLocation feature) { return features.contains(feature); }
+    public boolean hasFeature(ResourceLocation feature) {
+        return feature != null && features.contains(BonfireFeatureIds.parse(feature.toString()));
+    }
     public void setDisplayName(String name) {
         displayName = name == null ? "" : name.strip().substring(0, Math.min(64, name.strip().length()));
         setChanged();
@@ -39,6 +43,7 @@ public final class BonfireBlockEntity extends BlockEntity {
     public void setFeature(ResourceLocation feature, boolean enabled) {
         if (feature == null || BonfireFeatureIds.parse(feature.toString()) == null)
             throw new IllegalArgumentException("Invalid feature ID");
+        feature = BonfireFeatureIds.parse(feature.toString());
         if (enabled && !features.contains(feature) && features.size() >= BonfireFeatureIds.MAX_FEATURES)
             throw new IllegalArgumentException("Too many bonfire features");
         if (enabled) features.add(feature); else features.remove(feature);
@@ -58,7 +63,7 @@ public final class BonfireBlockEntity extends BlockEntity {
         super.saveAdditional(tag, registries);
         tag.putUUID("Generation", generation);
         tag.putString("DisplayName", displayName);
-        tag.putInt("FeatureDataVersion", 2);
+        tag.putInt("FeatureDataVersion", 3);
         tag.put("Features", BonfireFeatureIds.save(features));
     }
     @Override protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {

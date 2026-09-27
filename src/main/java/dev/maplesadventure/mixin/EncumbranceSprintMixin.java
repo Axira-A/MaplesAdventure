@@ -13,6 +13,7 @@ abstract class EncumbranceSprintMixin {
     @Inject(method = "setSprinting", at = @At("HEAD"), cancellable = true)
     private void maplesadventure$preventOverloadedSprint(boolean sprinting, CallbackInfo ci) {
         if (sprinting && (!EncumbranceRuntimeService.canSprint((LivingEntity) (Object) this)
+                || dev.maplesadventure.api.flask.FlaskApi.isUsingFlask((LivingEntity)(Object)this)
                 || dev.maplesadventure.progression.status.StatusControlLockService.locked((LivingEntity)(Object)this))) ci.cancel();
     }
 }

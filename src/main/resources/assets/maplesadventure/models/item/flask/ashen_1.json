@@ -1,0 +1,16 @@
+{
+  "loader": "neoforge:separate_transforms",
+  "gui_light": "front",
+  "textures": {
+    "particle": "minecraft:block/light_blue_concrete"
+  },
+  "base": {
+    "parent": "maplesadventure:item/flask/ashen_body_1"
+  },
+  "perspectives": {
+    "gui": {
+      "parent": "minecraft:builtin/entity",
+      "gui_light": "front"
+    }
+  }
+}

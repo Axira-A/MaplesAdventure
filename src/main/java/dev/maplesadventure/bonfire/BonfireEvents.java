@@ -15,6 +15,8 @@ import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 public final class BonfireEvents {
+    private record Respawn(BonfireRef ref, net.minecraft.world.level.portal.DimensionTransition transition) {}
+    private static final java.util.Map<java.util.UUID, Respawn> RESPAWNS = new java.util.HashMap<>();
     @SubscribeEvent public void onStarting(net.neoforged.neoforge.event.server.ServerAboutToStartEvent event) {
         BonfireApiBridge.freeze();
     }
@@ -23,14 +25,27 @@ public final class BonfireEvents {
         if (event.getEntity() instanceof ServerPlayer player) BonfireStateService.sync(player);
     }
     @SubscribeEvent public void onRespawn(PlayerEvent.PlayerRespawnEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) BonfireStateService.sync(player);
+        if (event.getEntity() instanceof ServerPlayer player) {
+            BonfireStateService.sync(player);
+            Respawn pending = RESPAWNS.remove(player.getUUID());
+            if (pending != null && player.serverLevel() == pending.transition.newLevel()
+                    && player.position().distanceToSqr(pending.transition.pos()) < 1
+                    && BonfireStateService.matches(player.serverLevel(), pending.ref)) {
+                try { NeoForge.EVENT_BUS.post(new dev.maplesadventure.api.bonfire.MaplesBonfireRespawnEvent(
+                        player, BonfireApiBridge.detached(pending.ref))); }
+                catch (RuntimeException | LinkageError failure) { dev.maplesadventure.MaplesAdventure.LOGGER.error("Bonfire respawn notification failed", failure); }
+            }
+        }
     }
     @SubscribeEvent public void onRespawnPosition(PlayerRespawnPositionEvent event) {
         if (event.isFromEndFight()) return;
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        RESPAWNS.remove(player.getUUID());
         player.getExistingData(ProgressionAttachments.PLAYER_BONFIRES)
                 .flatMap(PlayerBonfireState::lastRested)
-                .flatMap(point -> BonfireRespawnResolver.resolve(player.server, player, point))
+                .flatMap(point -> BonfireRespawnResolver.resolve(player.server, player, point).map(transition -> {
+                    RESPAWNS.put(player.getUUID(), new Respawn(point.ref(), transition)); return transition;
+                }))
                 .ifPresent(event::setDimensionTransition);
     }
     @SubscribeEvent public void onClone(PlayerEvent.Clone event) {
@@ -43,6 +58,7 @@ public final class BonfireEvents {
             });
     }
     @SubscribeEvent public void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        RESPAWNS.remove(event.getEntity().getUUID());
         if (event.getEntity() instanceof ServerPlayer player) BonfireSessionService.close(player);
     }
     @SubscribeEvent public void onDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
@@ -52,7 +68,7 @@ public final class BonfireEvents {
         if (event.getEntity() instanceof ServerPlayer player) BonfireSessionService.close(player);
     }
     @SubscribeEvent public void onTick(ServerTickEvent.Post event) { BonfireSessionService.tick(event.getServer()); }
-    @SubscribeEvent public void onStopped(ServerStoppedEvent event) { BonfireSessionService.clear(); }
+    @SubscribeEvent public void onStopped(ServerStoppedEvent event) { BonfireSessionService.clear(); RESPAWNS.clear(); }
     @SubscribeEvent(priority = EventPriority.HIGHEST) public void onAttack(AttackEntityEvent event) {
         if (event.getEntity() instanceof ServerPlayer player && BonfireSessionService.isBusy(player)) event.setCanceled(true);
     }
