@@ -31,6 +31,14 @@ public final class FlaskLifecycleEvents {
     @SubscribeEvent public void logout(PlayerEvent.PlayerLoggedOutEvent e) { if(e.getEntity() instanceof ServerPlayer p) { FlaskUseController.cancel(p,FlaskCancelReason.LOGOUT); FlaskMenuService.close(p); } }
     @SubscribeEvent public void dimension(PlayerEvent.PlayerChangedDimensionEvent e) { if(e.getEntity() instanceof ServerPlayer p) { FlaskUseController.cancel(p,FlaskCancelReason.DIMENSION_CHANGE); FlaskMenuService.close(p); FlaskService.sync(p); } }
     @SubscribeEvent(priority=EventPriority.HIGHEST,receiveCanceled=true) public void death(LivingDeathEvent e) { if(e.getEntity() instanceof ServerPlayer p) { FlaskUseController.cancel(p,FlaskCancelReason.DEATH); FlaskMenuService.close(p); } }
+    @SubscribeEvent public void deathHandles(LivingDropsEvent e) {
+        if(e.getEntity() instanceof ServerPlayer) {
+            // Respawn already regrants missing reusable handles. Charges live on the player,
+            // so leaving obsolete handles as death loot only duplicates the entry items.
+            // This does not intercept Q drops, materials, or keepInventory behavior.
+            e.getDrops().removeIf(drop -> drop.getItem().is(FlaskItems.CRIMSON.get()) || drop.getItem().is(FlaskItems.ASHEN.get()));
+        }
+    }
     @SubscribeEvent public void damage(LivingDamageEvent.Post e) { if(e.getNewDamage()>0 && e.getEntity() instanceof ServerPlayer p) FlaskUseController.cancel(p,FlaskCancelReason.DAMAGE); }
     @SubscribeEvent public void tick(ServerTickEvent.Post e) { FlaskUseController.tick(e.getServer()); }
     @SubscribeEvent public void stop(ServerStoppedEvent e) { FlaskUseController.clear(); FlaskMenuService.clear(); }

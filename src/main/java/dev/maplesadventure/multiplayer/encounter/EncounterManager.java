@@ -155,7 +155,9 @@ public final class EncounterManager {
     public static boolean validateLoadedMob(Mob mob) { return validateLoadedEntity(mob); }
 
     public static int discardLoaded(MinecraftServer server, PhaseId phase, ResourceLocation encounterId) {
-        int removed = 0;
+        // Removing from EntityLookup while iterating its live values can skip entries or
+        // expose nulls. Collect loaded targets first; never load a chunk to resolve one.
+        var targets = new java.util.ArrayList<Entity>();
         for (ServerLevel level : server.getAllLevels()) {
             for (Entity entity : level.getAllEntities()) {
                 var mobPhase = entity.getExistingData(ModPhaseAttachments.MOB_PHASE).orElse(null);
@@ -166,12 +168,12 @@ public final class EncounterManager {
                 boolean bossLinkMatch = bossLink != null && bossLink.valid() && bossLink.phaseId().equals(phase)
                         && (encounterId == null || bossLink.encounterId().equals(encounterId));
                 if (encounterMobMatch || bossLinkMatch) {
-                    entity.discard();
-                    removed++;
+                    targets.add(entity);
                 }
             }
         }
-        return removed;
+        targets.forEach(Entity::discard);
+        return targets.size();
     }
 
     public static boolean setBossStage(MinecraftServer server, PhaseId phase, ResourceLocation encounterId, int stage) {
