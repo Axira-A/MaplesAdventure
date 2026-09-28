@@ -86,6 +86,13 @@ Provide `epicFightJar` and `ironsSpellsJar` through Gradle `-P` properties, or a
 Do not commit these files or credentials. They are compile-only, not runtime requirements for
 the base mod and not bundled into its distribution.
 
+The optional bonfire camera adapters also require local compile-only `shoulderSurfingJar`
+(5.0.11 API) and `shoulderSurfingLegacyJar` (4.22.10 API). Their incompatible plugin entrypoints
+are compiled separately and packaged together; neither third-party JAR is bundled.
+For client testing, use `-PwithShoulderSurfing=true`; `-PshoulderSurfingRuntimeJar=<path>`
+selects a 4.x or 5.x runtime independently of the compile APIs. Without that override it uses
+`shoulderSurfingJar`. No Shoulder Surfing installation is required by the base mod.
+
 ```sh
 ./gradlew clean test
 ./gradlew clean build

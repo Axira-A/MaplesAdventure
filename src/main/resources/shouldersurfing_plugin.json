@@ -1,3 +1,4 @@
 {
+  "entrypoint": "dev.maplesadventure.integration.shouldersurfing.LegacyBonfireCameraPlugin",
   "entrypoints": ["dev.maplesadventure.integration.shouldersurfing.BonfireCameraPlugin"]
 }

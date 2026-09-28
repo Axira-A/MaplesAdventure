@@ -136,6 +136,8 @@ def curiosJar = dependencyJar('curiosJar')
 def geckoLibJar = dependencyJar('geckoLibJar')
 def playerAnimatorJar = dependencyJar('playerAnimatorJar')
 def shoulderSurfingJar = dependencyJar('shoulderSurfingJar')
+def shoulderSurfingLegacyJar = dependencyJar('shoulderSurfingLegacyJar')
+def shoulderSurfingRuntimeJar = dependencyJar('shoulderSurfingRuntimeJar') ?: shoulderSurfingJar
 def subtleEffectsJar = dependencyJar('subtleEffectsJar')
 def fzzyConfigJar = dependencyJar('fzzyConfigJar')
 def kotlinForForgeJar = dependencyJar('kotlinForForgeJar')
@@ -176,10 +178,10 @@ dependencies {
     }
 
     if (providers.gradleProperty('withShoulderSurfing').map(String::toBoolean).getOrElse(false)) {
-        if (!shoulderSurfingJar?.exists()) {
-            throw new GradleException("Shoulder Surfing runtime JAR not found: ${shoulderSurfingJar}")
+        if (!shoulderSurfingRuntimeJar?.exists()) {
+            throw new GradleException("Shoulder Surfing runtime JAR not found: ${shoulderSurfingRuntimeJar}")
         }
-        localRuntime files(shoulderSurfingJar)
+        localRuntime files(shoulderSurfingRuntimeJar)
     }
 
     if (providers.gradleProperty('withBetterLockOn').map(String::toBoolean).getOrElse(false)) {
@@ -262,6 +264,25 @@ tasks.withType(Test).configureEach {
 
 sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
 sourceSets.test.runtimeClasspath += sourceSets.main.runtimeClasspath
+
+// The 4.x and 5.x plugin interfaces have the same name but incompatible signatures.
+// Compile the old entrypoint separately; ship only our adapter, never either third-party JAR.
+if (!shoulderSurfingJar?.exists() || !shoulderSurfingLegacyJar?.exists()) {
+    throw new GradleException('Set shoulderSurfingJar (5.x) and shoulderSurfingLegacyJar (4.22.10) compile-only API paths')
+}
+sourceSets.create('shoulderSurfingLegacy')
+sourceSets.shoulderSurfingLegacy.compileClasspath = files(shoulderSurfingLegacyJar) + sourceSets.main.output +
+        (sourceSets.main.compileClasspath - files(shoulderSurfingJar))
+neoForge.mods.named(mod_id) { sourceSet sourceSets.shoulderSurfingLegacy }
+tasks.named('jar', Jar).configure { from sourceSets.shoulderSurfingLegacy.output }
+tasks.named('sourcesJar', Jar).configure { from sourceSets.shoulderSurfingLegacy.allSource }
+tasks.named('test', Test).configure {
+    dependsOn tasks.named('compileShoulderSurfingLegacyJava')
+    // Separate class loaders test each real API without contaminating the normal test classpath.
+    systemProperty 'maples.shoulderModernJar', shoulderSurfingJar.absolutePath
+    systemProperty 'maples.shoulderLegacyJar', shoulderSurfingLegacyJar.absolutePath
+    systemProperty 'maples.shoulderLegacyClasses', sourceSets.shoulderSurfingLegacy.output.classesDirs.asPath
+}
 
 // Compile the supported integration example without packaging it into the mod.
 sourceSets.create('integrationExamples')

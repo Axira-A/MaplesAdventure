@@ -50,6 +50,8 @@ MaplesAdventure 已拥有**内置 Bonfire Core**。管理员可命名和配置�
 
 源码包含 Epic Fight 21.17.3.1 与 Iron's Spells 3.16.3 的仅编译期适配。请从合法发行渠道取得本地 JAR，通过 Gradle 属性 `epicFightJar`、`ironsSpellsJar` 或被忽略的 `local-development.properties` 指定路径。不要提交第三方二进制或凭据；核心 Mod 运行时不强制依赖它们。
 
+篝火可选镜头适配还需要仅编译期路径 `shoulderSurfingJar`（5.0.11 API）与 `shoulderSurfingLegacyJar`（4.22.10 API）。两套不兼容的插件入口独立编译、共同打包，但不包含任何第三方 JAR。客户端测试使用 `-PwithShoulderSurfing=true`，通过 `-PshoulderSurfingRuntimeJar=<路径>` 单独选择 4.x 或 5.x 运行版本；未指定时使用 `shoulderSurfingJar`。核心 Mod 运行时仍不要求安装 Shoulder Surfing。
+
 ```sh
 ./gradlew clean test
 ./gradlew clean build
