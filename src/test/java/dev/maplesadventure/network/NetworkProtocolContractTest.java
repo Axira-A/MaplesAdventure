@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NetworkProtocolContractTest {
-    @Test void protocol27IsRequiredAndNotOptional() throws Exception {
+    @Test void protocol28IsRequiredAndNotOptional() throws Exception {
         String source = Files.readString(Path.of("src/main/java/dev/maplesadventure/network/MessageNetwork.java"));
-        assertTrue(source.contains("PROTOCOL_VERSION = \"27\""));
+        assertTrue(source.contains("PROTOCOL_VERSION = \"28\""));
         assertFalse(source.contains(".optional()"));
     }
 }

@@ -22,6 +22,7 @@ import java.util.*;
 public final class WeaponRegressionMod {
     private final List<Runnable> pending=new ArrayList<>();
     public WeaponRegressionMod() {
+        EditorRegression.register();
         FlaskDeathRegression.register();
         BonfireFunctionalRegression.register();
         FlaskRegression.register();

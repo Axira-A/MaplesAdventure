@@ -2,10 +2,25 @@
 
 > Language: [简体中文](README.md) | **English**
 
-A Souls-inspired adventure and RPG combat framework for shared Minecraft worlds. Map makers
+An **experimental, data-driven RPG authoring framework and in-game level editor** for shared Minecraft worlds,
+with a Souls-inspired adventure and combat runtime. Map makers
 define encounters and bosses; players build attributes, manage equipment and interact through
 contextual world targets. Server-authoritative phase relationships support solo exploration,
 cooperation, duels and opt-in invasion without making the client a gameplay authority.
+
+## Editor Foundation 1.0 (experimental)
+
+**F8** opens/closes the editor (rebindable). Dedicated servers require OP level 2; an integrated
+server's actual world owner is authorized. Creative alone is not permission. Multiple Scenes per
+dimension, objects/groups, typed Inspector fields, Marker/Box/Radius and world-axis Move/Yaw
+gizmos are supported. It retains the player's camera, without pausing or blurring the world.
+Hold RMB in the viewport with movement keys to navigate; Esc cancels a drag or exits. The server
+validates changes and persists independent world SavedData.
+
+Components are **authoring data and visualization only**, not entity/block spawners or combat
+triggers. Bonfire/Encounter runtime and the default bonfire level-up feature setting are unchanged.
+The experimental Editor API is separate from the stable gameplay API v1 contract. Protocol **28**
+requires matching client/server versions. See [Editor architecture and controls](docs/editor-foundation.md).
 
 ## Requirements
 

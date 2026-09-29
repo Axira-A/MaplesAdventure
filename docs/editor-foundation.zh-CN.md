@@ -1,0 +1,58 @@
+# Editor Foundation 1.0
+
+> 语言：[English](editor-foundation.md) | **简体中文**
+
+本轮为实验性 Authoring。未实现 Trigger/Condition/Action、Prefab、完整 Undo、Runtime 迁移、Scene 删除或跨维度迁移。既有 gameplay API v1 与素材许可不变；`api.editor` / `api.editor.client` 明确标为实验性接口。
+
+## 使用
+
+F8 是可重绑定的 KeyMapping，不是原始按键轮询。专服 OP 2 或单人世界真正主人可进入；Creative 不自动授权。篝火休息、喝瓶及控制锁定期间拒绝进入。Editor 不改变 Phase、游戏模式、生命、无敌或飞行能力。死亡、退出、换维度、撤销权限会关闭临时会话。
+
+输入命名空间 ID 和显示名，在当前维度创建 Scene；左上选择器循环切换当前维度目录。对象 UUID 由服务器产生，改名/改组不变，复制产生新 UUID 并保留位置。Group 只用于组织，不继承 Transform；删除组会将直接成员提升到父组。
+
+左右 Hierarchy/Inspector 分别滚动。空对象/标记在中央视线命中点创建，无命中则前方四格；可通过列表或世界 Bounds 选择。字段先写本地草稿，Enter/应用才提交；切换选择或退出丢弃草稿。删除需要二次确认。同类型组件每对象最多一个。未知/损坏组件保留数据，但没有可编辑字段或组件 Gizmo。
+
+中央区域按住右键配合现有移动键，通过玩家视角观察，不添加自由镜头。文字输入不移动角色。Editor 点击不会攻击、使用、放置或触发 F/Y/L。世界 X/Y/Z 轴用于移动；Yaw 工具绕对象中心旋转，Pitch 数值编辑。拖动只做预览，松开提交一次，Esc 取消；退化视角禁用对应拖动，仍可数值编辑。超过 128 格剔除。普通游戏不运行编辑器选择/渲染扫描。
+
+## 数据与事务
+
+`authoring` 保存不可变 Scene/Object/Group/Transform/组件值及纯操作；`editor` 管理服务端会话、权限与操作分发；`client/editor` 管理草稿、选择及显示；`api/editor` 提供通用 Descriptor，客户端表现独立注册。
+
+世界级 `maplesadventure_authoring` SavedData 存在主世界，开服加载。Scene v1 保存 ID、维度、显示名、revision、组与对象。对象保存绝对坐标、yaw/pitch、组 UUID、组件和 revision。UUID/type ID 确定排序序列化；保存、校验、定位作者对象不加载区块。
+
+版本分派入口为 `SceneSerialization.load`。v1 可修复的缺少名称/Transform 使用默认值并产生诊断。未知/解码失败组件原样保留。损坏/未来版本 Scene 只读，SavedData 保留原始序列化内容；未知根版本保留整个根数据并拒绝写入。修复/校验诊断尽可能定位 Scene、对象、组件、字段。未来组件版本不静默降级。
+
+每请求一个操作，先验证权限、nonce/request ID、维度、订阅 Scene、限流、Scene 与目标 revision，再构造新值。类型化访问器返回不可变新值；验证成功后才一次提交 SavedData。每次成功增加 Scene revision，受影响对象/组也增加自己的 revision。组循环、层级深度及世界边界失败均拒绝整个操作。重复 request ID 不重复执行；过期编辑返回权威快照，不自动合并或覆盖别人修改。
+
+## 协议与上限
+
+协议 28 新增有界 `editor_request` / `editor_page`，不改变既有 Payload 字段。C2S 只包含意图、nonce/request ID、预期 revision 和已注册标量字段；不接受客户端 Scene、类名或 NBT Patch。ResourceLocation 校验格式，声明目标 Registry 的字段另外验证服务器注册项存在性。
+
+S2C 包含会话结果、当前维度目录、Schema、分段初始快照、变化的对象/组、删除 UUID、校验与操作结果。只向授权订阅者发送数据。快照完整组装后原子替换；Delta 带前后 revision，断层请求重同步。退出清空草稿、选择和页面，迟到响应不能重新打开。不会每 tick 发完整 Scene。
+
+| 限制 | 数值 |
+| --- | --- |
+| 每世界 Scene | 256 |
+| 每 Scene 对象 / 组 | 4096 / 1024 |
+| 每对象组件 / 组深度 | 32 / 16 |
+| 名称 / 字段字符串 | 128 / 1024 字符 |
+| 组件 / 对象 / Scene 存储数据 | 16 KiB / 64 KiB / 16 MiB |
+| Snapshot 单段 | 256 KiB |
+| Field Patch | 64 字段 |
+| 请求令牌桶 | 每秒 20、突发 40 |
+
+坐标必须有限且位于当前维度高度/世界边界内。Radius 有限非负，Box 三边有限且为正。首版数值字段使用文本输入配合 Schema 校验，不静默 clamp 非法网络输入。
+
+## 扩展
+
+首次开服前在 common setup 调用 `MaplesEditorApi.registerComponent` 注册 `ComponentDescriptor<T>`：稳定 ResourceLocation、版本、默认值、Codec、本地化键、类型化字段和 Validator。重复 ID 拒绝，开服前冻结。支持 boolean/integer/double/string/enum/ResourceLocation，以及 nullable/readOnly 元数据。回调必须纯函数且有界；异常不能授予权限或提交半成品数据。
+
+可编译的[组件示例](integration/examples/EditorComponentExample.java)无需改核心即可注册注释组件；[客户端 Gizmo 示例](integration/examples/EditorGizmoExample.java)仅从 client setup 使用 `MaplesEditorClientApi`。Common Descriptor 不能引用客户端渲染器。Gizmo 注册在加载完成后冻结；Inspector 悬停提示提供字段约束。权限扩展可授予可信服务器作者角色，不信任客户端标志；保留默认 OP/世界主人策略。
+
+## 回归与边界
+
+执行 `gradlew.bat clean test`、`gradlew.bat clean build`，`check` 会编译扩展示例。在隔离的 `-PweaponRegression=true` 专服执行 `/ma editorregression`，保存重启后执行 `/ma editorregression persisted`。测试通过合成参与者调用真实服务端请求入口。`flaskdeathregression` 通过真实致命伤害及 Clone/Respawn 事件覆盖 keepInventory 两种值；`bonfirefunctional core` 验证现有 Phase Reset/资源行为。它们不替代双真实客户端视觉/输入、单人主人权限及可选镜头人工测试。Fixture 不打入正式 JAR。
+
+Flask 死亡掉落只过滤红/灰两种永久入口物品，保留缺失补发、次数、材料和主动 Q 丢弃。Encounter 清理先收集已加载目标再 discard，避免删除 live entity lookup 的当前元素破坏遍历。
+
+没有将原生窗口/焦点崩溃绕过逻辑塞入 gameplay。GLFW 原生错误应与 Editor Java 异常分开报告。首版刻意采用保守 Scene 级冲突、文本型类型化字段编辑，无对象锁和完整 Undo。
