@@ -49,6 +49,7 @@ public final class MaplesAdventure {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public MaplesAdventure(IEventBus modEventBus, ModContainer modContainer) {
+        dev.maplesadventure.editor.EditorEvents.register();
         ModEntityTypes.register(modEventBus);
         ModBlocks.register(modEventBus);
         ModPhaseAttachments.register(modEventBus);

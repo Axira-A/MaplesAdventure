@@ -14,7 +14,8 @@ public record InspectorField(String id, String label, EditorValue.Kind kind, dou
         if (!id.matches("[a-zA-Z0-9_.-]{1,64}") || label.length() > 256 || !Double.isFinite(min)
                 || !Double.isFinite(max) || min > max || !Double.isFinite(step) || step < 0
                 || maxLength < 0 || maxLength > 1024 || choices.size() > 64
-                || choices.stream().anyMatch(s -> s.length() > 128) || kind == EditorValue.Kind.NULL)
+                || choices.stream().anyMatch(s -> s.length() > 128) || kind == EditorValue.Kind.NULL
+                || (registry != null && kind != EditorValue.Kind.RESOURCE_LOCATION))
             throw new IllegalArgumentException("Invalid inspector schema");
     }
     public static InspectorField number(String id, double min, double max, double step) {
@@ -23,6 +24,10 @@ public record InspectorField(String id, String label, EditorValue.Kind kind, dou
     }
     public void validate(EditorValue value) {
         if (readOnly) throw new IllegalArgumentException("editor.maplesadventure.read_only");
+        validateValue(value);
+    }
+    /** Validate a descriptor's value without implying a write to a read-only field. */
+    public void validateValue(EditorValue value) {
         if (value.kind() == EditorValue.Kind.NULL && nullable) return;
         if (value.kind() != kind || value.text().length() > maxLength) throw new IllegalArgumentException("editor.maplesadventure.invalid_field");
         if ((kind == EditorValue.Kind.DOUBLE || kind == EditorValue.Kind.INTEGER) && (value.number() < min || value.number() > max))

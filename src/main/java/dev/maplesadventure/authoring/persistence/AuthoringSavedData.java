@@ -34,7 +34,8 @@ public final class AuthoringSavedData extends SavedData {
     }
     public static AuthoringSavedData load(CompoundTag tag,HolderLookup.Provider registries){
         var data=new AuthoringSavedData();var list=tag.getList("Scenes",Tag.TAG_COMPOUND);
-        if((tag.contains("DataVersion")&&tag.getInt("DataVersion")!=1)||list.size()>EditorLimits.SCENES){
+        if((tag.contains("DataVersion")&&tag.getInt("DataVersion")!=1)||list.size()>EditorLimits.SCENES
+                ||!SceneSerialization.validCompoundList(tag,"Scenes")){
             data.futureRoot=tag.copy();MaplesAdventure.LOGGER.error("Authoring data version/limits unsupported; preserved read-only");return data;
         }
         for(int i=0;i<list.size();i++){

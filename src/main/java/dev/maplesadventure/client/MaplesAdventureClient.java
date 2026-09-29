@@ -44,6 +44,9 @@ public final class MaplesAdventureClient {
     );
 
     public static void initialize(IEventBus modBus, ModContainer modContainer) {
+        dev.maplesadventure.client.editor.EditorClient.register();
+        modBus.addListener((net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent e)->
+                e.enqueueWork(dev.maplesadventure.api.editor.client.MaplesEditorClientApi::freeze));
         dev.maplesadventure.client.flask.FlaskClient.register(modBus);
         InteractionRegistry.getInstance().register(new LostSoulInteractionProvider());
         InteractionRegistry.getInstance().register(new MessageInteractionProvider());
@@ -83,6 +86,7 @@ public final class MaplesAdventureClient {
     }
 
     private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
+        event.register(AdventureKeyMappings.EDITOR);
         event.register(AdventureKeyMappings.INTERACT);
         event.register(AdventureKeyMappings.SWITCH_TARGET);
         event.register(AdventureKeyMappings.OPEN_MULTIPLAYER_MENU);
@@ -110,6 +114,15 @@ public final class MaplesAdventureClient {
     private static void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         InteractionTargetManager manager = InteractionTargetManager.getInstance();
+        while (AdventureKeyMappings.EDITOR.consumeClick()) {
+            if (minecraft.screen == null) dev.maplesadventure.client.editor.EditorClient.open();
+        }
+        if (dev.maplesadventure.client.editor.EditorClient.active()) {
+            while (AdventureKeyMappings.INTERACT.consumeClick()) { }
+            while (AdventureKeyMappings.SWITCH_TARGET.consumeClick()) { }
+            while (AdventureKeyMappings.OPEN_MULTIPLAYER_MENU.consumeClick()) { }
+            return;
+        }
         manager.tick();
         dev.maplesadventure.multiplayer.encounter.fog.client.FogTraversalClientState.tick();
         InvasionMaterializationCache.tick();

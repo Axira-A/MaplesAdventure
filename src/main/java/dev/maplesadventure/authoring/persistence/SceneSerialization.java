@@ -38,10 +38,17 @@ public final class SceneSerialization {
     }
     public static MaplesObject object(CompoundTag tag) {
         if (bytes(tag).length > EditorLimits.OBJECT_BYTES) throw new IllegalArgumentException("editor.maplesadventure.limit");
+        if(!validCompoundList(tag,"Components")
+                ||tag.contains("Transform")&&!tag.contains("Transform",Tag.TAG_COMPOUND))
+            throw new IllegalArgumentException("editor.maplesadventure.corrupt_object");
         var components = new LinkedHashMap<ResourceLocation,ComponentData>(); var list = tag.getList("Components",Tag.TAG_COMPOUND);
         if (list.size() > EditorLimits.COMPONENTS) throw new IllegalArgumentException("editor.maplesadventure.limit");
         for (int i=0;i<list.size();i++) {
-            var entry=list.getCompound(i); var id=ResourceLocation.parse(entry.getString("Type")); var data=entry.getCompound("Data");
+            var entry=list.getCompound(i); var id=ResourceLocation.parse(entry.getString("Type"));
+            // Do not silently replace a malformed payload with getCompound's empty default.
+            // The containing scene is quarantined read-only and SavedData keeps its exact source.
+            if(!entry.contains("Data",Tag.TAG_COMPOUND))throw new IllegalArgumentException("editor.maplesadventure.invalid_component");
+            var data=entry.getCompound("Data");
             if (bytes(data).length>EditorLimits.COMPONENT_BYTES || components.putIfAbsent(id,new ComponentData(id,entry.contains("Version")?entry.getInt("Version"):1,data))!=null)
                 throw new IllegalArgumentException("editor.maplesadventure.invalid_component");
         }
@@ -67,7 +74,8 @@ public final class SceneSerialization {
         Map<UUID,MaplesObject> objects=new LinkedHashMap<>();Map<UUID,EditorGroup> groups=new LinkedHashMap<>();List<ValidationIssue> issues=new ArrayList<>();
         var ol=tag.getList("Objects",Tag.TAG_COMPOUND);var gl=tag.getList("Groups",Tag.TAG_COMPOUND);
         if(ol.size()>EditorLimits.OBJECTS||gl.size()>EditorLimits.GROUPS)throw new IllegalArgumentException("editor.maplesadventure.limit");
-        boolean damaged=false;
+        boolean damaged=!validCompoundList(tag,"Objects")||!validCompoundList(tag,"Groups");
+        if(damaged)issues.add(ValidationIssue.error("editor.maplesadventure.corrupt_object"));
         for(int i=0;i<ol.size();i++)try {
             var o=object(ol.getCompound(i));if(objects.putIfAbsent(o.id(),o)!=null)throw new IllegalArgumentException("Duplicate UUID");
             o.components().forEach((type,data)->registry.validate(data).forEach(issue->issues.add(new ValidationIssue(issue.severity(),o.id(),type,issue.field(),issue.message()))));
@@ -81,6 +89,10 @@ public final class SceneSerialization {
         int version=tag.contains("DataVersion")?tag.getInt("DataVersion"):1;
         if(version!=MaplesScene.VERSION)issues.add(ValidationIssue.error("editor.maplesadventure.unknown_version"));
         return new MaplesScene(id,dimension,tag.contains("Name")?tag.getString("Name"):id.getPath(),version,Math.max(0,tag.getLong("Revision")),objects,groups,issues,damaged||version!=MaplesScene.VERSION);
+    }
+    public static boolean validCompoundList(CompoundTag tag,String key){
+        return !tag.contains(key)||(tag.get(key) instanceof ListTag list
+                &&(list.isEmpty()||list.getElementType()==Tag.TAG_COMPOUND));
     }
     private SceneSerialization() {}
 }

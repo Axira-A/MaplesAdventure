@@ -8,6 +8,9 @@ import org.lwjgl.glfw.GLFW;
 public final class AdventureKeyMappings {
     public static final String CATEGORY = "key.categories.maplesadventure";
 
+    public static final KeyMapping EDITOR = new KeyMapping("key.maplesadventure.editor",
+            KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F8, CATEGORY);
+
     public static final KeyMapping INTERACT = new KeyMapping(
             "key.maplesadventure.interact",
             KeyConflictContext.IN_GAME,

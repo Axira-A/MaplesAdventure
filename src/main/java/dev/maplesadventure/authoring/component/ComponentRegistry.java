@@ -36,6 +36,8 @@ public final class ComponentRegistry {
     private <T> ComponentData encode(ComponentDescriptor<T> type, T value) {
         if (type.validator().apply(value).stream().anyMatch(i -> i.severity() == ValidationIssue.Severity.ERROR))
             throw new IllegalArgumentException("editor.maplesadventure.invalid_component");
+        // A broken accessor must fail the transaction, not create an unreadable Inspector entry.
+        for(var field:type.fields())field.schema().validateValue(field.read().apply(value));
         Tag tag = type.codec().encodeStart(NbtOps.INSTANCE, value).getOrThrow();
         if (!(tag instanceof CompoundTag compound) || SceneSerialization.bytes(compound).length > EditorLimits.COMPONENT_BYTES)
             throw new IllegalArgumentException("editor.maplesadventure.limit");
@@ -63,5 +65,9 @@ public final class ComponentRegistry {
         catch (RuntimeException | LinkageError error) { return List.of(ValidationIssue.error(
                 descriptor(data.type()) == null ? "editor.maplesadventure.unknown_component" : "editor.maplesadventure.invalid_component")); }
     }
-    private <T> List<ValidationIssue> validate(ComponentDescriptor<T> type, ComponentData data) { return List.copyOf(type.validator().apply(decode(type, data))); }
+    private <T> List<ValidationIssue> validate(ComponentDescriptor<T> type, ComponentData data) {
+        T value=decode(type,data);
+        for(var field:type.fields())field.schema().validateValue(field.read().apply(value));
+        return List.copyOf(type.validator().apply(value));
+    }
 }
