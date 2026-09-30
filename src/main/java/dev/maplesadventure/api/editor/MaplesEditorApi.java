@@ -13,5 +13,7 @@ public final class MaplesEditorApi {
     /** Add a trusted server permission grant (e.g. an external map-author role); no client authority. */
     public static void registerPermission(ResourceLocation id, Predicate<ServerPlayer> permission) { EditorPermissions.register(id,permission); }
     public static boolean isEditorAuthorized(ServerPlayer player) { return EditorPermissions.authorized(player); }
+    /** Runtime gameplay triggers must exclude authors, independently of vanilla spectator policy. */
+    public static boolean isEditing(ServerPlayer player) { return dev.maplesadventure.editor.EditorSessionService.active(player); }
     private MaplesEditorApi() {}
 }

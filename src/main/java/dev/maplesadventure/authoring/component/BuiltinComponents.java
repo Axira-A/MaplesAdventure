@@ -30,6 +30,7 @@ public final class BuiltinComponents {
                         new ComponentDescriptor.Field<>(InspectorField.number("sizeY", .01, 2048, .25), b -> EditorValue.decimal(b.sizeY()), (b,v) -> new Box(b.sizeX(),v.number(),b.sizeZ())),
                         new ComponentDescriptor.Field<>(InspectorField.number("sizeZ", .01, 2048, .25), b -> EditorValue.decimal(b.sizeZ()), (b,v) -> new Box(b.sizeX(),b.sizeY(),v.number()))),
                 b -> { var issues = new ArrayList<ValidationIssue>(); issues.addAll(valid(b.sizeX(),.01,2048)); issues.addAll(valid(b.sizeY(),.01,2048)); issues.addAll(valid(b.sizeZ(),.01,2048)); return issues; }));
+        registry.register(dev.maplesadventure.authoring.logic.LogicComponent.descriptor());
         return registry;
     }
     private static List<ValidationIssue> valid(double value, double min, double max) {

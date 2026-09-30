@@ -18,6 +18,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 /** Local drafts/selection only. All accepted scene data arrives through server packets. */
 public final class EditorClient {
     public record Schema(ResourceLocation id,String label,List<InspectorField> fields){}
+    public record LogicSchema(Schema schema,dev.maplesadventure.authoring.logic.LogicDefinition defaults){}
+    public static final Map<dev.maplesadventure.authoring.logic.LogicTypeRegistry.Kind,Map<ResourceLocation,LogicSchema>> logicSchemas=new EnumMap<>(dev.maplesadventure.authoring.logic.LogicTypeRegistry.Kind.class);
     private static UUID pendingOpen,session,pending;
     private static long openedAt,requestedAt;
     private static final EditorPageAssembler transfers=new EditorPageAssembler();
@@ -31,6 +33,11 @@ public final class EditorClient {
     public static boolean storeReadOnly;
     public static boolean active(){return session!=null;}
     public static boolean pending(){return pending!=null;}
+    public static boolean travel(net.minecraft.world.entity.player.Player player){
+        var mc=Minecraft.getInstance();
+        if(!active()||player!=mc.player||!player.isSpectator()||!(mc.screen instanceof EditorScreen screen))return false;
+        screen.travel(player);return true;
+    }
     public static MaplesScene scene(){return scene;}
     public static UUID selected(){return selection;}
     public static void select(UUID id){selection=id;refresh();}
@@ -50,7 +57,7 @@ public final class EditorClient {
         PacketDistributor.sendToServer(new EditorPayloads.Request(pendingOpen,null,EditorPayloads.Intent.OPEN,null,"",0,null));}
     public static void close(){UUID old=session;clear();if(old!=null&&Minecraft.getInstance().getConnection()!=null)
         PacketDistributor.sendToServer(new EditorPayloads.Request(UUID.randomUUID(),old,EditorPayloads.Intent.CLOSE,null,"",0,null));}
-    public static void clear(){pendingOpen=null;session=null;pending=null;scene=null;sceneTag=null;selection=null;scenes.clear();schemas.clear();fieldCache.clear();transfers.clear();error="";storeReadOnly=false;EditorWorldRenderer.clear();}
+    public static void clear(){pendingOpen=null;session=null;pending=null;scene=null;sceneTag=null;selection=null;scenes.clear();schemas.clear();logicSchemas.clear();fieldCache.clear();transfers.clear();error="";storeReadOnly=false;EditorWorldRenderer.clear();}
     public static void request(EditorPayloads.Intent intent,ResourceLocation id,String name,EditorOperation op){
         if(!active()||pending())return;pending=UUID.randomUUID();requestedAt=System.nanoTime();error="";
         PacketDistributor.sendToServer(new EditorPayloads.Request(pending,session,intent,id,name,scene==null?0:scene.revision(),op));refresh();
@@ -77,11 +84,16 @@ public final class EditorClient {
         case CLOSED->{close();if(Minecraft.getInstance().screen instanceof EditorScreen)Minecraft.getInstance().setScreen(null);}
         case CATALOG->{scenes.clear();storeReadOnly=tag.getBoolean("ReadOnly");var list=tag.getList("Scenes",Tag.TAG_COMPOUND);for(int i=0;i<list.size();i++){var t=list.getCompound(i);scenes.put(ResourceLocation.parse(t.getString("Id")),t.getString("Name"));}refresh();}
         case SCHEMA->{schemas.clear();var types=tag.getList("Types",Tag.TAG_COMPOUND);if(types.size()>1024)throw new IllegalArgumentException("Schema limit");
-            for(int i=0;i<types.size();i++){var t=types.getCompound(i);var fields=new ArrayList<InspectorField>();var fl=t.getList("Fields",Tag.TAG_COMPOUND);if(fl.size()>64)throw new IllegalArgumentException("Fields limit");for(int j=0;j<fl.size();j++)fields.add(EditorViews.field(fl.getCompound(j)));var id=ResourceLocation.parse(t.getString("Id"));schemas.put(id,new Schema(id,t.getString("Label"),List.copyOf(fields)));}refresh();}
+            for(int i=0;i<types.size();i++){var t=types.getCompound(i);var fields=new ArrayList<InspectorField>();var fl=t.getList("Fields",Tag.TAG_COMPOUND);if(fl.size()>64)throw new IllegalArgumentException("Fields limit");for(int j=0;j<fl.size();j++)fields.add(EditorViews.field(fl.getCompound(j)));var id=ResourceLocation.parse(t.getString("Id"));schemas.put(id,new Schema(id,t.getString("Label"),List.copyOf(fields)));}
+            logicSchemas.clear();for(var k:dev.maplesadventure.authoring.logic.LogicTypeRegistry.Kind.values()){
+                var entries=tag.getList("Logic"+k.name(),Tag.TAG_COMPOUND);if(entries.size()>256)throw new IllegalArgumentException("Logic schema limit");var map=new LinkedHashMap<ResourceLocation,LogicSchema>();
+                for(var e:entries){var t=(CompoundTag)e;var fields=new ArrayList<InspectorField>();for(var f:t.getList("Fields",Tag.TAG_COMPOUND))fields.add(EditorViews.field((CompoundTag)f));
+                    var id=ResourceLocation.parse(t.getString("Id"));map.put(id,new LogicSchema(new Schema(id,t.getString("Label"),List.copyOf(fields)),dev.maplesadventure.authoring.logic.LogicComponent.definition(t.getCompound("Defaults"))));}
+                logicSchemas.put(k,Map.copyOf(map));
+            }refresh();}
         case SNAPSHOT->{sceneTag=tag;readScene();refresh();}
         case DELTA->{
             if(scene==null||!scene.id().toString().equals(tag.getString("Id")))return;
-            if(pending==null&&Minecraft.getInstance().screen instanceof EditorScreen screen&&screen.hasDraft())error="editor.maplesadventure.stale";
             if(scene.revision()!=tag.getLong("Before")){pending=null;request(EditorPayloads.Intent.RESYNC,null,"",null);return;}
             merge("Objects","RemovedObjects",tag);merge("Groups","RemovedGroups",tag);sceneTag.putString("Name",tag.getString("Name"));sceneTag.putLong("Revision",tag.getLong("Revision"));sceneTag.put("Issues",tag.getList("Issues",Tag.TAG_COMPOUND).copy());readScene();refresh();
         }

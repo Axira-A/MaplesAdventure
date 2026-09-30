@@ -19,12 +19,37 @@ public final class EditorOperationService {
         try {
             switch(operation) {
                 case EditorOperation.RenameScene op -> name=EditorLimits.name(op.name());
+                case EditorOperation.CommitDraft op -> {
+                    var o=object(old,op.id(),op.revision());var components=new LinkedHashMap<>(o.components());
+                    for(var entry:op.fields().entrySet()){
+                        var c=components.get(entry.getKey());if(c==null)throw new Rejected("editor.maplesadventure.missing_reference");
+                        components.put(entry.getKey(),registry.patch(c,entry.getValue()));
+                    }
+                    if(op.logic()!=null){var id=dev.maplesadventure.authoring.logic.LogicComponent.ID;if(!components.containsKey(id))throw new Rejected("editor.maplesadventure.missing_reference");if(components.get(id).version()!=1)throw new Rejected("editor.maplesadventure.unknown_version");components.put(id,op.logic().component());}
+                    var updated=copy(o,op.name(),op.transform(),o.group(),components);
+                    if(op.logic()!=null&&!dev.maplesadventure.authoring.logic.LogicValidation.object(updated,null).isEmpty())throw new Rejected("editor.maplesadventure.invalid_logic");
+                    objects.put(o.id(),updated);
+                }
                 case EditorOperation.CreateObject op -> {
                     groupExists(groups,op.group());selected=UUID.randomUUID();
                     var components=op.marker()?Map.of(BuiltinComponents.MARKER,registry.create(BuiltinComponents.MARKER)):Map.<net.minecraft.resources.ResourceLocation,ComponentData>of();
                     objects.put(selected,new MaplesObject(selected,op.name(),op.transform(),op.group(),components,0));
                 }
                 case EditorOperation.DeleteObject op -> {object(old,op.id(),op.revision());objects.remove(op.id());}
+                case EditorOperation.CreateTrigger op -> {
+                    groupExists(groups,op.group());selected=UUID.randomUUID();
+                    var logic=dev.maplesadventure.authoring.logic.LogicComponent.ID;
+                    objects.put(selected,new MaplesObject(selected,op.name(),op.transform(),op.group(),Map.of(BuiltinComponents.BOX,registry.create(BuiltinComponents.BOX),logic,registry.create(logic)),0));
+                }
+                case EditorOperation.SetLogic op -> {
+                    var o=object(old,op.id(),op.revision());var id=dev.maplesadventure.authoring.logic.LogicComponent.ID;
+                    if(!o.components().containsKey(id))throw new Rejected("editor.maplesadventure.missing_reference");
+                    if(o.components().get(id).version()!=1)throw new Rejected("editor.maplesadventure.unknown_version");
+                    var components=new LinkedHashMap<>(o.components());components.put(id,op.logic().component());
+                    var updated=copy(o,o.name(),o.transform(),o.group(),components);
+                    if(!dev.maplesadventure.authoring.logic.LogicValidation.object(updated,null).isEmpty())throw new Rejected("editor.maplesadventure.invalid_logic");
+                    objects.put(o.id(),updated);
+                }
                 case EditorOperation.DuplicateObject op -> {var o=object(old,op.id(),op.revision());selected=UUID.randomUUID();objects.put(selected,new MaplesObject(selected,o.name(),o.transform(),o.group(),o.components(),0));}
                 case EditorOperation.RenameObject op -> {var o=object(old,op.id(),op.revision());objects.put(o.id(),copy(o,op.name(),o.transform(),o.group(),o.components()));}
                 case EditorOperation.SetTransform op -> {var o=object(old,op.id(),op.revision());objects.put(o.id(),copy(o,o.name(),op.transform(),o.group(),o.components()));}

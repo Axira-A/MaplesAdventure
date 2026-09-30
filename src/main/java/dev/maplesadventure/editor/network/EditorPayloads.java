@@ -9,7 +9,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
 public final class EditorPayloads {
-    public enum Intent { OPEN, CLOSE, SELECT_SCENE, CREATE_SCENE, OPERATION, RESYNC, VALIDATE }
+    public enum Intent { OPEN, CLOSE, SELECT_SCENE, CREATE_SCENE, OPERATION, RESYNC, VALIDATE, SAVE }
     public enum Kind { SESSION, CATALOG, SCHEMA, SNAPSHOT, DELTA, RESULT, CLOSED }
     public record Request(UUID requestId,UUID session,Intent intent,ResourceLocation scene,String name,long revision,EditorOperation operation) implements CustomPacketPayload {
         public static final Type<Request> TYPE=new Type<>(ResourceLocation.parse("maplesadventure:editor_request"));

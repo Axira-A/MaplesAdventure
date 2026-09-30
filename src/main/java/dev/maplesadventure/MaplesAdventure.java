@@ -50,6 +50,7 @@ public final class MaplesAdventure {
 
     public MaplesAdventure(IEventBus modEventBus, ModContainer modContainer) {
         dev.maplesadventure.editor.EditorEvents.register();
+        dev.maplesadventure.editor.EditorAttachments.register(modEventBus);
         ModEntityTypes.register(modEventBus);
         ModBlocks.register(modEventBus);
         ModPhaseAttachments.register(modEventBus);
@@ -104,6 +105,7 @@ public final class MaplesAdventure {
         modContainer.registerConfig(ModConfig.Type.SERVER, dev.maplesadventure.config.StatusConfig.SPEC, "maplesadventure-status-server.toml");
         modContainer.registerConfig(ModConfig.Type.CLIENT, EchoClientConfig.SPEC, "maplesadventure-echo-client.toml");
         modContainer.registerConfig(ModConfig.Type.CLIENT, InteractionConfig.SPEC, "maplesadventure-client.toml");
+        modContainer.registerConfig(ModConfig.Type.CLIENT, dev.maplesadventure.config.EditorClientConfig.SPEC, "maplesadventure-editor-client.toml");
         if (FMLEnvironment.dist == Dist.CLIENT) {
             MaplesAdventureClient.initialize(modEventBus, modContainer);
         }

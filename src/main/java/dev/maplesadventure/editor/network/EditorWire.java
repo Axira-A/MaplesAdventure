@@ -20,7 +20,7 @@ public final class EditorWire {
     public static void value(RegistryFriendlyByteBuf b,EditorValue value){b.writeVarInt(value.kind().ordinal());b.writeUtf(value.text(),EditorLimits.STRING);}
     public static EditorValue value(RegistryFriendlyByteBuf b){return new EditorValue(EditorValue.Kind.values()[count(b,EditorValue.Kind.values().length-1)],b.readUtf(EditorLimits.STRING));}
     public static EditorOperation operation(RegistryFriendlyByteBuf b){
-        return switch(count(b,13)){
+        return switch(count(b,16)){
             case 0->new EditorOperation.RenameScene(b.readUtf(EditorLimits.NAME));
             case 1->new EditorOperation.CreateObject(b.readUtf(EditorLimits.NAME),transform(b),optionalUuid(b),b.readBoolean());
             case 2->new EditorOperation.DeleteObject(b.readUUID(),b.readVarLong());
@@ -35,7 +35,13 @@ public final class EditorWire {
             case 10->new EditorOperation.RenameGroup(b.readUUID(),b.readVarLong(),b.readUtf(EditorLimits.NAME));
             case 11->new EditorOperation.DeleteGroup(b.readUUID(),b.readVarLong());
             case 12->new EditorOperation.MoveObject(b.readUUID(),b.readVarLong(),optionalUuid(b));
-            default->new EditorOperation.MoveGroup(b.readUUID(),b.readVarLong(),optionalUuid(b));
+            case 13->new EditorOperation.MoveGroup(b.readUUID(),b.readVarLong(),optionalUuid(b));
+            case 14->new EditorOperation.CreateTrigger(b.readUtf(EditorLimits.NAME),transform(b),optionalUuid(b));
+            case 15->new EditorOperation.SetLogic(b.readUUID(),b.readVarLong(),LogicWire.read(b));
+            default->{var uuid=b.readUUID();long rev=b.readVarLong();String name=b.readUtf(EditorLimits.NAME);var transform=transform(b);int n=count(b,32);var fields=new LinkedHashMap<ResourceLocation,Map<String,EditorValue>>();
+                for(int i=0;i<n;i++){var type=id(b);int m=count(b,64);var values=new LinkedHashMap<String,EditorValue>();for(int j=0;j<m;j++)if(values.putIfAbsent(b.readUtf(64),value(b))!=null)throw new IllegalArgumentException("Duplicate field");
+                    if(fields.putIfAbsent(type,values)!=null)throw new IllegalArgumentException("Duplicate component");}
+                yield new EditorOperation.CommitDraft(uuid,rev,name,transform,fields,b.readBoolean()?LogicWire.read(b):null);}
         };
     }
     public static void operation(RegistryFriendlyByteBuf b,EditorOperation operation){switch(operation){
@@ -53,6 +59,10 @@ public final class EditorWire {
         case EditorOperation.DeleteGroup o->{head(b,11,o.id(),o.revision());}
         case EditorOperation.MoveObject o->{head(b,12,o.id(),o.revision());optionalUuid(b,o.group());}
         case EditorOperation.MoveGroup o->{head(b,13,o.id(),o.revision());optionalUuid(b,o.parent());}
+        case EditorOperation.CreateTrigger o->{b.writeVarInt(14);b.writeUtf(o.name(),EditorLimits.NAME);transform(b,o.transform());optionalUuid(b,o.group());}
+        case EditorOperation.SetLogic o->{head(b,15,o.id(),o.revision());LogicWire.write(b,o.logic());}
+        case EditorOperation.CommitDraft o->{head(b,16,o.id(),o.revision());b.writeUtf(o.name(),EditorLimits.NAME);transform(b,o.transform());b.writeVarInt(o.fields().size());
+            o.fields().forEach((id,fields)->{id(b,id);b.writeVarInt(fields.size());fields.forEach((k,v)->{b.writeUtf(k,64);value(b,v);});});b.writeBoolean(o.logic()!=null);if(o.logic()!=null)LogicWire.write(b,o.logic());}
     }}
     private static void head(RegistryFriendlyByteBuf b,int type,UUID id,long revision){b.writeVarInt(type);b.writeUUID(id);b.writeVarLong(revision);}
     private EditorWire(){}

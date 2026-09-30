@@ -17,6 +17,8 @@ public final class AuthoringSavedData extends SavedData {
     private final Map<ResourceLocation,CompoundTag> readOnlySources=new HashMap<>();
     private final List<CompoundTag> quarantined=new ArrayList<>();
     private CompoundTag futureRoot;
+    private long changeEpoch;
+    public long changeEpoch(){return changeEpoch;}
     public static AuthoringSavedData get(MinecraftServer server){return server.overworld().getDataStorage().computeIfAbsent(FACTORY,"maplesadventure_authoring");}
     public Collection<MaplesScene> scenes(){return List.copyOf(scenes.values());}
     public MaplesScene scene(ResourceLocation id){return scenes.get(id);}
@@ -24,7 +26,7 @@ public final class AuthoringSavedData extends SavedData {
     public void put(MaplesScene scene){
         if(readOnly()||readOnlySources.containsKey(scene.id()))throw new IllegalArgumentException("editor.maplesadventure.read_only");
         if(!scenes.containsKey(scene.id())&&scenes.size()+quarantined.size()>=EditorLimits.SCENES)throw new IllegalArgumentException("editor.maplesadventure.limit");
-        scenes.put(scene.id(),scene);setDirty();
+        scenes.put(scene.id(),scene);changeEpoch++;setDirty();
     }
     @Override public CompoundTag save(CompoundTag tag,HolderLookup.Provider registries){
         if(futureRoot!=null)return futureRoot.copy();

@@ -14,7 +14,14 @@ public final class EditorViews {
         for(var descriptor:EditorFoundation.COMPONENTS.descriptors()){
             var type=new CompoundTag();type.putString("Id",descriptor.id().toString());type.putString("Label",descriptor.translationKey());
             var fields=new ListTag();for(var field:descriptor.fields())fields.add(field(field.schema()));type.put("Fields",fields);types.add(type);
-        }root.put("Types",types);return root;
+        }root.put("Types",types);
+        for(var kind:dev.maplesadventure.authoring.logic.LogicTypeRegistry.Kind.values()){
+            var list=new ListTag();var registry=dev.maplesadventure.authoring.logic.BuiltinLogic.registry(kind);
+            for(var e:registry.entries()){var t=new CompoundTag();var d=e.schema();t.putString("Id",d.id().toString());t.putString("Label",d.translationKey());
+                var fields=new ListTag();d.fields().forEach(f->fields.add(field(f.schema())));t.put("Fields",fields);
+                t.put("Defaults",dev.maplesadventure.authoring.logic.LogicComponent.definition(registry.defaults(d.id())));list.add(t);}
+            root.put("Logic"+kind.name(),list);
+        }return root;
     }
     public static CompoundTag field(InspectorField f){
         var t=new CompoundTag();t.putString("Id",f.id());t.putString("Label",f.label());t.putString("Kind",f.kind().name());
