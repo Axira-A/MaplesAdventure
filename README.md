@@ -4,11 +4,11 @@
 
 MaplesAdventure 是面向 Minecraft 共享世界的**实验性、数据驱动的 RPG 创作框架与游戏内关卡编辑器**，同时提供类魂冒险与战斗 Runtime。地图作者布置固定 Encounter 与 Boss；玩家培养属性、管理装备，并通过世界目标交互。服务端权威的相位系统支持独行、协作、决斗与主动入侵。
 
-## Editor Foundation 1.0（实验性）
+## Editor UX & Logic Authoring 1.1（实验性）
 
-默认 **F8** 进入或退出编辑器（可重绑定）；专服要求 OP 2，单人世界允许真正的世界主人，Creative 本身不授予权限。支持同维度多个 Scene、对象/分组、类型化 Inspector、Marker/Box/Radius、世界轴移动与 Yaw Gizmo。使用玩家原视角，不暂停或模糊世界；中央区域按住右键配合移动键观察，Esc 取消拖动或退出。数据由服务器校验并存入独立世界 SavedData。
+默认 **F8** 进入或退出编辑器（可重绑定）；专服要求 OP 2，单人世界允许真正的世界主人，Creative 本身不授予权限。服务端保存原位置/模式后切换 Spectator，退出恢复；断线/孤立会话有持久化恢复。支持同维度多个 Scene、对象/分组、类型化 Inspector、Marker/Box/Radius、世界轴移动与 Yaw Gizmo。左右面板可拖动并保存本地宽度。使用玩家视角，不暂停或模糊世界；移动键直接无惯性移动，右键转动视角，输入文本时不移动。数据由服务器校验并存入独立世界 SavedData。
 
-本轮组件**仅是作者数据与可视化**，不会自动生成怪物、方块或触发战斗；现有 Bonfire/Encounter Runtime 没有迁移，也不改变篝火升级开关默认值。Editor 扩展 API 独立标为实验性，不改变现有 gameplay API v1 契约。协议为 **28**，客户端与服务端须匹配。详见[Editor 架构与操作说明](docs/editor-foundation.zh-CN.md)。
+Logic Inspector 可编排区域进入/离开事件、条件树与有序动作：WORLD/PLAYER 布尔 Flag、消息、声音。Trigger 通过空间索引和逐玩家边沿检测执行，忽略 Editor 会话。现有 Bonfire/Encounter Runtime 未迁移，也不改变篝火升级默认开关；没有自动刷怪或 Encounter Action。实验性 Editor API 不改变 gameplay API v1 契约。协议 **29** 要求客户端/服务端匹配。详见[Editor 操作](docs/editor-foundation.zh-CN.md)与[逻辑创作](docs/logic-authoring.zh-CN.md)。
 
 ## 运行要求
 

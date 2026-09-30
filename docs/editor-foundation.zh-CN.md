@@ -1,18 +1,18 @@
-# Editor Foundation 1.0
+# Editor Foundation / UX 1.1
 
 > 语言：[English](editor-foundation.md) | **简体中文**
 
-本轮为实验性 Authoring。未实现 Trigger/Condition/Action、Prefab、完整 Undo、Runtime 迁移、Scene 删除或跨维度迁移。既有 gameplay API v1 与素材许可不变；`api.editor` / `api.editor.client` 明确标为实验性接口。
+本轮为实验性 Authoring，已支持 [Event/Condition/Action 逻辑](logic-authoring.zh-CN.md)。未实现 Prefab、完整 Undo、Runtime 迁移、Scene 删除或跨维度迁移。既有 gameplay API v1 与素材许可不变；`api.editor` / `api.editor.client` 明确标为实验性接口。
 
 ## 使用
 
-F8 是可重绑定的 KeyMapping，不是原始按键轮询。专服 OP 2 或单人世界真正主人可进入；Creative 不自动授权。篝火休息、喝瓶及控制锁定期间拒绝进入。Editor 不改变 Phase、游戏模式、生命、无敌或飞行能力。死亡、退出、换维度、撤销权限会关闭临时会话。
+F8 是可重绑定 KeyMapping，不是原始按键轮询。专服 OP 2 或单人世界真正主人可进入；Creative 不自动授权。篝火休息、喝瓶及控制锁定期间拒绝进入。服务端先用 `editor_recovery` Player Attachment 保存原模式/维度/坐标/朝向，再切到 Spectator；不改变 Phase 或 RPG 数据。死亡、退出、换维度、撤销权限结束会话并恢复。Login/Respawn 恢复孤立标记；标记与 Vanilla GameMode 保存在同一份玩家 NBT，不复制背包/XP。管理员外部修改模式会关闭编辑，但保留管理员指定的模式。原维度缺失时警告并回退主世界出生点。临时 Session 而非 Spectator 本身标识编辑者。
 
-输入命名空间 ID 和显示名，在当前维度创建 Scene；左上选择器循环切换当前维度目录。对象 UUID 由服务器产生，改名/改组不变，复制产生新 UUID 并保留位置。Group 只用于组织，不继承 Transform；删除组会将直接成员提升到父组。
+输入命名空间 ID 和显示名，在当前维度创建 Scene；左上选择器搜索当前维度目录。对象 UUID 由服务器产生，改名/改组不变，复制产生新 UUID 并保留位置。Group 只用于组织，不继承 Transform；删除组会将直接成员提升到父组。
 
-左右 Hierarchy/Inspector 分别滚动。空对象/标记在中央视线命中点创建，无命中则前方四格；可通过列表或世界 Bounds 选择。字段先写本地草稿，Enter/应用才提交；切换选择或退出丢弃草稿。删除需要二次确认。同类型组件每对象最多一个。未知/损坏组件保留数据，但没有可编辑字段或组件 Gizmo。
+左右 Hierarchy/Inspector 分别滚动，可拖分隔线调整宽度。默认 19%/25%，最小/最大宽度保护中央视口；比例仅保存于本地 `maplesadventure-editor-client.toml`，不进世界存档或网络。搜索/折叠依靠稳定 ID。布尔/枚举使用开关/选择器，Transform 和组件可折叠。空对象/标记在中央视线命中点创建，无命中则前方四格；可通过列表或世界 Bounds 选择。字段先写本地草稿，Enter/应用才提交；切换选择或退出丢弃草稿。删除需要二次确认。同类型组件每对象最多一个。未知/损坏组件保留数据，但没有可编辑字段或组件 Gizmo。
 
-中央区域按住右键配合现有移动键，通过玩家视角观察，不添加自由镜头。文字输入不移动角色。Editor 点击不会攻击、使用、放置或触发 F/Y/L。世界 X/Y/Z 轴用于移动；Yaw 工具绕对象中心旋转，Pitch 数值编辑。拖动只做预览，松开提交一次，Esc 取消；退化视角禁用对应拖动，仍可数值编辑。超过 128 格剔除。普通游戏不运行编辑器选择/渲染扫描。
+移动键不依赖右键，Space/Shift 上下；中央右键转动视角，F 朝向当前选择。仅对已授权会话中的本地 Spectator 使用客户端窄范围 Mixin，以归一化的 0.35 格/tick 位移替代原版加速/惯性；仍是玩家正常移动包，不瞬移、不增加独立镜头。文本输入、Picker、失焦、拖动 Gizmo/分隔线时停止移动。Editor 点击不会攻击、使用、放置或触发 F/Y/L。世界 X/Y/Z 轴用于移动；Yaw 工具绕对象中心旋转，Pitch 数值编辑。拖动只做预览，松开提交一次，Esc 取消；退化视角禁用对应拖动，仍可数值编辑。超过 128 格剔除。普通游戏不运行编辑器选择/渲染扫描。
 
 ## 数据与事务
 
@@ -26,7 +26,7 @@ F8 是可重绑定的 KeyMapping，不是原始按键轮询。专服 OP 2 或单
 
 ## 协议与上限
 
-协议 28 新增有界 `editor_request` / `editor_page`，不改变既有 Payload 字段。C2S 只包含意图、nonce/request ID、预期 revision 和已注册标量字段；不接受客户端 Scene、类名或 NBT Patch。ResourceLocation 校验格式，声明目标 Registry 的字段另外验证服务器注册项存在性。
+协议 29 在有界 `editor_request` / `editor_page` 增加类型化逻辑及原子 Draft 提交；既有 gameplay Payload 字段不变。C2S 只包含意图、nonce/request ID、预期 revision 和已注册标量字段；不接受客户端 Scene、类名或 NBT Patch。ResourceLocation 校验格式，声明目标 Registry 的字段另外验证服务器注册项存在性。
 
 S2C 包含会话结果、当前维度目录、Schema、分段初始快照、变化的对象/组、删除 UUID、校验与操作结果。只向授权订阅者发送数据。快照完整组装后原子替换；Delta 带前后 revision，断层请求重同步。退出清空草稿、选择和页面，迟到响应不能重新打开。不会每 tick 发完整 Scene。
 
@@ -53,6 +53,8 @@ S2C 包含会话结果、当前维度目录、Schema、分段初始快照、变�
 
 执行 `gradlew.bat clean test`、`gradlew.bat clean build`，`check` 会编译扩展示例。在隔离的 `-PweaponRegression=true` 专服执行 `/ma editorregression`，保存重启后执行 `/ma editorregression persisted`。测试通过合成参与者调用真实服务端请求入口。`flaskdeathregression` 通过真实致命伤害及 Clone/Respawn 事件覆盖 keepInventory 两种值；`bonfirefunctional core` 验证现有 Phase Reset/资源行为。它们不替代双真实客户端视觉/输入、单人主人权限及可选镜头人工测试。Fixture 不打入正式 JAR。
 
+使用启用 regression 的客户端连接并打开已授权工作台后，按 F9 可运行真实客户端导航测试：不按右键前进、松键立即停止、文本框聚焦时禁止移动。它在实际客户端 tick 上驱动 Screen 输入状态；正式模组不注册这个开发快捷键。
+
 Flask 死亡掉落只过滤红/灰两种永久入口物品，保留缺失补发、次数、材料和主动 Q 丢弃。Encounter 清理先收集已加载目标再 discard，避免删除 live entity lookup 的当前元素破坏遍历。
 
-没有将原生窗口/焦点崩溃绕过逻辑塞入 gameplay。GLFW 原生错误应与 Editor Java 异常分开报告。首版刻意采用保守 Scene 级冲突、文本型类型化字段编辑，无对象锁和完整 Undo。
+没有将原生窗口/焦点崩溃绕过逻辑塞入 gameplay。GLFW 原生错误应与 Editor Java 异常分开报告。采用保守 Scene 级冲突，无对象锁和完整 Undo。本轮面板、按钮、分隔线均为原创代码绘制，没有新增第三方图标、位图或许可；参考图只用于布局方向。运行时限制、扩展示例和 `/ma logicregression` 恢复/触发测试见[逻辑创作](logic-authoring.zh-CN.md)。

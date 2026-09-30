@@ -8,19 +8,22 @@ define encounters and bosses; players build attributes, manage equipment and int
 contextual world targets. Server-authoritative phase relationships support solo exploration,
 cooperation, duels and opt-in invasion without making the client a gameplay authority.
 
-## Editor Foundation 1.0 (experimental)
+## Editor UX & Logic Authoring 1.1 (experimental)
 
 **F8** opens/closes the editor (rebindable). Dedicated servers require OP level 2; an integrated
 server's actual world owner is authorized. Creative alone is not permission. Multiple Scenes per
 dimension, objects/groups, typed Inspector fields, Marker/Box/Radius and world-axis Move/Yaw
-gizmos are supported. It retains the player's camera, without pausing or blurring the world.
-Hold RMB in the viewport with movement keys to navigate; Esc cancels a drag or exits. The server
-validates changes and persists independent world SavedData.
+gizmos are supported. Resizable docks persist locally. Server-authorized entry stores the original
+mode/position, switches to Spectator and restores on exit, with orphan-session recovery. It retains
+the player's camera without pausing or blurring the world. Movement keys navigate without inertia;
+RMB turns the view. Text editing blocks movement. The server validates and persists authoring data.
 
-Components are **authoring data and visualization only**, not entity/block spawners or combat
-triggers. Bonfire/Encounter runtime and the default bonfire level-up feature setting are unchanged.
-The experimental Editor API is separate from the stable gameplay API v1 contract. Protocol **28**
-requires matching client/server versions. See [Editor architecture and controls](docs/editor-foundation.md).
+The Logic Inspector authors volume Enter/Exit events, condition trees and ordered actions for
+WORLD/PLAYER boolean flags, messages and sounds. Spatially indexed triggers track player edges
+and exclude Editor sessions. Bonfire/Encounter runtime and the default bonfire level-up setting
+are unchanged; no automatic spawner or Encounter Action is provided. The experimental Editor API
+is separate from gameplay API v1. Protocol **29** requires matching client/server versions.
+See [Editor controls](docs/editor-foundation.md) and [Logic Authoring](docs/logic-authoring.md).
 
 ## Requirements
 
