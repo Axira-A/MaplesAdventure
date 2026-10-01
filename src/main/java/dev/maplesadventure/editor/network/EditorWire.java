@@ -20,7 +20,9 @@ public final class EditorWire {
     public static void value(RegistryFriendlyByteBuf b,EditorValue value){b.writeVarInt(value.kind().ordinal());b.writeUtf(value.text(),EditorLimits.STRING);}
     public static EditorValue value(RegistryFriendlyByteBuf b){return new EditorValue(EditorValue.Kind.values()[count(b,EditorValue.Kind.values().length-1)],b.readUtf(EditorLimits.STRING));}
     public static EditorOperation operation(RegistryFriendlyByteBuf b){
-        return switch(count(b,16)){
+        return switch(count(b,18)){
+            case 17->new EditorOperation.CreateFlag(b.readUtf(EditorLimits.NAME));
+            case 18->new EditorOperation.RenameFlag(id(b),b.readUtf(EditorLimits.NAME));
             case 0->new EditorOperation.RenameScene(b.readUtf(EditorLimits.NAME));
             case 1->new EditorOperation.CreateObject(b.readUtf(EditorLimits.NAME),transform(b),optionalUuid(b),b.readBoolean());
             case 2->new EditorOperation.DeleteObject(b.readUUID(),b.readVarLong());
@@ -46,6 +48,8 @@ public final class EditorWire {
     }
     public static void operation(RegistryFriendlyByteBuf b,EditorOperation operation){switch(operation){
         case EditorOperation.RenameScene o->{b.writeVarInt(0);b.writeUtf(o.name(),EditorLimits.NAME);}
+        case EditorOperation.CreateFlag o->{b.writeVarInt(17);b.writeUtf(o.name(),EditorLimits.NAME);}
+        case EditorOperation.RenameFlag o->{b.writeVarInt(18);id(b,o.id());b.writeUtf(o.name(),EditorLimits.NAME);}
         case EditorOperation.CreateObject o->{b.writeVarInt(1);b.writeUtf(o.name(),EditorLimits.NAME);transform(b,o.transform());optionalUuid(b,o.group());b.writeBoolean(o.marker());}
         case EditorOperation.DeleteObject o->{head(b,2,o.id(),o.revision());}
         case EditorOperation.DuplicateObject o->{head(b,3,o.id(),o.revision());}

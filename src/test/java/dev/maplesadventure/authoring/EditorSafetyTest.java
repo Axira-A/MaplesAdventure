@@ -24,10 +24,18 @@ class EditorSafetyTest {
         UUID id=UUID.randomUUID();var component=BuiltinComponents.RADIUS;
         List<EditorOperation> operations=List.of(new EditorOperation.RenameScene("New"),new EditorOperation.CreateObject("M",EditorTransform.origin(),null,true),new EditorOperation.DeleteObject(id,2),new EditorOperation.DuplicateObject(id,2),
                 new EditorOperation.RenameObject(id,2,"N"),new EditorOperation.SetTransform(id,2,EditorTransform.origin()),new EditorOperation.AddComponent(id,2,component),new EditorOperation.RemoveComponent(id,2,component),
-                new EditorOperation.PatchComponent(id,2,component,Map.of("radius",EditorValue.decimal(2.5))),new EditorOperation.CreateGroup("G",null),new EditorOperation.RenameGroup(id,2,"R"),new EditorOperation.DeleteGroup(id,2),new EditorOperation.MoveObject(id,2,null),new EditorOperation.MoveGroup(id,2,null));
+                new EditorOperation.PatchComponent(id,2,component,Map.of("radius",EditorValue.decimal(2.5))),new EditorOperation.CreateGroup("G",null),new EditorOperation.RenameGroup(id,2,"R"),new EditorOperation.DeleteGroup(id,2),new EditorOperation.MoveObject(id,2,null),new EditorOperation.MoveGroup(id,2,null),
+                new EditorOperation.CreateFlag("已见过教程"),new EditorOperation.RenameFlag(ResourceLocation.parse("test:flag"),"教程已完成"));
         var b=new RegistryFriendlyByteBuf(Unpooled.buffer(),RegistryAccess.EMPTY);
         try{for(var op:operations){var request=new EditorPayloads.Request(UUID.randomUUID(),UUID.randomUUID(),EditorPayloads.Intent.OPERATION,ID,"",4,op);EditorPayloads.Request.CODEC.encode(b,request);assertEquals(request,EditorPayloads.Request.CODEC.decode(b));}}
         finally{b.release();}
+    }
+    @Test void makerIntentWireVariantsRoundtripWithoutClientRestoreData(){
+        var b=new RegistryFriendlyByteBuf(Unpooled.buffer(),RegistryAccess.EMPTY);
+        try{for(var intent:List.of(EditorPayloads.Intent.CREATE_SCENE,EditorPayloads.Intent.UNDO,EditorPayloads.Intent.REDO,EditorPayloads.Intent.PLAYTEST)){
+            var request=new EditorPayloads.Request(UUID.randomUUID(),UUID.randomUUID(),intent,intent==EditorPayloads.Intent.UNDO||intent==EditorPayloads.Intent.REDO?ID:null,intent==EditorPayloads.Intent.CREATE_SCENE?"中文场景":"",intent==EditorPayloads.Intent.UNDO||intent==EditorPayloads.Intent.REDO?7:0,null);
+            EditorPayloads.Request.CODEC.encode(b,request);assertEquals(request,EditorPayloads.Request.CODEC.decode(b));
+        }}finally{b.release();}
     }
     @Test void hostileWireLengthsAndTagsRejectBeforeAllocation(){
         var b=new RegistryFriendlyByteBuf(Unpooled.buffer(),RegistryAccess.EMPTY);

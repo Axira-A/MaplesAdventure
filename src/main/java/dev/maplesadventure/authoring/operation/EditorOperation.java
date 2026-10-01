@@ -8,6 +8,8 @@ import net.minecraft.resources.ResourceLocation;
 /** Typed intentions, no arbitrary snapshot replacement or raw NBT mutation. */
 public sealed interface EditorOperation {
     record RenameScene(String name) implements EditorOperation {}
+    record CreateFlag(String name) implements EditorOperation {}
+    record RenameFlag(ResourceLocation id,String name) implements EditorOperation {}
     record CreateObject(String name,EditorTransform transform,UUID group,boolean marker) implements EditorOperation {}
     record DeleteObject(UUID id,long revision) implements EditorOperation {}
     record DuplicateObject(UUID id,long revision) implements EditorOperation {}

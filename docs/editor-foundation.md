@@ -2,7 +2,7 @@
 
 > Language: **English** | [简体中文](editor-foundation.zh-CN.md)
 
-Experimental authoring with [Event/Condition/Action logic](logic-authoring.md). No Prefab, full Undo, runtime migration,
+Experimental authoring with [Event/Condition/Action logic](logic-authoring.md). No Prefab, runtime migration,
 scene deletion or cross-dimension migration is implemented. Existing gameplay API v1 and resource
 licenses remain unchanged; `api.editor` and `api.editor.client` are explicitly experimental.
 
@@ -18,7 +18,7 @@ as vanilla game mode. No inventory/XP snapshot is copied. Explicit external game
 end editing without overriding the administrator's chosen mode. Missing dimensions use the
 overworld spawn with a warning. The temporary session, not Spectator alone, identifies an editor.
 
-Create a Scene with a namespaced ID and display name in the current dimension. The Scene selector
+Create a Scene with a display name (Advanced allows an explicit namespaced ID) in the current dimension. The Scene selector
 searches that dimension's catalog. Objects have server-generated UUIDs: renaming/grouping
 preserves identity, duplication creates a new UUID at the same position. Groups are organizational,
 without inherited transforms. Deleting a group promotes direct members to its parent.
@@ -29,7 +29,7 @@ Defaults are 19% / 25%; min/max widths preserve a central viewport. Ratios persi
 stable IDs. Bool/enum fields use toggles/pickers; Transform and components have collapsible sections.
 Empty/Marker creates an object at
 the center-view hit (or four blocks ahead). Select through the hierarchy or world bounds. Edit
-fields locally and use Enter/Apply to commit; changing selection or exiting discards drafts.
+fields locally and use Enter/Apply to commit; changing selection or exiting prompts Apply/Discard/Cancel.
 Delete requires a second confirmation. Component IDs may appear once per object. Unknown or
 invalid components retain data, but have no editable fields or component gizmo.
 
@@ -50,12 +50,12 @@ Normal gameplay does not run editor selection/render scans.
 `editor` owns server sessions, permission and operation dispatch. `client/editor` owns drafts,
 selection and presentation. `api/editor` declares common descriptors; client providers are separate.
 
-`maplesadventure_authoring` is global overworld SavedData, loaded at server startup. Scene v1 stores
+`maplesadventure_authoring` is global overworld SavedData, loaded at server startup. Scene v2 stores
 ID, dimension, display name, revision, groups and objects. An object stores absolute position,
 yaw/pitch, group UUID, components and revision. Serialization sorts UUIDs/type IDs deterministically.
 No chunk is loaded to save, reset, validate or locate authoring objects.
 
-The version-dispatch entry is `SceneSerialization.load`; current v1 tolerates safe missing
+The version-dispatch entry is `SceneSerialization.load`; current v2 migrates v1 and tolerates safe missing
 name/transform defaults with diagnostics. Unknown or invalid component payloads remain opaque.
 Malformed/future scenes are read-only and their original serialized source is retained by
 SavedData. Unsupported root versions preserve the complete root and block writes. Repair warnings
@@ -71,7 +71,7 @@ the authoritative snapshot; no merging or last-writer-wins behavior is attempted
 
 ## Protocol and limits
 
-Protocol 29 extends bounded `editor_request`/`editor_page` with typed logic and atomic draft commits;
+Protocol 30 extends bounded `editor_request`/`editor_page` with typed logic and atomic draft commits;
 existing gameplay payload fields are unchanged. C2S contains intent, nonce/request IDs, expected revisions and registered scalar fields;
 never a client-authored Scene, arbitrary class name or NBT patch. Resource IDs are syntax checked;
 fields declaring a registry are also checked for server registry membership.
@@ -134,7 +134,9 @@ discarding them so removing from the live entity lookup cannot corrupt its itera
 
 No native window/focus crash workaround is embedded in gameplay. Native GLFW failures should be
 reported separately from Java Editor exceptions. The first release intentionally has conservative
-Scene-wide conflicts, no object locks and no full Undo. UI panels, buttons and splitter artwork
+Scene-wide conflicts, no object locks; shared Undo is bounded and memory-only. UI panels, buttons and splitter artwork
 are original code-drawn assets; this pass adds no third-party icons, bitmap assets or licenses.
 The provided reference informs layout only. See [Logic Authoring](logic-authoring.md) for runtime
 limits, extension examples and `/ma logicregression` recovery/trigger checks.
+
+See [Maker-first UX](editor-maker.md) for shared Undo, local drafts, story flags and Playtest return.

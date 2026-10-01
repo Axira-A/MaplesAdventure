@@ -24,6 +24,9 @@ public final class EditorSessionService {
     private static final Map<UUID,Session> SESSIONS=new HashMap<>();
     private static final Map<UUID,EditorRateLimit> RATES=new HashMap<>();
     private static final Map<UUID,Long> WARNED=new HashMap<>();
+    private static final EditorHistoryService HISTORY=new EditorHistoryService();
+    private record ReturnView(ResourceLocation dimension,ResourceLocation scene,EditorTransform transform) {}
+    private static final Map<UUID,ReturnView> RETURN_VIEWS=new HashMap<>();
     public static boolean active(ServerPlayer p){return SESSIONS.containsKey(p.getUUID());}
     private static boolean available(ServerPlayer p){return p.isAlive()&&!p.isRemoved()
             &&!dev.maplesadventure.bonfire.BonfireSessionService.isBusy(p)
@@ -42,6 +45,7 @@ public final class EditorSessionService {
             }return;
         }
         if(!EditorPermissions.authorized(p)){
+            RETURN_VIEWS.remove(p.getUUID());
             if(tick-WARNED.getOrDefault(p.getUUID(),-200L)>=100){WARNED.put(p.getUUID(),tick);MaplesAdventure.LOGGER.warn("Unauthorized editor request player={}",p.getUUID());}
             close(p);reply(p,r.session()==null?r.requestId():r.session(),r.requestId(),"editor.maplesadventure.unauthorized",null);return;
         }
@@ -57,8 +61,21 @@ public final class EditorSessionService {
                 // Resolve addon metadata before opening a client workspace. Callback failures must
                 // not strand the player in Spectator or expose a partially initialized registry.
                 var schema=EditorViews.schema();
-                var opened=new CompoundTag();opened.putUUID("Request",r.requestId());send(p,s.nonce,EditorPayloads.Kind.SESSION,opened);
-                send(p,s.nonce,EditorPayloads.Kind.SCHEMA,schema);catalog(p,s);
+                var opened=new CompoundTag();opened.putUUID("Request",r.requestId());
+                var view=RETURN_VIEWS.remove(p.getUUID());
+                if(view!=null&&view.dimension.equals(s.dimension)){
+                    var scene=AuthoringSavedData.get(p.server).scene(view.scene);
+                    if(scene!=null&&scene.dimension().equals(s.dimension)){
+                        s.selected=scene.id();var t=view.transform;var pos=t.position();
+                        if(p.serverLevel().getChunkSource().getChunkNow(net.minecraft.util.Mth.floor(pos.x)>>4,net.minecraft.util.Mth.floor(pos.z)>>4)!=null&&p.level().getWorldBorder().isWithinBounds(pos.x,pos.z)
+                                &&pos.y>=p.level().getMinBuildHeight()&&pos.y<=p.level().getMaxBuildHeight()){
+                            p.teleportTo(p.serverLevel(),pos.x,pos.y,pos.z,t.yaw(),t.pitch());p.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+                        }else opened.putString("Notice","editor.maplesadventure.view_unavailable");
+                    }
+                }
+                // Position is restored only from server memory, before opening the UI.
+                send(p,s.nonce,EditorPayloads.Kind.SESSION,opened);send(p,s.nonce,EditorPayloads.Kind.SCHEMA,schema);catalog(p,s);
+                if(s.selected!=null)snapshot(p,s,AuthoringSavedData.get(p.server).scene(s.selected));
             }catch(RuntimeException|LinkageError failure){
                 close(p);MaplesAdventure.LOGGER.error("Editor descriptor initialization failed for {}",p.getUUID(),failure);
                 reply(p,r.requestId(),r.requestId(),"editor.maplesadventure.invalid_snapshot",null);
@@ -71,8 +88,26 @@ public final class EditorSessionService {
         try{
             switch(r.intent()){
                 case CREATE_SCENE->{
-                    if(store.scene(r.scene())!=null)throw new EditorOperationService.Rejected("editor.maplesadventure.duplicate_scene");
-                    store.put(MaplesScene.empty(r.scene(),s.dimension,r.name()));s.selected=r.scene();catalogAll(p.server);snapshot(p,s,store.scene(s.selected));reply(p,s.nonce,r.requestId(),"",null);
+                    var id=r.scene()==null?ResourceLocation.parse("maplesadventure:scenes/"+UUID.randomUUID()):r.scene();
+                    if(store.scene(id)!=null)throw new EditorOperationService.Rejected("editor.maplesadventure.duplicate_scene");
+                    store.put(MaplesScene.empty(id,s.dimension,r.name()));s.selected=id;catalogAll(p.server);snapshot(p,s,store.scene(s.selected));reply(p,s.nonce,r.requestId(),"",null);
+                }
+                case PLAYTEST->{
+                    var point=p.getData(EditorAttachments.RECOVERY).point().orElse(null);
+                    if(point==null||point.gameMode()==net.minecraft.world.level.GameType.SPECTATOR)throw new EditorOperationService.Rejected("editor.maplesadventure.play_spectator");
+                    if(s.selected!=null)RETURN_VIEWS.put(p.getUUID(),new ReturnView(s.dimension,s.selected,new EditorTransform(p.position(),net.minecraft.util.Mth.wrapDegrees(p.getYRot()),p.getXRot())));
+                    close(p,false);return;
+                }
+                case UNDO,REDO->{
+                    if(!Objects.equals(s.selected,r.scene()))throw new EditorOperationService.Rejected("editor.maplesadventure.missing_reference");
+                    var old=required(store,s.selected,s.dimension);
+                    var prepared=HISTORY.prepare(old,r.revision(),r.intent()==EditorPayloads.Intent.REDO,EditorFoundation.COMPONENTS);
+                    var next=dev.maplesadventure.authoring.logic.LogicValidation.scene(prepared.result(),p.registryAccess());
+                    for(var o:next.objects().values())if(!o.equals(old.objects().get(o.id())))validateWorld(p,new EditorOperation.SetTransform(o.id(),o.revision(),o.transform()));
+                    validateReferences(p,old,next);var delta=EditorViews.delta(old,next);
+                    if(SceneSerialization.bytes(delta).length>EditorLimits.SCENE_BYTES*2)throw new IllegalArgumentException("editor.maplesadventure.limit");
+                    store.put(next);HISTORY.committed(prepared);broadcast(p.server,old.id(),delta);catalogAll(p.server);historyAll(p.server);
+                    reply(p,s.nonce,r.requestId(),"",prepared.selected());
                 }
                 case SELECT_SCENE->{var scene=required(store,r.scene(),s.dimension);s.selected=scene.id();snapshot(p,s,scene);reply(p,s.nonce,r.requestId(),"",null);}
                 case SAVE->{if(s.selected==null)throw new IllegalArgumentException("editor.maplesadventure.missing_reference");required(store,s.selected,s.dimension);store.setDirty();reply(p,s.nonce,r.requestId(),"",null);}
@@ -90,8 +125,8 @@ public final class EditorSessionService {
                     var delta=EditorViews.delta(old,result.scene()); // Serialize callbacks before committing, so errors cannot half-commit.
                     if(SceneSerialization.bytes(delta).length>EditorLimits.SCENE_BYTES*2)throw new IllegalArgumentException("editor.maplesadventure.limit");
                     store.put(result.scene());
-                    for(var entry:List.copyOf(SESSIONS.entrySet())){var viewer=p.server.getPlayerList().getPlayer(entry.getKey());var session=entry.getValue();
-                        if(viewer!=null&&EditorPermissions.authorized(viewer)&&Objects.equals(session.selected,old.id())&&session.dimension.equals(viewer.level().dimension().location()))send(viewer,session.nonce,EditorPayloads.Kind.DELTA,delta);}
+                    HISTORY.record(old,result.scene(),p.getUUID(),p.getGameProfile().getName(),r.operation());
+                    broadcast(p.server,old.id(),delta);historyAll(p.server);
                     if(r.operation() instanceof EditorOperation.RenameScene)catalogAll(p.server);
                     reply(p,s.nonce,r.requestId(),"",result.selected());
                 }
@@ -144,7 +179,18 @@ public final class EditorSessionService {
     private static void catalog(ServerPlayer p,Session s){var root=new CompoundTag();var list=new ListTag();
         for(var scene:AuthoringSavedData.get(p.server).scenes())if(scene.dimension().equals(s.dimension)){var t=new CompoundTag();t.putString("Id",scene.id().toString());t.putString("Name",scene.name());list.add(t);}root.put("Scenes",list);root.putBoolean("ReadOnly",AuthoringSavedData.get(p.server).readOnly());send(p,s.nonce,EditorPayloads.Kind.CATALOG,root);}
     private static void catalogAll(MinecraftServer server){for(var entry:List.copyOf(SESSIONS.entrySet())){var p=server.getPlayerList().getPlayer(entry.getKey());if(p!=null&&EditorPermissions.authorized(p))catalog(p,entry.getValue());}}
-    private static void snapshot(ServerPlayer p,Session s,MaplesScene scene){if(scene!=null)send(p,s.nonce,EditorPayloads.Kind.SNAPSHOT,EditorViews.scene(dev.maplesadventure.authoring.logic.LogicValidation.scene(scene,p.registryAccess())));}
+    private static void snapshot(ServerPlayer p,Session s,MaplesScene scene){if(scene!=null){send(p,s.nonce,EditorPayloads.Kind.SNAPSHOT,EditorViews.scene(dev.maplesadventure.authoring.logic.LogicValidation.scene(scene,p.registryAccess())));history(p,s);}}
+    private static void broadcast(MinecraftServer server,ResourceLocation scene,CompoundTag delta){
+        for(var entry:List.copyOf(SESSIONS.entrySet())){var p=server.getPlayerList().getPlayer(entry.getKey());var s=entry.getValue();
+            if(p!=null&&EditorPermissions.authorized(p)&&Objects.equals(s.selected,scene)&&s.dimension.equals(p.level().dimension().location()))send(p,s.nonce,EditorPayloads.Kind.DELTA,delta);}
+    }
+    private static void history(ServerPlayer p,Session s){if(s.selected==null)return;var state=HISTORY.state(s.selected);var tag=new CompoundTag();
+        tag.putString("Scene",s.selected.toString());tag.putInt("Undo",state.undo());tag.putInt("Redo",state.redo());tag.putString("Description",state.description());
+        if(state.author()!=null)tag.putUUID("Author",state.author());tag.putString("AuthorName",state.authorName());
+        tag.putString("RedoDescription",state.redoDescription());tag.putString("RedoAuthorName",state.redoAuthorName());
+        send(p,s.nonce,EditorPayloads.Kind.HISTORY,tag);
+    }
+    private static void historyAll(MinecraftServer server){for(var entry:List.copyOf(SESSIONS.entrySet())){var p=server.getPlayerList().getPlayer(entry.getKey());if(p!=null&&EditorPermissions.authorized(p))history(p,entry.getValue());}}
     private static void reply(ServerPlayer p,UUID session,UUID request,String error,UUID selected){var tag=new CompoundTag();tag.putUUID("Request",request);tag.putString("Error",error);if(selected!=null)tag.putUUID("Selected",selected);send(p,session,EditorPayloads.Kind.RESULT,tag);}
     private static void send(ServerPlayer p,UUID session,EditorPayloads.Kind kind,CompoundTag tag){
         byte[] bytes=SceneSerialization.bytes(tag);if(bytes.length>EditorLimits.SCENE_BYTES*2)throw new IllegalArgumentException("Editor snapshot limit");
@@ -154,16 +200,21 @@ public final class EditorSessionService {
     public static void close(ServerPlayer p){close(p,false);}
     private static void close(ServerPlayer p,boolean preserveExternalMode){
         var s=SESSIONS.remove(p.getUUID());if(s==null)return;
-        try{if(!p.hasDisconnected())send(p,s.nonce,EditorPayloads.Kind.CLOSED,new CompoundTag());}
-        finally{EditorRecoveryService.restore(p,preserveExternalMode);}
+        EditorRecoveryService.restore(p,preserveExternalMode);
+        if(!p.hasDisconnected()){var tag=new CompoundTag();boolean recovered=!p.getData(EditorAttachments.RECOVERY).active();tag.putBoolean("Recovered",recovered);
+            if(!recovered){RETURN_VIEWS.remove(p.getUUID());tag.putString("Error","editor.maplesadventure.recovery_failed");}
+            send(p,s.nonce,EditorPayloads.Kind.CLOSED,tag);}
     }
-    public static void forget(ServerPlayer p){close(p);RATES.remove(p.getUUID());WARNED.remove(p.getUUID());}
+    public static void forgetView(ServerPlayer p){RETURN_VIEWS.remove(p.getUUID());}
+    public static void forget(ServerPlayer p){close(p);forgetView(p);RATES.remove(p.getUUID());WARNED.remove(p.getUUID());}
     public static void tick(MinecraftServer server){for(var entry:List.copyOf(SESSIONS.entrySet())){var p=server.getPlayerList().getPlayer(entry.getKey());
         if(p==null){SESSIONS.remove(entry.getKey());continue;}
         if(!p.isSpectator()){close(p,true);continue;}
         if(p.getCamera()!=p)p.setCamera(p);
-        if(!EditorPermissions.authorized(p)||!available(p)||!entry.getValue().dimension.equals(p.level().dimension().location()))close(p);}}
+        if(!EditorPermissions.authorized(p)||!available(p)||!entry.getValue().dimension.equals(p.level().dimension().location())){forgetView(p);close(p);}}
+        // Only pending return contexts are inspected; no all-player scan while idle.
+        RETURN_VIEWS.entrySet().removeIf(entry->{var p=server.getPlayerList().getPlayer(entry.getKey());return p==null||!p.isAlive()||!EditorPermissions.authorized(p)||!entry.getValue().dimension.equals(p.level().dimension().location());});}
     public static void closeAll(MinecraftServer server){for(var id:List.copyOf(SESSIONS.keySet())){var p=server.getPlayerList().getPlayer(id);if(p!=null)close(p);}}
-    public static void clear(){SESSIONS.clear();RATES.clear();WARNED.clear();}
+    public static void clear(){SESSIONS.clear();RATES.clear();WARNED.clear();RETURN_VIEWS.clear();HISTORY.clear();}
     private EditorSessionService(){}
 }

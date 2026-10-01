@@ -15,7 +15,7 @@ public final class LogicValidation {
     }
     public static MaplesScene scene(MaplesScene s,RegistryAccess registries){var issues=new ArrayList<>(s.issues().stream().filter(i->!LogicComponent.ID.equals(i.component())).toList());
         for(var o:s.objects().values())issues.addAll(object(o,registries));
-        return new MaplesScene(s.id(),s.dimension(),s.name(),s.dataVersion(),s.revision(),s.objects(),s.groups(),issues,s.readOnly());}
+        return new MaplesScene(s.id(),s.dimension(),s.name(),s.dataVersion(),s.revision(),s.objects(),s.groups(),issues,s.readOnly(),s.flags());}
     public static String safe(Throwable e){String text=e.getMessage();return text==null?e.getClass().getSimpleName():text.substring(0,Math.min(512,text.length()));}
     private LogicValidation(){}
 }

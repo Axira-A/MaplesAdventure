@@ -6,9 +6,11 @@ MaplesAdventure 是面向 Minecraft 共享世界的**实验性、数据驱动的
 
 ## Editor UX & Logic Authoring 1.1（实验性）
 
+默认界面使用场景／对象／规则／当／如果／那么；高级信息可选。支持本地草稿撤销、服务器共享撤销／重做、中文剧情标记目录和真实试玩后的 F8 机位返回。自动保存表示已被服务器接受、进入世界正常保存流程。见[制作人优先 UX](docs/editor-maker.zh-CN.md)。
+
 默认 **F8** 进入或退出编辑器（可重绑定）；专服要求 OP 2，单人世界允许真正的世界主人，Creative 本身不授予权限。服务端保存原位置/模式后切换 Spectator，退出恢复；断线/孤立会话有持久化恢复。支持同维度多个 Scene、对象/分组、类型化 Inspector、Marker/Box/Radius、世界轴移动与 Yaw Gizmo。左右面板可拖动并保存本地宽度。使用玩家视角，不暂停或模糊世界；移动键直接无惯性移动，右键转动视角，输入文本时不移动。数据由服务器校验并存入独立世界 SavedData。
 
-Logic Inspector 可编排区域进入/离开事件、条件树与有序动作：WORLD/PLAYER 布尔 Flag、消息、声音。Trigger 通过空间索引和逐玩家边沿检测执行，忽略 Editor 会话。现有 Bonfire/Encounter Runtime 未迁移，也不改变篝火升级默认开关；没有自动刷怪或 Encounter Action。实验性 Editor API 不改变 gameplay API v1 契约。协议 **29** 要求客户端/服务端匹配。详见[Editor 操作](docs/editor-foundation.zh-CN.md)与[逻辑创作](docs/logic-authoring.zh-CN.md)。
+Logic Inspector 可编排区域进入/离开事件、条件树与有序动作：WORLD/PLAYER 布尔 Flag、消息、声音。Trigger 通过空间索引和逐玩家边沿检测执行，忽略 Editor 会话。现有 Bonfire/Encounter Runtime 未迁移，也不改变篝火升级默认开关；没有自动刷怪或 Encounter Action。实验性 Editor API 不改变 gameplay API v1 契约。协议 **30** 要求客户端/服务端匹配。详见[Editor 操作](docs/editor-foundation.zh-CN.md)与[逻辑创作](docs/logic-authoring.zh-CN.md)。
 
 ## 运行要求
 

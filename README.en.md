@@ -10,6 +10,8 @@ cooperation, duels and opt-in invasion without making the client a gameplay auth
 
 ## Editor UX & Logic Authoring 1.1 (experimental)
 
+The Maker UI uses Scene / Object / Rule / When / If / Then; advanced details are optional. Local draft Undo, shared server Undo/Redo, named story flags and Playtest/F8 camera return are supported. Autosaved means accepted into normal world saving. See [Maker-first UX](docs/editor-maker.md).
+
 **F8** opens/closes the editor (rebindable). Dedicated servers require OP level 2; an integrated
 server's actual world owner is authorized. Creative alone is not permission. Multiple Scenes per
 dimension, objects/groups, typed Inspector fields, Marker/Box/Radius and world-axis Move/Yaw
@@ -22,7 +24,7 @@ The Logic Inspector authors volume Enter/Exit events, condition trees and ordere
 WORLD/PLAYER boolean flags, messages and sounds. Spatially indexed triggers track player edges
 and exclude Editor sessions. Bonfire/Encounter runtime and the default bonfire level-up setting
 are unchanged; no automatic spawner or Encounter Action is provided. The experimental Editor API
-is separate from gameplay API v1. Protocol **29** requires matching client/server versions.
+is separate from gameplay API v1. Protocol **30** requires matching client/server versions.
 See [Editor controls](docs/editor-foundation.md) and [Logic Authoring](docs/logic-authoring.md).
 
 ## Requirements

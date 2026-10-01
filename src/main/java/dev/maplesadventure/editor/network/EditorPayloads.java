@@ -9,18 +9,19 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
 public final class EditorPayloads {
-    public enum Intent { OPEN, CLOSE, SELECT_SCENE, CREATE_SCENE, OPERATION, RESYNC, VALIDATE, SAVE }
-    public enum Kind { SESSION, CATALOG, SCHEMA, SNAPSHOT, DELTA, RESULT, CLOSED }
+    public enum Intent { OPEN, CLOSE, SELECT_SCENE, CREATE_SCENE, OPERATION, RESYNC, VALIDATE, SAVE, UNDO, REDO, PLAYTEST }
+    public enum Kind { SESSION, CATALOG, SCHEMA, SNAPSHOT, DELTA, RESULT, CLOSED, HISTORY }
     public record Request(UUID requestId,UUID session,Intent intent,ResourceLocation scene,String name,long revision,EditorOperation operation) implements CustomPacketPayload {
         public static final Type<Request> TYPE=new Type<>(ResourceLocation.parse("maplesadventure:editor_request"));
         public static final StreamCodec<RegistryFriendlyByteBuf,Request> CODEC=StreamCodec.of((b,p)->{
             b.writeUUID(p.requestId);EditorWire.optionalUuid(b,p.session);b.writeVarInt(p.intent.ordinal());
-            if(p.intent==Intent.SELECT_SCENE||p.intent==Intent.CREATE_SCENE||p.intent==Intent.OPERATION){EditorWire.id(b,p.scene);}
+            if(p.intent==Intent.SELECT_SCENE||p.intent==Intent.CREATE_SCENE||p.intent==Intent.OPERATION||p.intent==Intent.UNDO||p.intent==Intent.REDO){b.writeBoolean(p.scene!=null);if(p.scene!=null)EditorWire.id(b,p.scene);}
             if(p.intent==Intent.CREATE_SCENE)b.writeUtf(p.name,EditorLimits.NAME);
-            if(p.intent==Intent.OPERATION){b.writeVarLong(p.revision);EditorWire.operation(b,p.operation);}
+            if(p.intent==Intent.OPERATION||p.intent==Intent.UNDO||p.intent==Intent.REDO)b.writeVarLong(p.revision);
+            if(p.intent==Intent.OPERATION)EditorWire.operation(b,p.operation);
         },b->{UUID request=b.readUUID(),session=EditorWire.optionalUuid(b);Intent intent=Intent.values()[EditorWire.count(b,Intent.values().length-1)];
-            ResourceLocation scene=(intent==Intent.SELECT_SCENE||intent==Intent.CREATE_SCENE||intent==Intent.OPERATION)?EditorWire.id(b):null;
-            String name=intent==Intent.CREATE_SCENE?b.readUtf(EditorLimits.NAME):"";long revision=intent==Intent.OPERATION?b.readVarLong():0;
+            ResourceLocation scene=(intent==Intent.SELECT_SCENE||intent==Intent.CREATE_SCENE||intent==Intent.OPERATION||intent==Intent.UNDO||intent==Intent.REDO)&&b.readBoolean()?EditorWire.id(b):null;
+            String name=intent==Intent.CREATE_SCENE?b.readUtf(EditorLimits.NAME):"";long revision=intent==Intent.OPERATION||intent==Intent.UNDO||intent==Intent.REDO?b.readVarLong():0;
             return new Request(request,session,intent,scene,name,revision,intent==Intent.OPERATION?EditorWire.operation(b):null);});
         @Override public Type<Request> type(){return TYPE;}
     }

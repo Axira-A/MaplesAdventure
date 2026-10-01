@@ -4,6 +4,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class EditorClientConfig {
     public static final ModConfigSpec SPEC;
     public static final ModConfigSpec.DoubleValue LEFT,RIGHT;
-    static{var b=new ModConfigSpec.Builder();LEFT=b.defineInRange("leftPanelRatio",.19,.1,.4);RIGHT=b.defineInRange("rightPanelRatio",.25,.1,.45);SPEC=b.build();}
+    public static final ModConfigSpec.BooleanValue ADVANCED,TUTORIAL;
+    static{var b=new ModConfigSpec.Builder();LEFT=b.defineInRange("leftPanelRatio",.19,.1,.4);RIGHT=b.defineInRange("rightPanelRatio",.25,.1,.45);ADVANCED=b.define("advancedInformation",false);TUTORIAL=b.define("tutorialShown",false);SPEC=b.build();}
     private EditorClientConfig(){}
 }

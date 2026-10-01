@@ -15,10 +15,22 @@ public final class EditorOperationService {
         if(old.readOnly())throw new Rejected("editor.maplesadventure.read_only");
         if(old.revision()!=expected)throw new Rejected("editor.maplesadventure.stale");
         if(old.revision()==Long.MAX_VALUE)throw new Rejected("editor.maplesadventure.limit");
-        var objects=new LinkedHashMap<>(old.objects());var groups=new LinkedHashMap<>(old.groups());String name=old.name();UUID selected=null;
+        var objects=new LinkedHashMap<>(old.objects());var groups=new LinkedHashMap<>(old.groups());var flags=new LinkedHashMap<>(old.flags());String name=old.name();UUID selected=null;
         try {
             switch(operation) {
                 case EditorOperation.RenameScene op -> name=EditorLimits.name(op.name());
+                case EditorOperation.CreateFlag op -> {
+                    var label=FlagDefinition.normalizeName(op.name());
+                    if(flags.size()>=1024)throw new Rejected("editor.maplesadventure.limit");
+                    if(flags.values().stream().anyMatch(f->f.name().equals(label)))throw new Rejected("editor.maplesadventure.duplicate_flag");
+                    var id=net.minecraft.resources.ResourceLocation.parse("maplesadventure:flags/"+UUID.randomUUID());flags.put(id,new FlagDefinition(id,label));
+                }
+                case EditorOperation.RenameFlag op -> {
+                    if(!flags.containsKey(op.id()))throw new Rejected("editor.maplesadventure.missing_reference");
+                    var label=FlagDefinition.normalizeName(op.name());
+                    if(flags.values().stream().anyMatch(f->!f.id().equals(op.id())&&f.name().equals(label)))throw new Rejected("editor.maplesadventure.duplicate_flag");
+                    flags.put(op.id(),new FlagDefinition(op.id(),label));
+                }
                 case EditorOperation.CommitDraft op -> {
                     var o=object(old,op.id(),op.revision());var components=new LinkedHashMap<>(o.components());
                     for(var entry:op.fields().entrySet()){
@@ -65,7 +77,7 @@ public final class EditorOperationService {
                     for(var child:old.groups().values())if(g.id().equals(child.parent()))groups.put(child.id(),new EditorGroup(child.id(),child.name(),g.parent(),next(child.revision())));
                 }
             }
-            var result=new MaplesScene(old.id(),old.dimension(),name,MaplesScene.VERSION,next(old.revision()),objects,groups,List.of(),false);
+            var result=new MaplesScene(old.id(),old.dimension(),name,MaplesScene.VERSION,next(old.revision()),objects,groups,List.of(),false,flags);
             var tag=SceneSerialization.save(result);
             if(SceneSerialization.bytes(tag).length>EditorLimits.SCENE_BYTES)throw new Rejected("editor.maplesadventure.limit");
             for(var object:objects.values())if(SceneSerialization.bytes(SceneSerialization.object(object)).length>EditorLimits.OBJECT_BYTES)throw new Rejected("editor.maplesadventure.limit");

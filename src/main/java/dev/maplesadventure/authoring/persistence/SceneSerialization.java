@@ -66,7 +66,12 @@ public final class SceneSerialization {
         ListTag objects=new ListTag(), groups=new ListTag();
         scene.objects().values().stream().sorted(Comparator.comparing(MaplesObject::id)).forEach(o->objects.add(object(o)));
         scene.groups().values().stream().sorted(Comparator.comparing(EditorGroup::id)).forEach(g->groups.add(group(g)));
-        tag.put("Objects",objects);tag.put("Groups",groups);return tag;
+        tag.put("Objects",objects);tag.put("Groups",groups);tag.put("Flags",flags(scene));return tag;
+    }
+    public static ListTag flags(MaplesScene scene) {
+        var list=new ListTag();scene.flags().values().stream().sorted(Comparator.comparing(f->f.id().toString())).forEach(f->{
+            var t=new CompoundTag();t.putString("Id",f.id().toString());t.putString("Name",f.name());list.add(t);
+        });return list;
     }
     public static MaplesScene load(CompoundTag tag,ComponentRegistry registry) {
         if(bytes(tag).length>EditorLimits.SCENE_BYTES)throw new IllegalArgumentException("editor.maplesadventure.limit");
@@ -87,8 +92,17 @@ public final class SceneSerialization {
         for(var g:groups.values()) {Set<UUID> chain=new HashSet<>();UUID current=g.id();
             while(current!=null){var next=groups.get(current);if(next==null||!chain.add(current)||chain.size()>EditorLimits.DEPTH){damaged=true;issues.add(ValidationIssue.error("editor.maplesadventure.invalid_group"));break;}current=next.parent();}}
         int version=tag.contains("DataVersion")?tag.getInt("DataVersion"):1;
-        if(version!=MaplesScene.VERSION)issues.add(ValidationIssue.error("editor.maplesadventure.unknown_version"));
-        return new MaplesScene(id,dimension,tag.contains("Name")?tag.getString("Name"):id.getPath(),version,Math.max(0,tag.getLong("Revision")),objects,groups,issues,damaged||version!=MaplesScene.VERSION);
+        var flags=new LinkedHashMap<ResourceLocation,FlagDefinition>();
+        boolean supported=version==1||version==MaplesScene.VERSION;
+        if(supported){
+            if(!validCompoundList(tag,"Flags")||tag.getList("Flags",Tag.TAG_COMPOUND).size()>1024){damaged=true;issues.add(ValidationIssue.error("editor.maplesadventure.invalid_flag"));}
+            else for(var element:tag.getList("Flags",Tag.TAG_COMPOUND))try{
+                var t=(CompoundTag)element;var f=new FlagDefinition(ResourceLocation.parse(t.getString("Id")),t.getString("Name"));
+                if(flags.putIfAbsent(f.id(),f)!=null)throw new IllegalArgumentException("Duplicate flag");
+            }catch(RuntimeException invalid){damaged=true;issues.add(ValidationIssue.error("editor.maplesadventure.invalid_flag"));}
+        }
+        if(!supported)issues.add(ValidationIssue.error("editor.maplesadventure.unknown_version"));
+        return new MaplesScene(id,dimension,tag.contains("Name")?tag.getString("Name"):id.getPath(),supported?MaplesScene.VERSION:version,Math.max(0,tag.getLong("Revision")),objects,groups,issues,damaged||!supported,flags);
     }
     public static boolean validCompoundList(CompoundTag tag,String key){
         return !tag.contains(key)||(tag.get(key) instanceof ListTag list

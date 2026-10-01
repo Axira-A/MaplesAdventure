@@ -10,6 +10,9 @@ import net.minecraft.world.phys.AABB;
 /** Invoke only from your CLIENT setup. Never reference this class in a common descriptor. */
 public final class EditorGizmoExample {
     public static void register() {
+        MaplesEditorClientApi.registerPresentation(EditorPresentation.Target.COMPONENT,
+                EditorComponentExample.TYPE,new EditorPresentation("example.editor.category",
+                        "example.editor.description",null,false,""));
         MaplesEditorClientApi.registerGizmo(EditorComponentExample.TYPE, new EditorGizmoProvider() {
             @Override public AABB bounds(Map<String, EditorValue> fields) {
                 double r = fields.get("extent").number(); return new AABB(-r, -r, -r, r, r, r);

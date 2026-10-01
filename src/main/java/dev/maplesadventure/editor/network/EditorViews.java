@@ -62,7 +62,7 @@ public final class EditorViews {
         next.groups().forEach((id,g)->{if(!g.equals(old.groups().get(id)))groups.add(SceneSerialization.group(g));});
         old.objects().keySet().forEach(id->{if(!next.objects().containsKey(id))removedObjects.add(StringTag.valueOf(id.toString()));});
         old.groups().keySet().forEach(id->{if(!next.groups().containsKey(id))removedGroups.add(StringTag.valueOf(id.toString()));});
-        t.put("Objects",objects);t.put("Groups",groups);t.put("RemovedObjects",removedObjects);t.put("RemovedGroups",removedGroups);t.put("Issues",issues(next));return t;
+        t.put("Objects",objects);t.put("Groups",groups);t.put("RemovedObjects",removedObjects);t.put("RemovedGroups",removedGroups);t.put("Issues",issues(next));t.put("Flags",SceneSerialization.flags(next));t.putInt("DataVersion",next.dataVersion());return t;
     }
     private EditorViews(){}
 }

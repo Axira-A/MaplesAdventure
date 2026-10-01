@@ -19,8 +19,8 @@ public final class EditorEvents {
     @SubscribeEvent public void respawn(PlayerEvent.PlayerRespawnEvent e){if(e.getEntity() instanceof ServerPlayer p)EditorRecoveryService.restore(p,false);}
     @SubscribeEvent public void tick(ServerTickEvent.Post e){EditorSessionService.tick(e.getServer());dev.maplesadventure.authoring.logic.LogicRuntime.tick(e.getServer());}
     @SubscribeEvent public void logout(PlayerEvent.PlayerLoggedOutEvent e){if(e.getEntity() instanceof ServerPlayer p){EditorSessionService.forget(p);dev.maplesadventure.authoring.logic.LogicRuntime.forget(p);}}
-    @SubscribeEvent public void dimension(PlayerEvent.PlayerChangedDimensionEvent e){if(e.getEntity() instanceof ServerPlayer p){EditorSessionService.close(p);dev.maplesadventure.authoring.logic.LogicRuntime.forget(p);}}
-    @SubscribeEvent public void death(LivingDeathEvent e){if(!e.isCanceled()&&e.getEntity() instanceof ServerPlayer p)EditorSessionService.close(p);}
+    @SubscribeEvent public void dimension(PlayerEvent.PlayerChangedDimensionEvent e){if(e.getEntity() instanceof ServerPlayer p){EditorSessionService.forgetView(p);EditorSessionService.close(p);dev.maplesadventure.authoring.logic.LogicRuntime.forget(p);}}
+    @SubscribeEvent public void death(LivingDeathEvent e){if(!e.isCanceled()&&e.getEntity() instanceof ServerPlayer p){EditorSessionService.forgetView(p);EditorSessionService.close(p);}}
     private void interaction(PlayerInteractEvent e){if(e.getEntity() instanceof ServerPlayer p&&EditorSessionService.active(p)&&e instanceof ICancellableEvent c)c.setCanceled(true);}
     @SubscribeEvent(priority=EventPriority.HIGHEST) public void attack(AttackEntityEvent e){if(e.getEntity() instanceof ServerPlayer p&&EditorSessionService.active(p))e.setCanceled(true);}
     @SubscribeEvent(priority=EventPriority.HIGHEST) public void block(PlayerInteractEvent.RightClickBlock e){interaction(e);}

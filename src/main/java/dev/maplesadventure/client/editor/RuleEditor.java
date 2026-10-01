@@ -7,17 +7,19 @@ import java.util.function.*;
 import net.minecraft.network.chat.Component;
 
 /** Schema-driven local draft. Structural edits and field edits never send packets on their own. */
-public final class LogicInspector {
+public final class RuleEditor {
     public interface Host {
         void line(String text);void action(String text,Runnable action);
         void field(String key,InspectorField spec,EditorValue value);
         String text(String key,String fallback);
         void picker(String title,List<Choice> choices);
         void changed();void clearLogicFields();void invalid();
+        default void beginChange(){}default boolean advanced(){return false;}
     }
     public record Choice(String label,Runnable action){}
     private LogicComponent draft;
-    public LogicInspector(LogicComponent value){draft=value;}
+    public RuleEditor(LogicComponent value){draft=value;}
+    public LogicComponent snapshot(){return draft;}
     public LogicComponent value(Host host){var bindings=new ArrayList<LogicBinding>();
         for(var b:draft.bindings()){String p="logic/"+b.id();var actions=new ArrayList<LogicDefinition>();for(int i=0;i<b.actions().size();i++)actions.add(read(host,p+"/action/"+i,LogicTypeRegistry.Kind.ACTION,b.actions().get(i)));
             bindings.add(new LogicBinding(b.id(),b.enabled(),read(host,p+"/event",LogicTypeRegistry.Kind.EVENT,b.event()),readCondition(host,p+"/condition",b.conditions()),actions));}
@@ -28,11 +30,12 @@ public final class LogicInspector {
         return new LogicDefinition(def.type(),def.version(),fields);}
     private ConditionExpression readCondition(Host h,String path,ConditionExpression c){var children=new ArrayList<ConditionExpression>();for(int i=0;i<c.children().size();i++)children.add(readCondition(h,path+"/"+i,c.children().get(i)));
         return new ConditionExpression(c.kind(),c.leaf()==null?null:read(h,path,LogicTypeRegistry.Kind.CONDITION,c.leaf()),children);}
-    private void mutate(Host h,UnaryOperator<LogicComponent> change){try{draft=change.apply(value(h));h.clearLogicFields();h.changed();}catch(RuntimeException e){h.invalid();}}
+    private void mutate(Host h,UnaryOperator<LogicComponent> change){try{var next=change.apply(value(h));h.beginChange();draft=next;h.clearLogicFields();h.changed();}catch(RuntimeException e){h.invalid();}}
     private void binding(Host h,UUID id,UnaryOperator<LogicBinding> change){mutate(h,c->new LogicComponent(c.bindings().stream().map(b->b.id().equals(id)?change.apply(b):b).toList()));}
     public void render(Host h){
+        int number=0;
         for(var b:draft.bindings()){
-            String p="logic/"+b.id();h.line(tr("binding")+" "+b.id().toString().substring(0,8));
+            String p="logic/"+b.id();h.line(tr("binding")+" "+(++number)+(h.advanced()?" · "+b.id():""));
             h.action((b.enabled()?"[x] ":"[ ] ")+tr("enabled"),()->binding(h,b.id(),v->new LogicBinding(v.id(),!v.enabled(),v.event(),v.conditions(),v.actions())));
             h.action(tr("event")+": "+label(LogicTypeRegistry.Kind.EVENT,b.event()),()->choose(h,LogicTypeRegistry.Kind.EVENT,d->binding(h,b.id(),v->new LogicBinding(v.id(),v.enabled(),d,v.conditions(),v.actions()))));
             fields(h,p+"/event",LogicTypeRegistry.Kind.EVENT,b.event());
@@ -52,10 +55,10 @@ public final class LogicInspector {
     }
     private static LogicBinding withActions(LogicBinding b,List<LogicDefinition> a){return new LogicBinding(b.id(),b.enabled(),b.event(),b.conditions(),a);}
     private void condition(Host h,UUID binding,String prefix,ConditionExpression c,List<Integer> path,int depth){
-        String pad="  ".repeat(depth);h.action(pad+tr("conditions")+": "+(c.leaf()==null?c.kind().name():label(LogicTypeRegistry.Kind.CONDITION,c.leaf())),()->{
-            var choices=new ArrayList<Choice>();for(var kind:List.of(ConditionExpression.Kind.ALL,ConditionExpression.Kind.ANY,ConditionExpression.Kind.NOT))choices.add(new Choice(kind.name(),()->replace(h,binding,path,n->
-                    new ConditionExpression(kind,null,kind==ConditionExpression.Kind.NOT?List.of(n):n.kind()==ConditionExpression.Kind.LEAF?List.of(n):n.children()))));
-            choices.add(new Choice(tr("leaf"),()->choose(h,LogicTypeRegistry.Kind.CONDITION,d->replace(h,binding,path,n->ConditionExpression.leaf(d)))));h.picker(tr("conditions"),choices);
+        String pad="  ".repeat(depth);h.action(pad+tr("conditions")+": "+(c.leaf()==null?Component.translatable(MakerPresentation.conditionKey(c.kind())).getString():label(LogicTypeRegistry.Kind.CONDITION,c.leaf())),()->{
+            var choices=new ArrayList<Choice>();for(var kind:List.of(ConditionExpression.Kind.ALL,ConditionExpression.Kind.ANY))choices.add(new Choice(Component.translatable(MakerPresentation.conditionKey(kind)).getString(),()->replace(h,binding,path,n->MakerPresentation.group(n,kind))));
+            choices.add(new Choice(tr("invert_group"),()->replace(h,binding,path,MakerPresentation::invert)));
+            if(c.kind()==ConditionExpression.Kind.LEAF)choices.add(new Choice(tr("change_condition"),()->choose(h,LogicTypeRegistry.Kind.CONDITION,d->replace(h,binding,path,n->ConditionExpression.leaf(d)))));h.picker(tr("conditions"),choices);
         });
         if(c.leaf()!=null)fields(h,prefix,LogicTypeRegistry.Kind.CONDITION,c.leaf());
         for(int i=0;i<c.children().size();i++){var childPath=new ArrayList<>(path);childPath.add(i);condition(h,binding,prefix+"/"+i,c.children().get(i),List.copyOf(childPath),depth+1);}
@@ -67,12 +70,22 @@ public final class LogicInspector {
     private void replace(Host h,UUID id,List<Integer> path,UnaryOperator<ConditionExpression> change){binding(h,id,b->new LogicBinding(b.id(),b.enabled(),b.event(),replace(b.conditions(),path,0,change),b.actions()));}
     private ConditionExpression replace(ConditionExpression c,List<Integer> path,int index,UnaryOperator<ConditionExpression> change){if(index==path.size())return change.apply(c);var children=new ArrayList<>(c.children());int child=path.get(index);children.set(child,replace(children.get(child),path,index+1,change));return new ConditionExpression(c.kind(),c.leaf(),children);}
     private void fields(Host h,String path,LogicTypeRegistry.Kind kind,LogicDefinition definition){var schema=EditorClient.logicSchemas.getOrDefault(kind,Map.of()).get(definition.type());
-        if(schema==null){h.line(tr("unknown_type")+": "+definition.type());return;}
+        if(schema==null){h.line(tr("unknown_type")+(h.advanced()?": "+definition.type():""));return;}
+        var metadata=dev.maplesadventure.api.editor.client.MaplesEditorClientApi.presentation(dev.maplesadventure.api.editor.client.EditorPresentation.Target.valueOf(kind.name()),definition.type());
+        if(metadata.isPresent()){
+            var info=metadata.get();if(!info.descriptionKey().isBlank())h.line(Component.translatable(info.descriptionKey()).getString());
+            if(!info.sentenceKey().isBlank()){String sentence=Component.translatable(info.sentenceKey()).getString();for(var entry:definition.fields().entrySet())sentence=sentence.replace("{"+entry.getKey()+"}",h.text(path+"/"+entry.getKey(),entry.getValue().text()));h.line(sentence);}
+        }
         for(var f:schema.schema().fields()){var value=definition.fields().get(f.id());if(value!=null)h.field(path+"/"+f.id(),f,value);}
     }
     private void choose(Host h,LogicTypeRegistry.Kind kind,Consumer<LogicDefinition> callback){var choices=new ArrayList<Choice>();
-        EditorClient.logicSchemas.getOrDefault(kind,Map.of()).values().stream().sorted(Comparator.comparing(s->s.schema().id().toString())).forEach(s->choices.add(new Choice(Component.translatable(s.schema().label()).getString()+" · "+s.schema().id(),()->callback.accept(s.defaults()))));
+        EditorClient.logicSchemas.getOrDefault(kind,Map.of()).values().stream().sorted(Comparator.comparing(s->s.schema().id().toString())).forEach(s->{
+            var info=dev.maplesadventure.api.editor.client.MaplesEditorClientApi.presentation(dev.maplesadventure.api.editor.client.EditorPresentation.Target.valueOf(kind.name()),s.schema().id());
+            if(!h.advanced()&&info.map(dev.maplesadventure.api.editor.client.EditorPresentation::advancedOnly).orElse(false))return;
+            String label=MakerPresentation.name(Component.translatable(s.schema().label()).getString(),s.schema().id(),h.advanced());
+            if(info.isPresent()&&!info.get().categoryKey().isBlank())label=Component.translatable(info.get().categoryKey()).getString()+" · "+label;
+            choices.add(new Choice(label,()->callback.accept(MakerPresentation.newDefinition(s.defaults()))));});
         h.picker(tr(kind.name().toLowerCase(Locale.ROOT)),choices);}
-    private static String label(LogicTypeRegistry.Kind k,LogicDefinition d){var s=EditorClient.logicSchemas.getOrDefault(k,Map.of()).get(d.type());return s==null?d.type().toString():Component.translatable(s.schema().label()).getString();}
+    private static String label(LogicTypeRegistry.Kind k,LogicDefinition d){var s=EditorClient.logicSchemas.getOrDefault(k,Map.of()).get(d.type());return MakerPresentation.name(s==null?null:Component.translatable(s.schema().label()).getString(),d.type(),dev.maplesadventure.config.EditorClientConfig.ADVANCED.get());}
     private static String tr(String key){return Component.translatable("editor.maplesadventure.logic."+key).getString();}
 }

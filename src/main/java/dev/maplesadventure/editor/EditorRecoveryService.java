@@ -42,6 +42,12 @@ public final class EditorRecoveryService {
         player.setCamera(player);
         var pos=transform.position();
         player.teleportTo(level,pos.x,pos.y,pos.z,transform.yaw(),transform.pitch());
+        // A dimension/teleport integration may refuse or redirect the transition. Do not
+        // acknowledge a successful return or erase its trusted recovery point in that case.
+        if(player.serverLevel()!=level||player.position().distanceToSqr(pos)>1.0e-6){
+            MaplesAdventure.LOGGER.warn("Editor recovery position change refused for {}; retaining recovery marker",player.getUUID());
+            return;
+        }
         player.setDeltaMovement(Vec3.ZERO);player.fallDistance=0;
         if(!preserveExternalMode){
             var expected=point==null?GameType.SURVIVAL:point.gameMode();
